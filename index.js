@@ -1,7 +1,6 @@
-require('dotenv').config();
+require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
-const assert = require("assert");
 const f = require("util").format;
 
 // Let's get mongodb working first
