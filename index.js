@@ -9,6 +9,14 @@ let mongoURL = f("mongodb://%s:%s@%s/%s", process.env.mongo_user, process.env.mo
 let connect = MongoClient.connect(mongoURL, {poolSize: 10});
 
 
+class ActiveCollection extends Array{
+	init(){
+		_.each(this, function(el, i){
+			this.data.push(el.data);
+		});
+	}
+}
+
 let ActiveRecord = function(tableName){
 	var _collectionCreated = this._collectionCreated = connect.then((db) => {
 		return db.createCollection(tableName).then((col) => {
@@ -90,10 +98,11 @@ ActiveRecord.prototype.where = function(query, orderBy){
 ActiveRecord.prototype.all = function(){
 	return this._collectionCreated.then((col) => {
 		return col.find().toArray().then((models) => {
-			var results = [];
+			var results = new ActiveCollection();
 			_.each(models, (model, i) => {
 				results.push(new this.Model(model, true));
 			});
+			results.init();
 
 			return Promise.resolve(results);
 		});
