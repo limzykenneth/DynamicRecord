@@ -88,7 +88,7 @@ ActiveRecord.prototype.where = function(query, orderBy){
 };
 
 ActiveRecord.prototype.all = function(){
-	return this._collectionCreated((col) => {
+	return this._collectionCreated.then((col) => {
 		return col.find().toArray().then((models) => {
 			var results = [];
 			_.each(models, (model, i) => {
