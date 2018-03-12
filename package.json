@@ -4,14 +4,21 @@
   "description": "A bare minimum Javascript implementation of the Active Record pattern",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "author": "",
   "license": "BSD-2-Clause",
   "dependencies": {
     "bluebird": "^3.5.1",
+    "dotenv": "^5.0.1",
     "lodash": "^4.17.4",
     "moment": "^2.19.0",
-    "mongodb": "^2.2.31"
+    "mongodb": "^2.2.31",
+    "mongodb-autoincrement": "^1.0.1"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "eslint": "^4.18.2",
+    "mocha": "^5.0.4"
   }
 }

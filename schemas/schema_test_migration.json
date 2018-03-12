@@ -1,0 +1,10 @@
+[
+	{
+		"label": "name",
+		"type": "string"
+	},
+	{
+		"label": "amount",
+		"type": "int"
+	}
+]
