@@ -12,6 +12,7 @@ let connect = MongoClient.connect(mongoURL, {poolSize: 10});
 
 let ActiveRecord = function(tableName){
 	var _collectionCreated = this._collectionCreated = connect.then((db) => {
+		this._db = db;
 		return db.createCollection(tableName).then((col) => {
 			this._tableName = tableName;
 			return Promise.resolve(col);
@@ -205,6 +206,13 @@ let ActiveRecord = function(tableName){
 		// Validate database schema with this.definition
 		// Return boolean
 	};
+};
+
+ActiveRecord.prototype.closeConnection = function(){
+	// Should only ever be called to terminate the node process
+	this._collectionCreated.then((col) => {
+		this._db.close();
+	});
 };
 
 ActiveRecord.prototype.findBy = function(query){

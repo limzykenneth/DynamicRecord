@@ -26,6 +26,7 @@ Promise.all(promises).then(function(){
 				items[0].destroy().then(function(){
 					Random.findBy({"test_string_1": "Duis officia."}).then(function(r){
 						console.log(r);
+						Random.closeConnection();
 					});
 				});
 			});
