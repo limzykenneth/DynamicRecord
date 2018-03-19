@@ -1,11 +1,12 @@
 var _ = require("lodash");
 
 class ActiveCollection extends Array{
-	init(){
-		this.data = [];
+	get data(){
+		let result = [];
 		_.each(this, (el, i) => {
-			this.data.push(el.data);
+			result.push(el.data);
 		});
+		return result;
 	}
 }
 

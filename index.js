@@ -50,6 +50,7 @@ let ActiveRecord = function(tableName){
 			if(this._original){
 				return col.deleteOne(this._original).then((result) => {
 					this._original = null;
+					this.data = null;
 					return Promise.resolve(col);
 				});
 			}else{
@@ -152,7 +153,7 @@ let ActiveRecord = function(tableName){
 
 
 		var index = _.findIndex(this.definition, (el) => {
-			return el.label = label;
+			return el.label == label;
 		});
 
 		this.definition[index].label = newLabel;
@@ -167,7 +168,7 @@ let ActiveRecord = function(tableName){
 		// RDB implementation
 
 		var index = _.findIndex(this.definition, (el) => {
-			return el.label = label;
+			return el.label == label;
 		});
 		var oldType = this.definition[index].type;
 		this.definition[index].type = newType;
@@ -183,7 +184,8 @@ let ActiveRecord = function(tableName){
 
 
 		var index = _.findIndex(this.definition, (el) => {
-			return el.label = label;
+			console.log(el.label, label);
+			return el.label == label;
 		});
 		var deleted = this.definition.splice(index, 1);
 
@@ -212,6 +214,9 @@ ActiveRecord.prototype.closeConnection = function(){
 	// Should only ever be called to terminate the node process
 	this._collectionCreated.then((col) => {
 		this._db.close();
+	}).catch((err) => {
+		// BY ANY MEANS NECESSARY
+		this._db.close();
 	});
 };
 
@@ -230,7 +235,7 @@ ActiveRecord.prototype.where = function(query, orderBy){
 				models = _.sortBy(models, orderBy);
 			}
 
-			var results = [];
+			var results = new ActiveCollection();
 			_.each(models, (model, i) => {
 				results.push(new this.Model(model, true));
 			});
@@ -247,7 +252,6 @@ ActiveRecord.prototype.all = function(){
 			_.each(models, (model, i) => {
 				results.push(new this.Model(model, true));
 			});
-			results.init();
 
 			return Promise.resolve(results);
 		});

@@ -1,0 +1,10 @@
+[{
+    "label": "string",
+    "type": "string"
+}, {
+    "label": "int",
+    "type": "int"
+}, {
+    "label": "float",
+    "type": "float"
+}]
