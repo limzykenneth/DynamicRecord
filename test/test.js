@@ -2,7 +2,6 @@
 require("dotenv").config();
 const f = require("util").format;
 const Promise = require("bluebird");
-const fs = Promise.promisifyAll(require("fs"));
 const _ = require("lodash");
 const MongoClient = require("mongodb").MongoClient;
 const mongoURL = f("mongodb://%s:%s@%s/%s", process.env.mongo_user, process.env.mongo_pass, process.env.mongo_server, process.env.mongo_db_name);
@@ -13,7 +12,6 @@ const ActiveRecord = require("../index.js");
 const ActiveCollection = require("../ActiveCollection");
 const chai = require("chai");
 const assert = chai.assert;
-const expect = chai.expect;
 
 let Random;
 // Clear table and insert dummy data
@@ -37,9 +35,8 @@ describe("Schema", function(){
 	describe("createTable()", function(){
 		afterEach(function(done){
 			connect.then((db) => {
-				return db.dropCollection("random_table_2");
-			}).then(() => {
-				return fs.unlinkAsync("./schemas/schema_random_table_2.json");
+				var promises = [db.dropCollection("_schema"), db.dropCollection("random_table")];
+				return Promise.all(promises);
 			}).then(() => {
 				done();
 			}).catch((err) => {
@@ -49,18 +46,22 @@ describe("Schema", function(){
 
 		it("should create a new empty table or collection in the database and schema file", function(done){
 			let table = new Random.Schema();
-			table.createTable("random_table_2").then((col) => {
+			table.createTable("random_table").then((col) => {
 				connect.then((db) => {
 					return db.listCollections().toArray();
 				}).then((r) => {
+					// List all collections and find the newly created collection
 					let result = _.find(r, function(el){
-						return el.name == "random_table_2";
+						return el.name == "random_table";
 					});
 					assert.exists(result);
 
-					// Check if schema file exist
-					return fs.accessAsync("./schemas/schema_random_table_2.json");
-				}).then(() => {
+					// Check for entry in schema
+					return connect.then((db) => {
+						return db.collection("_schema").findOne({collectionSlug: "random_table"});
+					});
+				}).then((col) => {
+					assert.isNotNull(col);
 					done();
 				}).catch((err) => {
 					done(err);
@@ -70,20 +71,69 @@ describe("Schema", function(){
 	});
 
 	describe("read()", function(){
-		it("should read the schema entry from the schema file correctly", function(done){
+		beforeEach(function(done){
+			connect.then((db) => {
+				return db.createCollection("_schema");
+			}).then((col) => {
+				return col.insertOne({
+					collectionName: "Random Table",
+					collectionSlug: "random_table",
+					fields: [
+						{
+							"name": "String",
+							"slug": "string",
+							"type": "string"
+						},
+						{
+							"name": "Int",
+							"slug": "int",
+							"type": "int"
+						},
+						{
+							"name": "float",
+							"slug": "float",
+							"type": "float"
+						}
+					]
+				});
+			}).then(() => {
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
+
+		afterEach(function(done){
+			connect.then((db) => {
+				return db.dropCollection("_schema");
+			}).then(() => {
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
+
+		it("should read the schema entry from the database correctly", function(done){
 			let table = new Random.Schema();
 			table.read("random_table").then(() => {
 				assert.equal(table.tableName, "random_table");
-				assert.deepEqual(table.definition, [{
-					"label": "string",
-					"type": "string"
-				}, {
-					"label": "int",
-					"type": "int"
-				}, {
-					"label": "float",
-					"type": "float"
-				}]);
+				assert.deepEqual(table.definition, [
+					{
+						"name": "String",
+						"slug": "string",
+						"type": "string"
+					},
+					{
+						"name": "Int",
+						"slug": "int",
+						"type": "int"
+					},
+					{
+						"name": "float",
+						"slug": "float",
+						"type": "float"
+					}
+				]);
 				done();
 			}).catch((err) => {
 				done(err);
@@ -93,23 +143,29 @@ describe("Schema", function(){
 
 	describe("define()", function(){
 		afterEach(function(done){
-			fs.unlinkAsync("./schemas/schema_random_table_2.json").then(() => {
+			connect.then((db) => {
+				return db.dropCollection("_schema");
+			}).then(() => {
 				done();
 			}).catch((err) => {
 				done(err);
 			});
 		});
 
-		it("should write the schema definition to the schema file", function(done){
+		it("should write the schema definition to the database", function(done){
 			let table = new Random.Schema();
 			table.define("random_table_2", [{
-				"label": "test_column",
+				"slug": "test_column",
+				"name": "Test Column",
 				"type": "string"
 			}]).then(() => {
-				return fs.readFileAsync("./schemas/schema_random_table_2.json");
+				return connect.then((db) => {
+					return db.collection("_schema").findOne({collectionSlug: "random_table_2"});
+				});
 			}).then((data) => {
-				assert.deepEqual(JSON.parse(data), [{
-					"label": "test_column",
+				assert.deepEqual(data.fields, [{
+					"slug": "test_column",
+					"name": "Test Column",
 					"type": "string"
 				}]);
 				done();
@@ -120,7 +176,8 @@ describe("Schema", function(){
 		it("should set the correct name", function(done){
 			let table = new Random.Schema();
 			table.define("random_table_2", [{
-				"label": "test_column",
+				"slug": "test_column",
+				"name": "Test Column",
 				"type": "string"
 			}]).then(() => {
 				assert.equal(table.tableName, "random_table_2");
@@ -132,11 +189,13 @@ describe("Schema", function(){
 		it("should set the correct definition", function(done){
 			let table = new Random.Schema();
 			table.define("random_table_2", [{
-				"label": "test_column",
+				"slug": "test_column",
+				"name": "Test Column",
 				"type": "string"
 			}]).then(() => {
 				assert.deepEqual(table.definition, [{
-					"label": "test_column",
+					"slug": "test_column",
+					"name": "Test Column",
 					"type": "string"
 				}]);
 				done();
@@ -148,16 +207,24 @@ describe("Schema", function(){
 
 	describe("addColumn()", function(){
 		beforeEach(function(done){
-			fs.writeFileAsync("./schemas/schema_random_table_2.json", JSON.stringify([{
-				"label": "string",
-				"type": "string"
-			}, {
-				"label": "int",
-				"type": "int"
-			}, {
-				"label": "float",
-				"type": "float"
-			}])).then(() => {
+			connect.then((db) => {
+				return db.collection("_schema").insertOne({
+					collectionName: "Random Table",
+					collectionSlug: "random_table",
+					fields: [
+						{
+							"label": "string",
+							"type": "string"
+						}, {
+							"label": "int",
+							"type": "int"
+						}, {
+							"label": "float",
+							"type": "float"
+						}
+					]
+				});
+			}).then(() => {
 				done();
 			}).catch((err) => {
 				done(err);
@@ -165,7 +232,9 @@ describe("Schema", function(){
 		});
 
 		afterEach(function(done){
-			fs.unlinkAsync("./schemas/schema_random_table_2.json").then(() => {
+			connect.then((db) => {
+				return db.dropCollection("_schema");
+			}).then(() => {
 				done();
 			}).catch((err) => {
 				done(err);
@@ -174,7 +243,7 @@ describe("Schema", function(){
 
 		it("should add a column entry to the definition and the schema file", function(done){
 			let table = new Random.Schema();
-			table.read("random_table_2").then(() => {
+			table.read("random_table").then(() => {
 				assert.isDefined(table.tableName);
 				assert.isDefined(table.definition);
 				assert.lengthOf(table.definition, 3);
@@ -182,15 +251,18 @@ describe("Schema", function(){
 				return table.addColumn("test_column", "string");
 			}).then(() => {
 				assert.deepInclude(table.definition, {
-					"label": "test_column",
+					"name": "test_column",
+					"slug": "test_column",
 					"type": "string"
 				});
 
-				return fs.readFileAsync("./schemas/schema_random_table_2.json");
+				return connect.then((db) => {
+					return db.collection("_schema").findOne({collectionSlug: "random_table"});
+				});
 			}).then((data) => {
-				let table = JSON.parse(data);
-				assert.deepInclude(table, {
-					"label": "test_column",
+				assert.deepInclude(data.fields, {
+					"name": "test_column",
+					"slug": "test_column",
 					"type": "string"
 				});
 				done();
@@ -202,16 +274,29 @@ describe("Schema", function(){
 
 	describe("removeColumn()", function(){
 		beforeEach(function(done){
-			fs.writeFileAsync("./schemas/schema_random_table_2.json", JSON.stringify([{
-				"label": "string",
-				"type": "string"
-			}, {
-				"label": "int",
-				"type": "int"
-			}, {
-				"label": "float",
-				"type": "float"
-			}])).then(() => {
+			connect.then((db) => {
+				return db.collection("_schema").insertOne({
+					collectionName: "Random Table",
+					collectionSlug: "random_table",
+					fields: [
+						{
+							"name": "String",
+							"slug": "string",
+							"type": "string"
+						},
+						{
+							"name": "Int",
+							"slug": "int",
+							"type": "int"
+						},
+						{
+							"name": "float",
+							"slug": "float",
+							"type": "float"
+						}
+					]
+				});
+			}).then(() => {
 				done();
 			}).catch((err) => {
 				done(err);
@@ -219,7 +304,9 @@ describe("Schema", function(){
 		});
 
 		afterEach(function(done){
-			fs.unlinkAsync("./schemas/schema_random_table_2.json").then(() => {
+			connect.then((db) => {
+				return db.dropCollection("_schema");
+			}).then(() => {
 				done();
 			}).catch((err) => {
 				done(err);
@@ -229,7 +316,7 @@ describe("Schema", function(){
 		it("should remove a specified column entry from the definition", function(done){
 			let table = new Random.Schema();
 
-			table.read("random_table_2").then(() => {
+			table.read("random_table").then(() => {
 				assert.isDefined(table.tableName);
 				assert.isDefined(table.definition);
 				assert.lengthOf(table.definition, 3);
@@ -237,15 +324,18 @@ describe("Schema", function(){
 				return table.removeColumn("float");
 			}).then(() => {
 				assert.notDeepInclude(table.definition, {
-					"label": "float",
+					"name": "Float",
+					"slug": "float",
 					"type": "float"
 				});
 
-				return fs.readFileAsync("./schemas/schema_random_table_2.json");
+				return connect.then((db) => {
+					return db.collection("_schema").findOne({collectionSlug: "random_table"});
+				});
 			}).then((data) => {
-				let table = JSON.parse(data);
-				assert.notDeepInclude(table, {
-					"label": "float",
+				assert.notDeepInclude(data.fields, {
+					"name": "Float",
+					"slug": "float",
 					"type": "float"
 				});
 				done();
@@ -257,16 +347,27 @@ describe("Schema", function(){
 
 	describe("renameColumn()", function(){
 		beforeEach(function(done){
-			fs.writeFileAsync("./schemas/schema_random_table_2.json", JSON.stringify([{
-				"label": "string",
-				"type": "string"
-			}, {
-				"label": "int",
-				"type": "int"
-			}, {
-				"label": "float",
-				"type": "float"
-			}])).then(() => {
+			connect.then((db) => {
+				return db.collection("_schema").insertOne({
+					collectionName: "Random Table",
+					collectionSlug: "random_table",
+					fields: [
+						{
+							"name": "String",
+							"slug": "string",
+							"type": "string"
+						}, {
+							"name": "Int",
+							"slug": "int",
+							"type": "int"
+						}, {
+							"name": "Float",
+							"slug": "float",
+							"type": "float"
+						}
+					]
+				});
+			}).then(() => {
 				done();
 			}).catch((err) => {
 				done(err);
@@ -274,7 +375,9 @@ describe("Schema", function(){
 		});
 
 		afterEach(function(done){
-			fs.unlinkAsync("./schemas/schema_random_table_2.json").then(() => {
+			connect.then((db) => {
+				return db.dropCollection("_schema");
+			}).then(() => {
 				done();
 			}).catch((err) => {
 				done(err);
@@ -284,7 +387,7 @@ describe("Schema", function(){
 		it("should rename a specified column entry in the definition", function(done){
 			let table = new Random.Schema();
 
-			table.read("random_table_2").then(() => {
+			table.read("random_table").then(() => {
 				assert.isDefined(table.tableName);
 				assert.isDefined(table.definition);
 				assert.lengthOf(table.definition, 3);
@@ -292,23 +395,28 @@ describe("Schema", function(){
 				return table.renameColumn("int", "number");
 			}).then(() => {
 				assert.notDeepInclude(table.definition, {
-					"label": "int",
+					"name": "Int",
+					"slug": "int",
 					"type": "int"
 				}, "definition not include old label");
 				assert.deepInclude(table.definition, {
-					"label": "number",
+					"name": "number",
+					"slug": "number",
 					"type": "int"
 				}, "definition include new label");
 
-				return fs.readFileAsync("./schemas/schema_random_table_2.json");
+				return connect.then((db) => {
+					return db.collection("_schema").findOne({collectionSlug: "random_table"});
+				});
 			}).then((data) => {
-				let table = JSON.parse(data);
-				assert.notDeepInclude(table, {
-					"label": "int",
+				assert.notDeepInclude(data.fields, {
+					"name": "Int",
+					"slug": "int",
 					"type": "int"
 				}, "schema file not include old label");
-				assert.deepInclude(table, {
-					"label": "number",
+				assert.deepInclude(data.fields, {
+					"name": "number",
+					"slug": "number",
 					"type": "int"
 				}, "schema file include new label");
 
@@ -321,16 +429,27 @@ describe("Schema", function(){
 
 	describe("changeColumnType()", function(){
 		beforeEach(function(done){
-			fs.writeFileAsync("./schemas/schema_random_table_2.json", JSON.stringify([{
-				"label": "string",
-				"type": "string"
-			}, {
-				"label": "int",
-				"type": "int"
-			}, {
-				"label": "float",
-				"type": "float"
-			}])).then(() => {
+			connect.then((db) => {
+				return db.collection("_schema").insertOne({
+					collectionName: "Random Table",
+					collectionSlug: "random_table",
+					fields: [
+						{
+							"name": "String",
+							"slug": "string",
+							"type": "string"
+						}, {
+							"name": "Int",
+							"slug": "int",
+							"type": "int"
+						}, {
+							"name": "Float",
+							"slug": "float",
+							"type": "float"
+						}
+					]
+				});
+			}).then(() => {
 				done();
 			}).catch((err) => {
 				done(err);
@@ -338,7 +457,9 @@ describe("Schema", function(){
 		});
 
 		afterEach(function(done){
-			fs.unlinkAsync("./schemas/schema_random_table_2.json").then(() => {
+			connect.then((db) => {
+				return db.dropCollection("_schema");
+			}).then(() => {
 				done();
 			}).catch((err) => {
 				done(err);
@@ -348,7 +469,7 @@ describe("Schema", function(){
 		it("should change the specified column type in the definition", function(done){
 			let table = new Random.Schema();
 
-			table.read("random_table_2").then(() => {
+			table.read("random_table").then(() => {
 				assert.isDefined(table.tableName);
 				assert.isDefined(table.definition);
 				assert.lengthOf(table.definition, 3);
@@ -356,23 +477,28 @@ describe("Schema", function(){
 				return table.changeColumnType("float", "double");
 			}).then(() => {
 				assert.notDeepInclude(table.definition, {
-					"label": "float",
+					"name": "Float",
+					"slug": "float",
 					"type": "float"
 				}, "definition not include old type");
 				assert.deepInclude(table.definition, {
-					"label": "float",
+					"name": "Float",
+					"slug": "float",
 					"type": "double"
 				}, "definition include new type");
 
-				return fs.readFileAsync("./schemas/schema_random_table_2.json");
+				return connect.then((db) => {
+					return db.collection("_schema").findOne({collectionSlug: "random_table"});
+				});
 			}).then((data) => {
-				let table = JSON.parse(data);
-				assert.notDeepInclude(table, {
-					"label": "float",
+				assert.notDeepInclude(data.fields, {
+					"name": "Float",
+					"slug": "float",
 					"type": "float"
 				}, "schema file not include old type");
-				assert.deepInclude(table, {
-					"label": "float",
+				assert.deepInclude(data.fields, {
+					"name": "Float",
+					"slug": "float",
 					"type": "double"
 				}, "schema file include new type");
 

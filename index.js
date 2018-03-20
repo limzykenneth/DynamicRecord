@@ -2,7 +2,6 @@ require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
 const f = require("util").format;
-const fs = Promise.promisifyAll(require("fs"));
 const ActiveCollection = require("./ActiveCollection.js");
 
 // Let's get mongodb working first
@@ -83,11 +82,33 @@ let ActiveRecord = function(tableName){
 		this.definition = [];
 	};
 
+	Schema.prototype.createTable = function(tableName){
+		return connect.then((db) => {
+			return db.createCollection(tableName).then((col) => {
+				this.tableName = tableName;
+				return Promise.resolve(db);
+			});
+		}).then((db) => {
+			return db.collection("_schema").insertOne({
+				collectionSlug: this.tableName,
+				collectionName: this.tableName,
+				fields: []
+			}).catch((err) => {
+				this.tableName = null;
+				throw err;
+			});
+		}).catch((err) => {
+			throw err;
+		});
+	};
+
 	// Read and define schema
 	Schema.prototype.read = function(tableName){
-		return fs.readFileAsync(`./schemas/schema_${tableName}.json`).then((data) => {
+		return connect.then((db) => {
+			return db.collection("_schema").findOne({collectionSlug: tableName});
+		}).then((data) => {
 			this.tableName = tableName;
-			this.definition = JSON.parse(data);
+			this.definition = data.fields;
 
 			return Promise.resolve();
 		}).catch((err) => {
@@ -96,16 +117,19 @@ let ActiveRecord = function(tableName){
 	};
 
 	Schema.prototype.define = function(tableName, def){
-		// Create schema in RMDB, do nothing in NoSQL
-
-		// Write schemas definition to schemas.json file
-		// schemas.json must have parity with database schema
 		var oldTableName = this.tableName;
 		var oldDef = this.definition;
 		this.tableName = tableName;
 		this.definition = def;
 
-		return this._saveSchemaFile().catch((err) => {
+		// Create schema in RMDB, do nothing in NoSQL
+		return connect.then((db) => {
+			return db.collection("_schema").insertOne({
+				collectionSlug: tableName,
+				collectionName: tableName,
+				fields: def
+			});
+		}).catch((err) => {
 			this.tableName = oldTableName;
 			this.definition = oldDef;
 			throw err;
@@ -118,92 +142,85 @@ let ActiveRecord = function(tableName){
 		// Populate columns in RDB with columns
 	};
 
-	Schema.prototype.createTable = function(tableName){
-		return connect.then((db) => {
-			return db.createCollection(tableName).then((col) => {
-				this.tableName = tableName;
-				return Promise.resolve(col);
-			});
-		}).then((col) => {
-			return fs.writeFileAsync(`./schemas/schema_${this.tableName}.json`, "")
-				.catch((err) => {
-					throw err;
-				});
-		});
-	};
-
 	// Columns functions
 	Schema.prototype.addColumn = function(label, type){
-		// RDB need to add the column then do the rest
-
-
 		this.definition.push({
-			label,
-			type
+			name: label,
+			slug: label,
+			type: type
 		});
 
-		return this._saveSchemaFile().catch((err) => {
+		return connect.then((db) => {
+			return db.collection("_schema").findOneAndUpdate({collectionSlug: this.tableName}, {
+				$set: {
+					fields: this.definition
+				}
+			});
+		}).catch((err) => {
 			this.definition.pop();
 			throw err;
 		});
 	};
 
-	Schema.prototype.renameColumn = function(label, newLabel){
-		// RDB implementation
-
-
+	Schema.prototype.renameColumn = function(slug, newSlug){
 		var index = _.findIndex(this.definition, (el) => {
-			return el.label == label;
+			return el.slug == slug;
 		});
 
-		this.definition[index].label = newLabel;
+		this.definition[index].name = newSlug;
+		this.definition[index].slug = newSlug;
 
-		return this._saveSchemaFile().catch((err) => {
-			this.definition[index].label = label;
+		return connect.then((db) => {
+			return db.collection("_schema").findOneAndUpdate({collectionSlug: this.tableName}, {
+				$set: {
+					fields: this.definition
+				}
+			});
+		}).catch((err) => {
+			this.definition[index].name = slug;
+			this.definition[index].slug = slug;
 			throw err;
 		});
 	};
 
 	Schema.prototype.changeColumnType = function(label, newType){
-		// RDB implementation
-
 		var index = _.findIndex(this.definition, (el) => {
-			return el.label == label;
+			return el.slug == label;
 		});
 		var oldType = this.definition[index].type;
 		this.definition[index].type = newType;
 
-		return this._saveSchemaFile().catch((err) => {
+		return connect.then((db) => {
+			return db.collection("_schema").findOneAndUpdate({collectionSlug: this.tableName}, {
+				$set: {
+					fields: this.definition
+				}
+			});
+		}).catch((err) => {
 			this.definition[index].type = oldType;
 			throw err;
 		});
 	};
 
 	Schema.prototype.removeColumn = function(label){
-		// RDB implementation
-
-
 		var index = _.findIndex(this.definition, (el) => {
-			console.log(el.label, label);
 			return el.label == label;
 		});
 		var deleted = this.definition.splice(index, 1);
 
-		return this._saveSchemaFile().catch((err) => {
+		return connect.then((db) => {
+			return db.collection("_schema").findOneAndUpdate({collectionSlug: this.tableName}, {
+				$set: {
+					fields: this.definition
+				}
+			});
+		}).catch((err) => {
 			this.definition.splice(index, 0, ...deleted);
 			throw err;
 		});
 	};
 
 	// Utils
-	Schema.prototype._saveSchemaFile = function(){
-		if(this.tableName){
-			return fs.writeFileAsync(`./schemas/schema_${this.tableName}.json`, JSON.stringify(this.definition));
-		}else{
-			throw new Error("Schema must first be defined or read from file");
-		}
-	};
-
 	Schema.prototype._validate = function(){
 		// Validate database schema with this.definition
 		// Return boolean
