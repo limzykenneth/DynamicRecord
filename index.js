@@ -150,13 +150,7 @@ let ActiveRecord = function(tableName){
 			type: type
 		});
 
-		return connect.then((db) => {
-			return db.collection("_schema").findOneAndUpdate({collectionSlug: this.tableName}, {
-				$set: {
-					fields: this.definition
-				}
-			});
-		}).catch((err) => {
+		return this._writeSchema().catch((err) => {
 			this.definition.pop();
 			throw err;
 		});
@@ -170,13 +164,7 @@ let ActiveRecord = function(tableName){
 		this.definition[index].name = newSlug;
 		this.definition[index].slug = newSlug;
 
-		return connect.then((db) => {
-			return db.collection("_schema").findOneAndUpdate({collectionSlug: this.tableName}, {
-				$set: {
-					fields: this.definition
-				}
-			});
-		}).catch((err) => {
+		return this._writeSchema().catch((err) => {
 			this.definition[index].name = slug;
 			this.definition[index].slug = slug;
 			throw err;
@@ -190,13 +178,7 @@ let ActiveRecord = function(tableName){
 		var oldType = this.definition[index].type;
 		this.definition[index].type = newType;
 
-		return connect.then((db) => {
-			return db.collection("_schema").findOneAndUpdate({collectionSlug: this.tableName}, {
-				$set: {
-					fields: this.definition
-				}
-			});
-		}).catch((err) => {
+		return this._writeSchema().catch((err) => {
 			this.definition[index].type = oldType;
 			throw err;
 		});
@@ -208,19 +190,23 @@ let ActiveRecord = function(tableName){
 		});
 		var deleted = this.definition.splice(index, 1);
 
-		return connect.then((db) => {
-			return db.collection("_schema").findOneAndUpdate({collectionSlug: this.tableName}, {
-				$set: {
-					fields: this.definition
-				}
-			});
-		}).catch((err) => {
+		return this._writeSchema().catch((err) => {
 			this.definition.splice(index, 0, ...deleted);
 			throw err;
 		});
 	};
 
 	// Utils
+	Schema.prototype._writeSchema = function(){
+		return connect.then((db) => {
+			return db.collection("_schema").findOneAndUpdate({collectionSlug: this.tableName}, {
+				$set: {
+					fields: this.definition
+				}
+			});
+		});
+	};
+
 	Schema.prototype._validate = function(){
 		// Validate database schema with this.definition
 		// Return boolean
