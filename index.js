@@ -79,22 +79,29 @@ let ActiveRecord = function(tableName){
 
 	let Schema = this.Schema = function(){
 		this.tableName = null;
+		this.tableSlug = null;
 		this.definition = [];
 	};
 
-	Schema.prototype.createTable = function(tableName){
+	Schema.prototype.createTable = function(tableName, tableSlug=null){
+		if(tableSlug === null){
+			tableSlug = tableName;
+		}
+
 		return connect.then((db) => {
 			return db.createCollection(tableName).then((col) => {
 				this.tableName = tableName;
+				this.tableSlug = tableSlug;
 				return Promise.resolve(db);
 			});
 		}).then((db) => {
 			return db.collection("_schema").insertOne({
-				collectionSlug: this.tableName,
+				collectionSlug: this.tableSlug,
 				collectionName: this.tableName,
 				fields: []
 			}).catch((err) => {
 				this.tableName = null;
+				this.tableSlug = null;
 				throw err;
 			});
 		}).catch((err) => {
@@ -103,11 +110,12 @@ let ActiveRecord = function(tableName){
 	};
 
 	// Read and define schema
-	Schema.prototype.read = function(tableName){
+	Schema.prototype.read = function(tableSlug){
 		return connect.then((db) => {
-			return db.collection("_schema").findOne({collectionSlug: tableName});
+			return db.collection("_schema").findOne({collectionSlug: tableSlug});
 		}).then((data) => {
-			this.tableName = tableName;
+			this.tableName = data.collectionName;
+			this.tableSlug = data.collectionSlug;
 			this.definition = data.fields;
 
 			return Promise.resolve();
@@ -116,30 +124,27 @@ let ActiveRecord = function(tableName){
 		});
 	};
 
-	Schema.prototype.define = function(tableName, def){
+	Schema.prototype.define = function(tableName, tableSlug, def){
 		var oldTableName = this.tableName;
+		var oldTableSlug = this.tableSlug;
 		var oldDef = this.definition;
 		this.tableName = tableName;
+		this.tableSlug = tableSlug;
 		this.definition = def;
 
 		// Create schema in RMDB, do nothing in NoSQL
 		return connect.then((db) => {
 			return db.collection("_schema").insertOne({
-				collectionSlug: tableName,
+				collectionSlug: tableSlug,
 				collectionName: tableName,
 				fields: def
 			});
 		}).catch((err) => {
 			this.tableName = oldTableName;
+			this.tableSlug = oldTableSlug;
 			this.definition = oldDef;
 			throw err;
 		});
-	};
-
-	Schema.prototype.restore = function(){
-		this.read();
-
-		// Populate columns in RDB with columns
 	};
 
 	// Columns functions
@@ -199,7 +204,7 @@ let ActiveRecord = function(tableName){
 	// Utils
 	Schema.prototype._writeSchema = function(){
 		return connect.then((db) => {
-			return db.collection("_schema").findOneAndUpdate({collectionSlug: this.tableName}, {
+			return db.collection("_schema").findOneAndUpdate({collectionSlug: this.tableSlug}, {
 				$set: {
 					fields: this.definition
 				}

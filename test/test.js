@@ -116,7 +116,7 @@ describe("Schema", function(){
 		it("should read the schema entry from the database correctly", function(done){
 			let table = new Random.Schema();
 			table.read("random_table").then(() => {
-				assert.equal(table.tableName, "random_table");
+				assert.equal(table.tableSlug, "random_table");
 				assert.deepEqual(table.definition, [
 					{
 						"name": "String",
@@ -154,13 +154,13 @@ describe("Schema", function(){
 
 		it("should write the schema definition to the database", function(done){
 			let table = new Random.Schema();
-			table.define("random_table_2", [{
+			table.define("Random Table", "random_table", [{
 				"slug": "test_column",
 				"name": "Test Column",
 				"type": "string"
 			}]).then(() => {
 				return connect.then((db) => {
-					return db.collection("_schema").findOne({collectionSlug: "random_table_2"});
+					return db.collection("_schema").findOne({collectionSlug: "random_table"});
 				});
 			}).then((data) => {
 				assert.deepEqual(data.fields, [{
@@ -173,14 +173,15 @@ describe("Schema", function(){
 				done(err);
 			});
 		});
-		it("should set the correct name", function(done){
+		it("should set the correct name and slug", function(done){
 			let table = new Random.Schema();
-			table.define("random_table_2", [{
+			table.define("Random Table", "random_table", [{
 				"slug": "test_column",
 				"name": "Test Column",
 				"type": "string"
 			}]).then(() => {
-				assert.equal(table.tableName, "random_table_2");
+				assert.equal(table.tableName, "Random Table");
+				assert.equal(table.tableSlug, "random_table");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -188,7 +189,7 @@ describe("Schema", function(){
 		});
 		it("should set the correct definition", function(done){
 			let table = new Random.Schema();
-			table.define("random_table_2", [{
+			table.define("Random Table", "random_table", [{
 				"slug": "test_column",
 				"name": "Test Column",
 				"type": "string"
@@ -241,7 +242,7 @@ describe("Schema", function(){
 			});
 		});
 
-		it("should add a column entry to the definition and the schema file", function(done){
+		it("should add a column entry to the definition and database", function(done){
 			let table = new Random.Schema();
 			table.read("random_table").then(() => {
 				assert.isDefined(table.tableName);
@@ -254,7 +255,7 @@ describe("Schema", function(){
 					"name": "test_column",
 					"slug": "test_column",
 					"type": "string"
-				});
+				}, "definition include new column");
 
 				return connect.then((db) => {
 					return db.collection("_schema").findOne({collectionSlug: "random_table"});
@@ -264,7 +265,7 @@ describe("Schema", function(){
 					"name": "test_column",
 					"slug": "test_column",
 					"type": "string"
-				});
+				}, "database entry include new column");
 				done();
 			}).catch((err) => {
 				done(err);
