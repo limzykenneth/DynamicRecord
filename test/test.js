@@ -22,15 +22,18 @@ before(function(done){
 	});
 });
 
+// Close all database connections
+after(function(done){
+	dropTestTable(function(reply){
+		Random.closeConnection();
+		connect.then((db) => {
+			db.close();
+		});
+		done();
+	});
+});
+
 describe("Schema", function(){
-	beforeEach(function(){
-
-	});
-
-	afterEach(function(){
-
-	});
-
 	// Tests
 	describe("createTable()", function(){
 		afterEach(function(done){
@@ -44,17 +47,17 @@ describe("Schema", function(){
 			});
 		});
 
-		it("should create a new empty table or collection in the database and schema file", function(done){
+		it("should create a new empty table or collection in the database", function(done){
 			let table = new Random.Schema();
 			table.createTable("random_table").then((col) => {
 				connect.then((db) => {
 					return db.listCollections().toArray();
-				}).then((r) => {
+				}).then((cols) => {
 					// List all collections and find the newly created collection
-					let result = _.find(r, function(el){
+					let result = _.find(cols, function(el){
 						return el.name == "random_table";
 					});
-					assert.exists(result);
+					assert.exists(result, "collection exists in database");
 
 					// Check for entry in schema
 					return connect.then((db) => {
@@ -116,7 +119,7 @@ describe("Schema", function(){
 		it("should read the schema entry from the database correctly", function(done){
 			let table = new Random.Schema();
 			table.read("random_table").then(() => {
-				assert.equal(table.tableSlug, "random_table");
+				assert.equal(table.tableSlug, "random_table", "object slug is equal to 'random_table'");
 				assert.deepEqual(table.definition, [
 					{
 						"name": "String",
@@ -133,7 +136,7 @@ describe("Schema", function(){
 						"slug": "float",
 						"type": "float"
 					}
-				]);
+				], "object definition is as defined");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -167,7 +170,7 @@ describe("Schema", function(){
 					"slug": "test_column",
 					"name": "Test Column",
 					"type": "string"
-				}]);
+				}], "database entry has correct definition");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -180,8 +183,8 @@ describe("Schema", function(){
 				"name": "Test Column",
 				"type": "string"
 			}]).then(() => {
-				assert.equal(table.tableName, "Random Table");
-				assert.equal(table.tableSlug, "random_table");
+				assert.equal(table.tableName, "Random Table", "object name is set correctly");
+				assert.equal(table.tableSlug, "random_table", "object slug is set correctly");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -198,7 +201,7 @@ describe("Schema", function(){
 					"slug": "test_column",
 					"name": "Test Column",
 					"type": "string"
-				}]);
+				}], "object definition is set correctly");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -255,7 +258,7 @@ describe("Schema", function(){
 					"name": "test_column",
 					"slug": "test_column",
 					"type": "string"
-				}, "definition include new column");
+				}, "object definition include new column");
 
 				return connect.then((db) => {
 					return db.collection("_schema").findOne({collectionSlug: "random_table"});
@@ -328,7 +331,7 @@ describe("Schema", function(){
 					"name": "Float",
 					"slug": "float",
 					"type": "float"
-				});
+				}, "removed field is not in object definition");
 
 				return connect.then((db) => {
 					return db.collection("_schema").findOne({collectionSlug: "random_table"});
@@ -338,7 +341,7 @@ describe("Schema", function(){
 					"name": "Float",
 					"slug": "float",
 					"type": "float"
-				});
+				}, "removed field is not in database entry");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -399,12 +402,12 @@ describe("Schema", function(){
 					"name": "Int",
 					"slug": "int",
 					"type": "int"
-				}, "definition not include old label");
+				}, "object definition does not include old label");
 				assert.deepInclude(table.definition, {
 					"name": "number",
 					"slug": "number",
 					"type": "int"
-				}, "definition include new label");
+				}, "object definition includes new label");
 
 				return connect.then((db) => {
 					return db.collection("_schema").findOne({collectionSlug: "random_table"});
@@ -414,12 +417,12 @@ describe("Schema", function(){
 					"name": "Int",
 					"slug": "int",
 					"type": "int"
-				}, "schema file not include old label");
+				}, "database entry does not include old label");
 				assert.deepInclude(data.fields, {
 					"name": "number",
 					"slug": "number",
 					"type": "int"
-				}, "schema file include new label");
+				}, "database entry includes new label");
 
 				done();
 			}).catch((err) => {
@@ -481,12 +484,12 @@ describe("Schema", function(){
 					"name": "Float",
 					"slug": "float",
 					"type": "float"
-				}, "definition not include old type");
+				}, "object definition does not include old type");
 				assert.deepInclude(table.definition, {
 					"name": "Float",
 					"slug": "float",
 					"type": "double"
-				}, "definition include new type");
+				}, "object definition includes new type");
 
 				return connect.then((db) => {
 					return db.collection("_schema").findOne({collectionSlug: "random_table"});
@@ -496,12 +499,12 @@ describe("Schema", function(){
 					"name": "Float",
 					"slug": "float",
 					"type": "float"
-				}, "schema file not include old type");
+				}, "database entry does not include old type");
 				assert.deepInclude(data.fields, {
 					"name": "Float",
 					"slug": "float",
 					"type": "double"
-				}, "schema file include new type");
+				}, "database entry includes new type");
 
 				done();
 			}).catch((err) => {
@@ -541,6 +544,16 @@ describe("ActiveRecord", function(){
 		});
 	});
 
+	after(function(done){
+		connect.then((db) => {
+			return db.collection("random_table").deleteMany({});
+		}).then((r) => {
+			done();
+		}).catch((err) => {
+			done(err);
+		});
+	});
+
 	// Tests
 	describe("Constructor", function(){
 		it("should retrieve the specified table or collection from the database");
@@ -549,9 +562,9 @@ describe("ActiveRecord", function(){
 	describe("findBy()", function(){
 		it("should retrieve an entry from the database matching the query", function(done){
 			Random.findBy({"string": testData[0].string}).then((model) => {
-				assert.equal(model.data.string, testData[0].string);
-				assert.equal(model.data.int, testData[0].int);
-				assert.equal(model.data.float, testData[0].float);
+				assert.equal(model.data.string, testData[0].string, "string property matches test data");
+				assert.equal(model.data.int, testData[0].int, "int property matches test data");
+				assert.equal(model.data.float, testData[0].float, "float property matches test data");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -559,7 +572,7 @@ describe("ActiveRecord", function(){
 		});
 		it("should return a single object of type ActiveRecord.Model", function(done){
 			Random.findBy({"string": testData[0].string}).then((model) => {
-				assert.instanceOf(model, Random.Model);
+				assert.instanceOf(model, Random.Model, "'model' is and instance of 'Random.Model'");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -567,7 +580,7 @@ describe("ActiveRecord", function(){
 		});
 		it("should return null if an entry is not found", function(done){
 			Random.findBy({"string": "Not found"}).then((model) => {
-				assert.isNull(model.data);
+				assert.isNull(model.data, "data object is not null");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -577,30 +590,30 @@ describe("ActiveRecord", function(){
 
 	describe("where()", function(){
 		it("should retrieve all entries from the database matching the query", function(done){
-			Random.where({"int": testData[0].int}).then((c) => {
-				assert.deepInclude(c.data, testData[0]);
-				assert.deepInclude(c.data, testData[1]);
-				assert.notDeepInclude(c.data, testData[2]);
+			Random.where({"int": testData[0].int}).then((col) => {
+				assert.deepInclude(col.data, testData[0], "collection data includes first test data");
+				assert.deepInclude(col.data, testData[1], "collection data includes second test data");
+				assert.notDeepInclude(col.data, testData[2], "collection data does not include third data");
 				done();
 			}).catch((err) => {
 				done(err);
 			});
 		});
 		it("should return an array descendent of type ActiveCollection", function(done){
-			Random.where({"float": testData[1].float}).then((c) => {
-				assert.instanceOf(c, Array);
-				assert.instanceOf(c, ActiveCollection);
+			Random.where({"float": testData[1].float}).then((col) => {
+				assert.instanceOf(col, Array, "collection is an instance of Array");
+				assert.instanceOf(col, ActiveCollection, "collection is an instance of ActiveCollection");
 				done();
 			}).catch((err) => {
 				done(err);
 			});
 		});
 		it("should return an empty array descendent if query returns nothing", function(done){
-			Random.where({"string": "Not exist"}).then((c) => {
-				assert.instanceOf(c, Array);
-				assert.instanceOf(c, ActiveCollection);
-				assert.isEmpty(c);
-				assert.isEmpty(c.data);
+			Random.where({"string": "Not exist"}).then((col) => {
+				assert.instanceOf(col, Array, "collection is an instance of Array");
+				assert.instanceOf(col, ActiveCollection, "collection is an instance of ActiveCollection");
+				assert.isEmpty(col, "collection is empty");
+				assert.isEmpty(col.data, "collection data is empty");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -610,19 +623,19 @@ describe("ActiveRecord", function(){
 
 	describe("all()", function(){
 		it("should retrieve all entries from the database", function(done){
-			Random.all().then((c) => {
-				assert.deepInclude(c.data, testData[0]);
-				assert.deepInclude(c.data, testData[1]);
-				assert.deepInclude(c.data, testData[2]);
+			Random.all().then((col) => {
+				assert.deepInclude(col.data, testData[0], "collection data includes first test data");
+				assert.deepInclude(col.data, testData[1], "collection data includes second test data");
+				assert.deepInclude(col.data, testData[2], "collection data includes third test data");
 				done();
 			}).catch((err) => {
 				done(err);
 			});
 		});
 		it("should return an array descendent of type ActiveCollection", function(done){
-			Random.all().then((c) => {
-				assert.instanceOf(c, Array);
-				assert.instanceOf(c, ActiveCollection);
+			Random.all().then((col) => {
+				assert.instanceOf(col, Array, "collection is an instance of Array");
+				assert.instanceOf(col, ActiveCollection, "collection is an instance of ActiveCollection");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -634,7 +647,7 @@ describe("ActiveRecord", function(){
 	describe("first()", function(){
 		it("should retrieve one latest entry from the database", function(done){
 			Random.first().then((model) => {
-				assert.deepEqual(model.data, testData[0]);
+				assert.deepEqual(model.data, testData[0], "model should equal testData");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -642,7 +655,7 @@ describe("ActiveRecord", function(){
 		});
 		it("should return a single object of type ActiveRecord.Model", function(done){
 			Random.first().then((model) => {
-				assert.instanceOf(model, Random.Model);
+				assert.instanceOf(model, Random.Model, "'model' is and instance of 'Random.Model'");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -661,12 +674,12 @@ describe("Model", function(){
 				"int": 27,
 				"float": 6.2831853072
 			});
-			assert.exists(model.data);
+			assert.exists(model.data, "'model.data' exists");
 			assert.deepEqual(model.data, {
 				"string": "Laborum non culpa.",
 				"int": 27,
 				"float": 6.2831853072
-			});
+			}, "'model.data' is as defined");
 		});
 		it("should make a deep copy of the object if _preserveOriginal is truthy", function(){
 			let model = new Random.Model({
@@ -674,9 +687,9 @@ describe("Model", function(){
 				"int": 27,
 				"float": 6.2831853072
 			}, true);
-			assert.exists(model.data);
-			assert.exists(model._original);
-			assert.deepEqual(model.data, model._original);
+			assert.exists(model.data, "'model.data' exists");
+			assert.exists(model._original, "'model._original' exists");
+			assert.deepEqual(model.data, model._original, "'model.data' and 'model._original' are the same");
 		});
 		it("should have a null _original object if _preserveOriginal is falsy", function(){
 			let model = new Random.Model({
@@ -684,8 +697,8 @@ describe("Model", function(){
 				"int": 27,
 				"float": 6.2831853072
 			}, false);
-			assert.notDeepEqual(model.data, model._original);
-			assert.isNull(model._original);
+			assert.notDeepEqual(model.data, model._original, "'model.data' and 'model._original' are not the same");
+			assert.isNull(model._original, "'model._original' is null");
 		});
 	});
 
@@ -719,6 +732,16 @@ describe("Model", function(){
 			});
 		});
 
+		after(function(done){
+			connect.then((db) => {
+				return db.collection("random_table").deleteMany({});
+			}).then((r) => {
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
+
 		// Tests
 		it("should insert the corresponding entry in the database if not exist", function(done){
 			let model = new Random.Model({
@@ -735,7 +758,7 @@ describe("Model", function(){
 					});
 				});
 			}).then((m) => {
-				assert.isNotNull(m);
+				assert.isNotNull(m, "returned result is not null");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -745,7 +768,6 @@ describe("Model", function(){
 			let model;
 			Random.findBy({"int": 10958}).then((m) => {
 				model = m;
-				assert.equal(model.data.int, 10958);
 				model.data.string = "New string";
 				return model.save();
 			}).then((col) => {
@@ -753,7 +775,7 @@ describe("Model", function(){
 					return db.collection("random_table").findOne({"int": 10958});
 				});
 			}).then((m) => {
-				assert.deepEqual(m, model.data);
+				assert.deepEqual(m, model.data, "returned result is equal to 'model.data'");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -763,11 +785,10 @@ describe("Model", function(){
 			let model;
 			Random.findBy({"int": 10958}).then((m) => {
 				model = m;
-				assert.equal(model.data.int, 10958);
 				model.data.string = "New string";
 				return model.save();
 			}).then((col) => {
-				assert.equal(model._original.string, "New string");
+				assert.equal(model._original.string, "New string", "string of original is as defined");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -808,15 +829,15 @@ describe("Model", function(){
 					return db.collection("random_table").findOne({"string": "Delete me"});
 				});
 			}).then((model) => {
-				assert.isNotNull(model);
-				assert.equal(model.string, "Delete me");
+				assert.isNotNull(model, "model is not null");
+				assert.equal(model.string, "Delete me", "string of model is defined");
 				return testModel.destroy();
 			}).then(() => {
 				return connect.then((db) => {
 					return db.collection("random_table").findOne({"string": "Delete me"});
 				});
 			}).then((model) => {
-				assert.isNull(model);
+				assert.isNull(model, "model is null");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -828,8 +849,8 @@ describe("Model", function(){
 				model = m;
 				return model.destroy();
 			}).then(() => {
-				assert.isNull(model.data);
-				assert.isNull(model._original);
+				assert.isNull(model.data, "data is null");
+				assert.isNull(model._original, "original is null");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -857,20 +878,20 @@ describe("ActiveCollection", function(){
 	});
 
 	it("should be an instance of Array", function(){
-		assert.instanceOf(col, Array);
+		assert.instanceOf(col, Array, "collection is an instance of Array");
 	});
 	it("should have the same methods as Array", function(){
-		assert.isFunction(col.push);
-		assert.isFunction(col.pop);
-		assert.isFunction(col.slice);
-		assert.isFunction(col.splice);
-		assert.isFunction(col.map);
-		assert.isFunction(col.reduce);
+		assert.isFunction(col.push, "collection has function push");
+		assert.isFunction(col.pop, "collection has function pop");
+		assert.isFunction(col.slice, "collection has function slice");
+		assert.isFunction(col.splice, "collection has function splice");
+		assert.isFunction(col.map, "collection has function map");
+		assert.isFunction(col.reduce, "collection has function reduce");
 	});
 	it("should have a property 'data' that returns a regular array of data", function(){
-		assert.exists(col.data);
-		assert.isArray(col.data);
-		assert.notInstanceOf(col.data, ActiveCollection);
+		assert.exists(col.data, "collection data exist");
+		assert.isArray(col.data, "collection data is an array");
+		assert.notInstanceOf(col.data, ActiveCollection, "collection data is not an instance of ActiveCollection");
 	});
 	it("should update 'data' property whenever its data is updated", function(){
 		col.push(new Random.Model({
@@ -879,19 +900,7 @@ describe("ActiveCollection", function(){
 
 		assert.deepInclude(col.data, {
 			"string": "Magna dolor."
-		});
-	});
-});
-
-
-// Close all database connections
-after(function(done){
-	dropTestTable(function(reply){
-		Random.closeConnection();
-		connect.then((db) => {
-			db.close();
-		});
-		done();
+		}, "collection data include pushed entry");
 	});
 });
 
