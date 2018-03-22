@@ -5,11 +5,16 @@ const f = require("util").format;
 const ActiveCollection = require("./ActiveCollection.js");
 
 // Let's get mongodb working first
-const MongoClient = require("mongodb").MongoClient;
-let mongoURL = f("mongodb://%s:%s@%s/%s", process.env.mongo_user, process.env.mongo_pass, process.env.mongo_server, process.env.mongo_db_name);
-let connect = MongoClient.connect(mongoURL, {poolSize: 10});
+const connect = require("./mongoConnection.js");
+const autoIncrement = require("mongodb-autoincrement");
+autoIncrement.setDefaults({
+	collection: "_counters",     // collection name for counters, default: counters
+	// Use _id to prevserve random _uid
+	field: "_id",               // auto increment field name, default: _id
+	step: 1             // auto increment step
+});
 
-let ActiveRecord = function(tableName){
+const ActiveRecord = function(tableName){
 	var _collectionCreated = this._collectionCreated = connect.then((db) => {
 		this._db = db;
 		return db.createCollection(tableName).then((col) => {
