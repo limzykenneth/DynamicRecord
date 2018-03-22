@@ -9,7 +9,7 @@ const connect = MongoClient.connect(mongoURL);
 
 // Test dependencies
 const ActiveRecord = require("../index.js");
-const ActiveCollection = require("../ActiveCollection");
+const ActiveCollection = require("../ActiveCollection.js");
 const chai = require("chai");
 const assert = chai.assert;
 
@@ -17,7 +17,10 @@ let Random;
 // Clear table and insert dummy data
 before(function(done){
 	dropTestTable(function(reply){
-		Random = new ActiveRecord("random_table");
+		Random = new ActiveRecord({
+			tableSlug: "random_table",
+			tableName: "Random Table"
+		});
 		done();
 	});
 });

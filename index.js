@@ -1,8 +1,8 @@
 require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
-const f = require("util").format;
 const ActiveCollection = require("./ActiveCollection.js");
+const ActiveSchema = require("./ActiveSchema.js");
 
 // Let's get mongodb working first
 const connect = require("./mongoConnection.js");
@@ -14,10 +14,15 @@ autoIncrement.setDefaults({
 	step: 1             // auto increment step
 });
 
-const ActiveRecord = function(tableName){
-	var _collectionCreated = this._collectionCreated = connect.then((db) => {
+const ActiveRecord = function(options){
+	let tableSlug = options.tableSlug;
+	let tableName = options.tableName || options.tableSlug;
+	this._databaseConnection = connect;
+	this.Schema = ActiveSchema;
+
+	var _ready = this._ready = connect.then((db) => {
 		this._db = db;
-		return db.createCollection(tableName).then((col) => {
+		return db.createCollection(tableSlug).then((col) => {
 			this._tableName = tableName;
 			return Promise.resolve(col);
 		});
@@ -34,7 +39,7 @@ const ActiveRecord = function(tableName){
 	};
 
 	Model.prototype.save = function(){
-		return _collectionCreated.then((col) => {
+		return _ready.then((col) => {
 			if(this._original){
 				return col.updateOne(this._original, this.data, {upsert: true}).then((result) => {
 					this._original = _.cloneDeep(this.data);
@@ -50,7 +55,7 @@ const ActiveRecord = function(tableName){
 	};
 
 	Model.prototype.destroy = function(){
-		return _collectionCreated.then((col) => {
+		return _ready.then((col) => {
 			if(this._original){
 				return col.deleteOne(this._original).then((result) => {
 					this._original = null;
@@ -80,152 +85,11 @@ const ActiveRecord = function(tableName){
 
 		return result;
 	};
-
-
-	let Schema = this.Schema = function(){
-		this.tableName = null;
-		this.tableSlug = null;
-		this.definition = [];
-	};
-
-	Schema.prototype.createTable = function(tableName, tableSlug=null){
-		if(tableSlug === null){
-			tableSlug = tableName;
-		}
-
-		return connect.then((db) => {
-			return db.createCollection(tableName).then((col) => {
-				this.tableName = tableName;
-				this.tableSlug = tableSlug;
-				return Promise.resolve(db);
-			});
-		}).then((db) => {
-			return db.collection("_schema").insertOne({
-				collectionSlug: this.tableSlug,
-				collectionName: this.tableName,
-				fields: []
-			}).catch((err) => {
-				this.tableName = null;
-				this.tableSlug = null;
-				throw err;
-			});
-		}).catch((err) => {
-			throw err;
-		});
-	};
-
-	// Read and define schema
-	Schema.prototype.read = function(tableSlug){
-		return connect.then((db) => {
-			return db.collection("_schema").findOne({collectionSlug: tableSlug});
-		}).then((data) => {
-			this.tableName = data.collectionName;
-			this.tableSlug = data.collectionSlug;
-			this.definition = data.fields;
-
-			return Promise.resolve();
-		}).catch((err) => {
-			throw err;
-		});
-	};
-
-	Schema.prototype.define = function(tableName, tableSlug, def){
-		var oldTableName = this.tableName;
-		var oldTableSlug = this.tableSlug;
-		var oldDef = this.definition;
-		this.tableName = tableName;
-		this.tableSlug = tableSlug;
-		this.definition = def;
-
-		// Create schema in RMDB, do nothing in NoSQL
-		return connect.then((db) => {
-			return db.collection("_schema").insertOne({
-				collectionSlug: tableSlug,
-				collectionName: tableName,
-				fields: def
-			});
-		}).catch((err) => {
-			this.tableName = oldTableName;
-			this.tableSlug = oldTableSlug;
-			this.definition = oldDef;
-			throw err;
-		});
-	};
-
-	// Columns functions
-	Schema.prototype.addColumn = function(label, type){
-		this.definition.push({
-			name: label,
-			slug: label,
-			type: type
-		});
-
-		return this._writeSchema().catch((err) => {
-			this.definition.pop();
-			throw err;
-		});
-	};
-
-	Schema.prototype.renameColumn = function(slug, newSlug){
-		var index = _.findIndex(this.definition, (el) => {
-			return el.slug == slug;
-		});
-
-		this.definition[index].name = newSlug;
-		this.definition[index].slug = newSlug;
-
-		return this._writeSchema().catch((err) => {
-			this.definition[index].name = slug;
-			this.definition[index].slug = slug;
-			throw err;
-		});
-	};
-
-	Schema.prototype.changeColumnType = function(label, newType){
-		var index = _.findIndex(this.definition, (el) => {
-			return el.slug == label;
-		});
-		var oldType = this.definition[index].type;
-		this.definition[index].type = newType;
-
-		return this._writeSchema().catch((err) => {
-			this.definition[index].type = oldType;
-			throw err;
-		});
-	};
-
-	Schema.prototype.removeColumn = function(label){
-		var index = _.findIndex(this.definition, (el) => {
-			return el.label == label;
-		});
-		var deleted = this.definition.splice(index, 1);
-
-		return this._writeSchema().catch((err) => {
-			this.definition.splice(index, 0, ...deleted);
-			throw err;
-		});
-	};
-
-	// Utils
-	Schema.prototype._writeSchema = function(){
-		return connect.then((db) => {
-			return db.collection("_schema").findOneAndUpdate({collectionSlug: this.tableSlug}, {
-				$set: {
-					fields: this.definition
-				}
-			});
-		});
-	};
-
-	Schema.prototype._validate = function(){
-		// Validate database schema with this.definition
-		// Return boolean
-	};
 };
 
 ActiveRecord.prototype.closeConnection = function(){
 	// Should only ever be called to terminate the node process
-	this._collectionCreated.then((col) => {
+	this._ready.then((col) => {
 		this._db.close();
 	}).catch((err) => {
 		// BY ANY MEANS NECESSARY
@@ -234,7 +98,7 @@ ActiveRecord.prototype.closeConnection = function(){
 };
 
 ActiveRecord.prototype.findBy = function(query){
-	return this._collectionCreated.then((col) => {
+	return this._ready.then((col) => {
 		return col.findOne(query).then((model) => {
 			return Promise.resolve(new this.Model(model, true));
 		});
@@ -242,7 +106,7 @@ ActiveRecord.prototype.findBy = function(query){
 };
 
 ActiveRecord.prototype.where = function(query, orderBy){
-	return this._collectionCreated.then((col) => {
+	return this._ready.then((col) => {
 		return col.find(query).toArray().then((models) => {
 			if(orderBy){
 				models = _.sortBy(models, orderBy);
@@ -259,7 +123,7 @@ ActiveRecord.prototype.where = function(query, orderBy){
 };
 
 ActiveRecord.prototype.all = function(){
-	return this._collectionCreated.then((col) => {
+	return this._ready.then((col) => {
 		return col.find().toArray().then((models) => {
 			var results = new ActiveCollection();
 			_.each(models, (model, i) => {
@@ -272,7 +136,7 @@ ActiveRecord.prototype.all = function(){
 };
 
 ActiveRecord.prototype.first = function(){
-	return this._collectionCreated.then((col) => {
+	return this._ready.then((col) => {
 		return col.findOne().then((model) => {
 			return Promise.resolve(new this.Model(model, true));
 		});

@@ -17,7 +17,10 @@ let Random;
 // Clear table and insert dummy data
 before(function(done){
 	dropTestTable(function(reply){
-		Random = new ActiveRecord("random_table");
+		Random = new ActiveRecord({
+			tableSlug: "random_table",
+			tableName: "Random Table"
+		});
 		done();
 	});
 });
