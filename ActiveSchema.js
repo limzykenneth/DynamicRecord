@@ -2,9 +2,9 @@ require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
 
-// Let's get mongodb working first
-const connect = require("./mongoConnection.js");
+let connect;
 
+// Let's get mongodb working first
 class Schema {
 	constructor(){
 		this.tableName = null;
@@ -207,4 +207,7 @@ Schema.prototype._validate = function(){
 	// Return boolean
 };
 
-module.exports = Schema;
+module.exports = function(connection){
+	connect = connection;
+	return Schema;
+};

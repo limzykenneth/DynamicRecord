@@ -5,13 +5,13 @@ const ActiveCollection = require("./ActiveCollection.js");
 const ActiveSchema = require("./ActiveSchema.js");
 
 // Let's get mongodb working first
-const connect = require("./mongoConnection.js");
+const connect = require("./mongoConnection.js")(process.env.mongo_server, process.env.mongo_db_name, process.env.mongo_user, process.env.mongo_pass);
 
 const ActiveRecord = function(options){
 	let tableSlug = options.tableSlug;
 	let tableName = options.tableName || options.tableSlug;
 	this._databaseConnection = connect;
-	this.Schema = ActiveSchema;
+	this.Schema = ActiveSchema(this._databaseConnection);
 
 	var _ready = this._ready = connect.then((db) => {
 		this._db = db;
