@@ -1,6 +1,6 @@
 {
   "name": "active-record",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A bare minimum Javascript implementation of the Active Record pattern",
   "main": "ActiveRecord.js",
   "scripts": {
