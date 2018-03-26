@@ -50,28 +50,201 @@ describe("Schema", function(){
 			});
 		});
 
-		it("should create a new empty table or collection in the database", function(done){
+		it("should create an empty table or collection in the database", function(done){
 			let table = new Random.Schema();
-			table.createTable("random_table").then((col) => {
-				connect.then((db) => {
+			table.createTable({
+				tableSlug: "random_table",
+				tableName: "Random Table"
+			}).then((col) => {
+				return connect.then((db) => {
 					return db.listCollections().toArray();
-				}).then((cols) => {
-					// List all collections and find the newly created collection
-					let result = _.find(cols, function(el){
-						return el.name == "random_table";
-					});
-					assert.exists(result, "collection exists in database");
-
-					// Check for entry in schema
-					return connect.then((db) => {
-						return db.collection("_schema").findOne({collectionSlug: "random_table"});
-					});
-				}).then((col) => {
-					assert.isNotNull(col);
-					done();
-				}).catch((err) => {
-					done(err);
 				});
+			}).then((cols) => {
+				// List all collections and find the newly created collection
+				let result = _.find(cols, function(el){
+					return el.name == "random_table";
+				});
+				assert.exists(result, "collection exists in database");
+
+				// Check for entry in schema
+				return connect.then((db) => {
+					return db.collection("_schema").findOne({collectionSlug: "random_table"});
+				});
+			}).then((col) => {
+				assert.isNotNull(col);
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
+		it("should create an empty table or collection with provided index", function(done){
+			let table = new Random.Schema();
+			table.createTable({
+				tableSlug: "random_table",
+				tableName: "Random Table",
+				indexColumns: {
+					name: "tableSlug",
+					unique: true
+				}
+			}).then(() => {
+				return connect.then((db) => {
+					return db.collection("random_table").indexExists("tableSlug_1");
+				});
+			}).then((res) => {
+				assert.isTrue(res);
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
+		it("should create an empty table or collection with all provided indexes", function(done){
+			let table = new Random.Schema();
+			table.createTable({
+				tableSlug: "random_table",
+				tableName: "Random Table",
+				indexColumns: [
+					{
+						name: "tableSlug",
+						unique: true
+					},
+					{
+						name: "tableName",
+						unique: false
+					}
+				]
+			}).then(() => {
+				return connect.then((db) => {
+					return db.collection("random_table").indexExists(["tableSlug_1", "tableName_1"]);
+				});
+			}).then((res) => {
+				assert.isTrue(res);
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
+	});
+
+	describe("addIndex()", function(){
+		let table;
+
+		beforeEach(function(done){
+			table = new Random.Schema();
+			table.createTable({
+				tableSlug: "random_table",
+				tableName: "Random Table"
+			}).then(() => {
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
+
+		afterEach(function(done){
+			connect.then((db) => {
+				var promises = [db.dropCollection("_schema"), db.dropCollection("random_table")];
+				return Promise.all(promises);
+			}).then(() => {
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
+
+		it("should create a new index", function(done){
+			table.addIndex({
+				name: "tableSlug"
+			}, true).then(() => {
+				return connect.then((db) => {
+					return db.collection("random_table").indexExists("tableSlug_1");
+				});
+			}).then((res) => {
+				assert.isTrue(res, "index exists in database");
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
+		it("should make the index unique by default", function(done){
+			table.addIndex({
+				name: "tableSlug"
+			}).then(() => {
+				return connect.then((db) => {
+					return db.collection("random_table").listIndexes().toArray();
+				});
+			}).then((res) => {
+				var index = _.find(res, function(el){
+					return el.name == "tableSlug_1";
+				});
+				assert.isTrue(index.unique, "index is marked as unique");
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
+		it("should not make the index unique if passed false to unique", function(done){
+			table.addIndex({
+				name: "tableSlug",
+				unique: false
+			}).then(() => {
+				return connect.then((db) => {
+					return db.collection("random_table").listIndexes().toArray();
+				});
+			}).then((res) => {
+				var index = _.find(res, function(el){
+					return el.name == "tableSlug_1";
+				});
+				assert.isNotOk(index.unique, "index is not marked as unique");
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
+	});
+
+	describe("removeIndex()", function(){
+		let table;
+
+		beforeEach(function(done){
+			table = new Random.Schema();
+			table.createTable({
+				tableSlug: "random_table",
+				tableName: "Random Table"
+			}).then(() => {
+				return connect.then((db) => {
+					return db.collection("random_table").createIndex("tableSlug");
+				});
+			}).then(() => {
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
+
+		afterEach(function(done){
+			connect.then((db) => {
+				var promises = [db.dropCollection("_schema"), db.dropCollection("random_table")];
+				return Promise.all(promises);
+			}).then(() => {
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
+
+		it("should remove the column from the index list", function(done){
+			table.removeIndex("tableSlug_1").then(() => {
+				return connect.then((db) => {
+					return db.collection("random_table").listIndexes().toArray();
+				});
+			}).then((res) => {
+				var index = _.find(res, function(el){
+					return el.name == "tableSlug_1";
+				});
+				assert.isUndefined(index, "index does not exist in database");
+				done();
+			}).catch((err) => {
+				done(err);
 			});
 		});
 	});

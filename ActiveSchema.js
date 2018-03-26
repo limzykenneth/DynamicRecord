@@ -1,23 +1,37 @@
 require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
+const autoIncrement = Promise.promisifyAll(require("mongodb-autoincrement"));
+autoIncrement.setDefaults({
+	collection: "_counters",     // collection name for counters
+	field: "_uid",               // auto increment field name
+	step: 1             // auto increment step
+});
 
 // Let's get mongodb working first
 const connect = require("./mongoConnection.js");
 
-let Schema = this.Schema = function(){
-	this.tableName = null;
-	this.tableSlug = null;
-	this.definition = [];
-};
+class Schema {
+	constructor(){
+		this.tableName = null;
+		this.tableSlug = null;
+		this.definition = [];
+	}
+}
 
-Schema.prototype.createTable = function(tableName, tableSlug=null){
-	if(tableSlug === null){
-		tableSlug = tableName;
+Schema.prototype.createTable = function(options){
+	let tableSlug = options.tableSlug; // String
+	let tableName = options.tableName; // String
+	let indexColumns = options.indexColumns; // Array
+	// Maybe just let the user handle it themselves?
+	let autoIndex = options.autoIndex; // Boolean
+
+	if(!tableName){
+		tableName = tableSlug;
 	}
 
 	return connect.then((db) => {
-		return db.createCollection(tableName).then((col) => {
+		return db.createCollection(tableSlug).then((col) => {
 			this.tableName = tableName;
 			this.tableSlug = tableSlug;
 			return Promise.resolve(db);
@@ -28,14 +42,68 @@ Schema.prototype.createTable = function(tableName, tableSlug=null){
 			collectionName: this.tableName,
 			fields: []
 		}).catch((err) => {
-			this.tableName = null;
-			this.tableSlug = null;
 			throw err;
 		});
+	}).then(() => {
+		if(indexColumns){
+			if(Array.isArray(indexColumns)){
+				let promises = [];
+				_.each(indexColumns, (el, i) => {
+					promises.push(this.addIndex({
+						name: el.name,
+						unique: el.unique
+					}));
+				});
+				return Promise.all(promises);
+			}else{
+				return this.addIndex({
+					name: indexColumns.name,
+					unique: indexColumns.unique
+				});
+			}
+		}else{
+			return Promise.resolve();
+		}
+	}).catch((err) => {
+		this.tableName = null;
+		this.tableSlug = null;
+		throw err;
+	});
+};
+
+// Add index
+Schema.prototype.addIndex = function(options){
+	let columnName = options.name;
+	let unique = options.unique;
+
+	if(unique === undefined){
+		unique = true;
+	}
+
+	return connect.then((db) => {
+		return db.collection(this.tableSlug).createIndex(columnName, {unique: unique});
 	}).catch((err) => {
 		throw err;
 	});
 };
+
+// Rename index
+Schema.prototype.renameIndex = function(columnName, newColumnName){
+	// Maybe drop index then recreate but do consider why you need to do this
+};
+
+// Remove index
+Schema.prototype.removeIndex = function(columnName){
+	return connect.then((db) => {
+		return db.collection(this.tableSlug).dropIndex(columnName);
+	}).catch((err) => {
+		throw err;
+	});
+};
+
+// Auto-increment index
+// Maybe just let the user handle it themselves?
+
 
 // Read and define schema
 Schema.prototype.read = function(tableSlug){

@@ -6,13 +6,6 @@ const ActiveSchema = require("./ActiveSchema.js");
 
 // Let's get mongodb working first
 const connect = require("./mongoConnection.js");
-const autoIncrement = require("mongodb-autoincrement");
-autoIncrement.setDefaults({
-	collection: "_counters",     // collection name for counters, default: counters
-	// Use _id to prevserve random _uid
-	field: "_id",               // auto increment field name, default: _id
-	step: 1             // auto increment step
-});
 
 const ActiveRecord = function(options){
 	let tableSlug = options.tableSlug;
