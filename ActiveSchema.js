@@ -1,12 +1,6 @@
 require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
-const autoIncrement = Promise.promisifyAll(require("mongodb-autoincrement"));
-autoIncrement.setDefaults({
-	collection: "_counters",     // collection name for counters
-	field: "_uid",               // auto increment field name
-	step: 1             // auto increment step
-});
 
 // Let's get mongodb working first
 const connect = require("./mongoConnection.js");
