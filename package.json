@@ -2,7 +2,7 @@
   "name": "active-record",
   "version": "0.0.1",
   "description": "A bare minimum Javascript implementation of the Active Record pattern",
-  "main": "index.js",
+  "main": "ActiveRecord.js",
   "scripts": {
     "test": "mocha"
   },
