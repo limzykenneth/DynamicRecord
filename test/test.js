@@ -39,6 +39,12 @@ after(function(done){
 describe("Schema", function(){
 	// Tests
 	describe("createTable()", function(){
+		before(function(done){
+			dropTestTable(function(reply){
+				done();
+			});
+		});
+
 		afterEach(function(done){
 			connect.then((db) => {
 				var promises = [db.dropCollection("_schema"), db.dropCollection("random_table")];

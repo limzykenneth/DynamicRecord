@@ -4,7 +4,8 @@
   "description": "A bare minimum Javascript implementation of the Active Record pattern",
   "main": "ActiveRecord.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "start_test_db": "sh test/mongo_test.sh"
   },
   "author": "",
   "license": "BSD-2-Clause",
