@@ -25,19 +25,40 @@ Schema.prototype.createTable = function(options){
 	}
 
 	return connect.then((db) => {
-		return db.createCollection(tableSlug).then((col) => {
+		let promises = [];
+
+		promises.push(db.createCollection(tableSlug).then((col) => {
 			this.tableName = tableName;
 			this.tableSlug = tableSlug;
 			return Promise.resolve(db);
-		});
-	}).then((db) => {
-		return db.collection("_schema").insertOne({
-			collectionSlug: this.tableSlug,
-			collectionName: this.tableName,
+		}));
+
+		promises.push(db.createCollection("_counters").then((col) => {
+			return col.indexExists("collection").then((result) => {
+				if(result === false){
+					return col.createIndex("collection", {unique: true}).then(() => {
+						return Promise.resolve();
+					});
+				}else{
+					return Promise.resolve();
+				}
+			}).then(() => {
+				return col.insertOne({
+					collection: tableSlug,
+					sequences: {}
+				}).then(() => {
+					return Promise.resolve(db);
+				});
+			});
+		}));
+
+		promises.push(db.collection("_schema").insertOne({
+			collectionSlug: tableSlug,
+			collectionName: tableName,
 			fields: []
-		}).catch((err) => {
-			throw err;
-		});
+		}));
+
+		return Promise.all(promises);
 	}).then(() => {
 		if(indexColumns){
 			if(Array.isArray(indexColumns)){
@@ -68,14 +89,25 @@ Schema.prototype.createTable = function(options){
 // Add index
 Schema.prototype.addIndex = function(options){
 	let columnName = options.name;
+	let isAutoIncrement = options.autoIncrement;
 	let unique = options.unique;
+	if(isAutoIncrement && unique === false){
+		console.warn("Auto increment index must be unique, setting to unique.");
+		unique = true;
+	}
 
-	if(unique === undefined){
+	if(typeof unique === "undefined"){
 		unique = true;
 	}
 
 	return connect.then((db) => {
-		return db.collection(this.tableSlug).createIndex(columnName, {unique: unique});
+		return db.collection(this.tableSlug).createIndex(columnName, {unique: unique, name: columnName});
+	}).then(() => {
+		if(isAutoIncrement){
+			return this._setCounter(this.tableSlug, columnName);
+		}else{
+			return Promise.resolve();
+		}
 	}).catch((err) => {
 		throw err;
 	});
@@ -94,10 +126,6 @@ Schema.prototype.removeIndex = function(columnName){
 		throw err;
 	});
 };
-
-// Auto-increment index
-// Maybe just let the user handle it themselves?
-
 
 // Read and define schema
 Schema.prototype.read = function(tableSlug){
@@ -138,7 +166,15 @@ Schema.prototype.define = function(tableName, tableSlug, def){
 };
 
 // Columns functions
-Schema.prototype.addColumn = function(label, type){
+Schema.prototype.addColumn = function(label, type, options = {}){
+	// let isUUIDv4 = options.uuid || false;
+	// let isAutoIncrement = options.autoIncrement || false;
+	// if(isUUIDv4 && isAutoIncrement){
+	// 	throw new Error("Column cannot be both UUID and Auto Increment.");
+	// }
+	// if(isUUIDv4) type = "uuid";
+	// if(isAutoIncrement) type = "int";
+
 	this.definition.push({
 		name: label,
 		slug: label,
@@ -191,13 +227,50 @@ Schema.prototype.removeColumn = function(label){
 	});
 };
 
-// Utils
+// Utils --------------------------------------------------------
 Schema.prototype._writeSchema = function(){
 	return connect.then((db) => {
 		return db.collection("_schema").findOneAndUpdate({collectionSlug: this.tableSlug}, {
 			$set: {
 				fields: this.definition
 			}
+		});
+	});
+};
+
+// Initial setup of counter object for collection
+Schema.prototype._setCounter = function(collection, columnLabel){
+	return connect.then((db) => {
+		let sequenceKey = `sequences.${columnLabel}`;
+
+		return db.collection("_counters").findOneAndUpdate({
+			collection: collection
+		}, {
+			$set: {
+				[sequenceKey]: 0
+			}
+		});
+	});
+};
+
+// Increment counter
+Schema.prototype._incrementCounter = function(collection, columnLabel){
+	return connect.then((db) => {
+		return db.collection("_counters").findOne({
+			collection: collection
+		}).then((result) => {
+			let newSequence = result.sequences[columnLabel] + 1;
+			let sequenceKey = `sequences.${columnLabel}`;
+
+			return db.collection("_counters").findOneAndUpdate({
+				collection: collection
+			}, {
+				$set: {
+					[sequenceKey]: newSequence
+				}
+			}).then(() => {
+				return Promise.resolve(newSequence);
+			});
 		});
 	});
 };

@@ -39,7 +39,7 @@ after(function(done){
 describe("Schema", function(){
 	// Tests
 	describe("createTable()", function(){
-		before(function(done){
+		beforeEach(function(done){
 			dropTestTable(function(reply){
 				done();
 			});
@@ -94,7 +94,7 @@ describe("Schema", function(){
 				}
 			}).then(() => {
 				return connect.then((db) => {
-					return db.collection("random_table").indexExists("tableSlug_1");
+					return db.collection("random_table").indexExists("tableSlug");
 				});
 			}).then((res) => {
 				assert.isTrue(res);
@@ -120,7 +120,7 @@ describe("Schema", function(){
 				]
 			}).then(() => {
 				return connect.then((db) => {
-					return db.collection("random_table").indexExists(["tableSlug_1", "tableName_1"]);
+					return db.collection("random_table").indexExists(["tableSlug", "tableName"]);
 				});
 			}).then((res) => {
 				assert.isTrue(res);
@@ -135,20 +135,22 @@ describe("Schema", function(){
 		let table;
 
 		beforeEach(function(done){
-			table = new Random.Schema();
-			table.createTable({
-				tableSlug: "random_table",
-				tableName: "Random Table"
-			}).then(() => {
-				done();
-			}).catch((err) => {
-				done(err);
+			dropTestTable(function(reply){
+				table = new Random.Schema();
+				table.createTable({
+					tableSlug: "random_table",
+					tableName: "Random Table"
+				}).then(() => {
+					done();
+				}).catch((err) => {
+					done(err);
+				});
 			});
 		});
 
 		afterEach(function(done){
 			connect.then((db) => {
-				var promises = [db.dropCollection("_schema"), db.dropCollection("random_table")];
+				var promises = [db.dropCollection("_schema"), db.dropCollection("random_table"), db.dropCollection("_counters")];
 				return Promise.all(promises);
 			}).then(() => {
 				done();
@@ -162,7 +164,7 @@ describe("Schema", function(){
 				name: "tableSlug"
 			}, true).then(() => {
 				return connect.then((db) => {
-					return db.collection("random_table").indexExists("tableSlug_1");
+					return db.collection("random_table").indexExists("tableSlug");
 				});
 			}).then((res) => {
 				assert.isTrue(res, "index exists in database");
@@ -180,7 +182,7 @@ describe("Schema", function(){
 				});
 			}).then((res) => {
 				var index = _.find(res, function(el){
-					return el.name == "tableSlug_1";
+					return el.name == "tableSlug";
 				});
 				assert.isTrue(index.unique, "index is marked as unique");
 				done();
@@ -198,7 +200,7 @@ describe("Schema", function(){
 				});
 			}).then((res) => {
 				var index = _.find(res, function(el){
-					return el.name == "tableSlug_1";
+					return el.name == "tableSlug";
 				});
 				assert.isNotOk(index.unique, "index is not marked as unique");
 				done();
@@ -206,24 +208,66 @@ describe("Schema", function(){
 				done(err);
 			});
 		});
+
+		describe("auto increment", function(){
+			it("should create an entry in _counters collection if set as auto increment", function(done){
+				table.addIndex({
+					name: "tableSlug",
+					autoIncrement: true
+				}).then(() => {
+					return connect.then((db) => {
+						return db.collection("_counters").findOne({collection: "random_table"});
+					});
+				}).then((res) => {
+					assert.isNotNull(res, "entry not found in _counters collection");
+					assert.isDefined(res.sequences, "entry not defined correctly");
+					assert.strictEqual(res.sequences.tableSlug, 0, "entry not initialized correctly");
+					done();
+				}).catch((err) => {
+					done(err);
+				});
+			});
+			it("should make the index unique if set as auto increment", function(done){
+				table.addIndex({
+					name: "tableSlug",
+					autoIncrement: true
+				}).then(() => {
+					return connect.then((db) => {
+						return db.collection("random_table").listIndexes().toArray();
+					});
+				}).then((res) => {
+					var index = _.find(res, function(el){
+						return el.name == "tableSlug";
+					});
+					assert.isTrue(index.unique, "index is marked as unique");
+					done();
+				}).catch((err) => {
+					done(err);
+				});
+			});
+			it("should increment the counter when a new entry is added");
+			it("should automatically populate the index field when a new entry is added");
+		});
 	});
 
 	describe("removeIndex()", function(){
 		let table;
 
 		beforeEach(function(done){
-			table = new Random.Schema();
-			table.createTable({
-				tableSlug: "random_table",
-				tableName: "Random Table"
-			}).then(() => {
-				return connect.then((db) => {
-					return db.collection("random_table").createIndex("tableSlug");
+			dropTestTable(function(reply){
+				table = new Random.Schema();
+				table.createTable({
+					tableSlug: "random_table",
+					tableName: "Random Table"
+				}).then(() => {
+					return table.addIndex({
+						name: "tableSlug",
+					});
+				}).then(() => {
+					done();
+				}).catch((err) => {
+					done(err);
 				});
-			}).then(() => {
-				done();
-			}).catch((err) => {
-				done(err);
 			});
 		});
 
@@ -239,18 +283,45 @@ describe("Schema", function(){
 		});
 
 		it("should remove the column from the index list", function(done){
-			table.removeIndex("tableSlug_1").then(() => {
+			table.removeIndex("tableSlug").then(() => {
 				return connect.then((db) => {
 					return db.collection("random_table").listIndexes().toArray();
 				});
 			}).then((res) => {
 				var index = _.find(res, function(el){
-					return el.name == "tableSlug_1";
+					return el.name == "tableSlug";
 				});
 				assert.isUndefined(index, "index does not exist in database");
 				done();
 			}).catch((err) => {
 				done(err);
+			});
+		});
+
+		describe("auto increment", function(){
+			beforeEach(function(done){
+				table.addIndex({
+					name: "autoIncrement",
+					autoIncrement: true
+				}).then(() => {
+					done();
+				});
+			});
+
+			it("should remove relevant entry from _counters collection", function(done){
+				table.removeIndex("autoIncrement").then(() => {
+					return connect.then((db) => {
+						return db.collection("random_table").listIndexes().toArray();
+					}).then((res) => {
+						var index = _.find(res, function(el){
+							return el.name == "autoIncrement";
+						});
+						assert.isUndefined(index, "index does not exist in database");
+						done();
+					}).catch((err) => {
+						done(err);
+					});
+				});
 			});
 		});
 	});
@@ -1053,7 +1124,17 @@ describe("Model", function(){
 // Utils
 function dropTestTable(cb){
 	connect.then((db) => {
-		db.collection("random_table").drop().then(cb).catch((err) => {
+		return db.collection("random_table").drop().then(() => {
+			return Promise.resolve(db);
+		}).catch((err) => {
+			if(err.message == "ns not found"){
+				return Promise.resolve(db);
+			}else{
+				console.error(err);
+			}
+		});
+	}).then((db) => {
+		db.collection("_counters").drop().then(cb).catch((err) => {
 			if(err.message == "ns not found"){
 				cb();
 			}else{
