@@ -5,20 +5,25 @@ const _ = require("lodash");
 let connect;
 
 // Let's get mongodb working first
-class Schema {
-	constructor(){
-		this.tableName = null;
-		this.tableSlug = null;
-		this.definition = [];
-	}
-}
+// class Schema {
+// 	constructor(){
+// 		this.tableName = null;
+// 		this.tableSlug = null;
+// 		this.definition = [];
+// 	}
+// }
+let Schema = function(){
+	this.tableName = null;
+	this.tableSlug = null;
+	this.definition = [];
+};
 
 Schema.prototype.createTable = function(options){
 	let tableSlug = options.tableSlug; // String
 	let tableName = options.tableName; // String
 	let indexColumns = options.indexColumns; // Array
 	// Maybe just let the user handle it themselves?
-	let autoIndex = options.autoIndex; // Boolean
+	let autoIndex = options.autoIndex; // Boolean (on hold)
 
 	if(!tableName){
 		tableName = tableSlug;

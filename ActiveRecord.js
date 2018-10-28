@@ -1,6 +1,7 @@
 require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
+const async = require("async");
 const ActiveCollection = require("./ActiveCollection.js");
 const ActiveSchema = require("./ActiveSchema.js");
 
@@ -10,11 +11,13 @@ const connect = require("./mongoConnection.js")(process.env.mongo_server, proces
 const ActiveRecord = function(options){
 	let tableSlug = options.tableSlug;
 	let tableName = options.tableName || options.tableSlug;
+	let _db;
 	this._databaseConnection = connect;
-	this.Schema = ActiveSchema(this._databaseConnection);
+	let _schema;
+	_schema = this.Schema = new (ActiveSchema(this._databaseConnection))();
 
 	var _ready = this._ready = connect.then((db) => {
-		this._db = db;
+		_db = this._db = db;
 		return db.createCollection(tableSlug).then((col) => {
 			this._tableName = tableName;
 			return Promise.resolve(col);
@@ -39,9 +42,30 @@ const ActiveRecord = function(options){
 					return Promise.resolve(col);
 				});
 			}else{
-				return col.insertOne(this.data).then((result) => {
-					this._original = _.cloneDeep(this.data);
-					return Promise.resolve(col);
+				// Check if collection contains index that needs auto incrementing
+				return _db.collection("_counters").findOne({collection: tableSlug}).then((res) => {
+					let promises = [];
+
+					if(res !== null){
+						// Auto incrementing index exist
+						_.each(res.sequences, (el, columnLabel) => {
+							promises.push(_schema._incrementCounter(tableSlug, columnLabel).then((newSequence) => {
+								this.data[columnLabel] = newSequence;
+								return Promise.resolve(newSequence);
+							}));
+						});
+
+						return Promise.all(promises);
+					}else{
+						// No auto incrementing index
+						return Promise.resolve();
+					}
+				}).then(() => {
+					// Save data into the database
+					return col.insertOne(this.data).then((result) => {
+						this._original = _.cloneDeep(this.data);
+						return Promise.resolve(col);
+					});
 				});
 			}
 		});
