@@ -15,6 +15,8 @@ const chai = require("chai");
 const assert = chai.assert;
 
 let Random;
+
+// ------------------ Setups ------------------
 // Clear table and insert dummy data
 before(function(done){
 	utils.dropTestTable(function(reply){
@@ -36,7 +38,9 @@ after(function(done){
 		done();
 	});
 });
+// --------------------------------------------
 
+// ----------------- Tests --------------------
 describe("Schema", function(){
 	// Tests
 	describe("createTable()", function(){
@@ -133,6 +137,7 @@ describe("Schema", function(){
 	});
 
 	describe("addIndex()", function(){
+		// Instance of ActiveSchema used for testing
 		let table;
 
 		beforeEach(function(done){
@@ -148,7 +153,6 @@ describe("Schema", function(){
 				});
 			});
 		});
-
 		afterEach(function(done){
 			connect.then((db) => {
 				var promises = [db.dropCollection("_schema"), db.dropCollection("random_table"), db.dropCollection("_counters")];
@@ -246,12 +250,94 @@ describe("Schema", function(){
 					done(err);
 				});
 			});
-			it("should increment the counter when a new entry is added");
-			it("should automatically populate the index field when a new entry is added");
+			// Following potentially tested in ActiveRecordModel.js
+			it("should increment the counter when a new entry is added", function(done){
+				table.addIndex({
+					name: "tableSlug",
+					autoIncrement: true
+				}).then(() => {
+					let model = new Random.Model({
+						"string": "Laborum non culpa.",
+						"int": 27,
+						"float": 6.2831853072
+					});
+
+					return model.save();
+				}).then((col) => {
+					return connect.then((db) => {
+						return db.collection("random_table").findOne({
+							"string": "Laborum non culpa.",
+							"int": 27,
+							"float": 6.2831853072
+						});
+					});
+				}).then((m) => {
+					assert.equal(m.tableSlug, 1, "auto increment index is set to 1");
+
+					let model2 = new Random.Model({
+						"string": "Fugiat laboris cillum quis pariatur.",
+						"int": 42,
+						"float": 2.7182818285
+					});
+
+					return model2.save();
+				}).then((col) => {
+					return connect.then((db) => {
+						return db.collection("random_table").findOne({
+							"string": "Fugiat laboris cillum quis pariatur.",
+							"int": 42,
+							"float": 2.7182818285
+						});
+					});
+				}).then((m) => {
+					assert.equal(m.tableSlug, 2, "auto increment index is set to 2");
+					done();
+				}).catch((err) => {
+					done(err);
+				});
+			});
+			it("should increment entry in the _counters collection", function(done){
+				table.addIndex({
+					name: "tableSlug",
+					autoIncrement: true
+				}).then(() => {
+					let model = new Random.Model({
+						"string": "Laborum non culpa.",
+						"int": 27,
+						"float": 6.2831853072
+					});
+
+					return model.save();
+				}).then((col) => {
+					return connect.then((db) => {
+						return db.collection("_counters").findOne({collection: "random_table"});
+					});
+				}).then((res) => {
+					assert.equal(res.sequences.tableSlug, 1);
+
+					let model2 = new Random.Model({
+						"string": "Fugiat laboris cillum quis pariatur.",
+						"int": 42,
+						"float": 2.7182818285
+					});
+
+					return model2.save();
+				}).then((col) => {
+					return connect.then((db) => {
+						return db.collection("_counters").findOne({collection: "random_table"});
+					});
+				}).then((res) => {
+					assert.equal(res.sequences.tableSlug, 2);
+					done();
+				}).catch((err) => {
+					done(err);
+				});
+			});
 		});
 	});
 
 	describe("removeIndex()", function(){
+		// Instance of ActiveSchema used for testing
 		let table;
 
 		beforeEach(function(done){
@@ -767,3 +853,4 @@ describe("Schema", function(){
 		});
 	});
 });
+// --------------------------------------------

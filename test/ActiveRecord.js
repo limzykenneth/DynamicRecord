@@ -15,6 +15,8 @@ const chai = require("chai");
 const assert = chai.assert;
 
 let Random;
+
+// ------------------ Setups ------------------
 // Clear table and insert dummy data
 before(function(done){
 	utils.dropTestTable(function(reply){
@@ -36,8 +38,13 @@ after(function(done){
 		done();
 	});
 });
+// --------------------------------------------
 
+// ----------------- Tests --------------------
 describe("ActiveRecord", function(){
+	// Data to be inserted into database for testing
+	// Each element in array correspond to an entry in database
+	// Objects keys are just for reference, not meant to represent actual types
 	const testData = [
 		{
 			"string": "Velit tempor.",
@@ -187,4 +194,4 @@ describe("ActiveRecord", function(){
 		it("should return null if an entry is not found");
 	});
 });
-
+// --------------------------------------------

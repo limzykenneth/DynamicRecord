@@ -15,6 +15,8 @@ const chai = require("chai");
 const assert = chai.assert;
 
 let Random;
+
+// ------------------ Setups ------------------
 // Clear table and insert dummy data
 before(function(done){
 	utils.dropTestTable(function(reply){
@@ -36,7 +38,9 @@ after(function(done){
 		done();
 	});
 });
+// --------------------------------------------
 
+// ----------------- Tests --------------------
 //-------------------------------------------------------------------//
 // Model describes an individual entry in an active record instance  //
 //-------------------------------------------------------------------//
@@ -77,6 +81,9 @@ describe("Model", function(){
 	});
 
 	describe("save()", function(){
+		// Data to be inserted into database for testing
+		// Each element in array correspond to an entry in database
+		// Objects keys are just for reference, not meant to represent actual types
 		const testData = [
 			{
 				"string": "Velit tempor.",
@@ -108,6 +115,7 @@ describe("Model", function(){
 
 		after(function(done){
 			connect.then((db) => {
+				// Clear out dummy data
 				return db.collection("random_table").deleteMany({});
 			}).then((r) => {
 				done();
@@ -167,13 +175,6 @@ describe("Model", function(){
 			}).catch((err) => {
 				done(err);
 			});
-		});
-
-		describe("auto increment", function(){
-			let table;
-
-			it("should automatically add relevant auto incrementing index");
-			it("should increment entry in the _counters collection");
 		});
 	});
 
@@ -248,3 +249,4 @@ describe("Model", function(){
 		});
 	});
 });
+// --------------------------------------------
