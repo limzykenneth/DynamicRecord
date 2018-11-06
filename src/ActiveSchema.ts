@@ -1,8 +1,8 @@
 require("dotenv").config();
-const Promise = require("bluebird");
-const _ = require("lodash");
+import Promise = require("bluebird");
+import _ = require("lodash");
 
-let connect;
+let con;
 
 // Let's get mongodb working first
 // class Schema {
@@ -29,7 +29,7 @@ Schema.prototype.createTable = function(options){
 		tableName = tableSlug;
 	}
 
-	return connect.then((db) => {
+	return con.then((db) => {
 		let promises = [];
 
 		promises.push(db.createCollection(tableSlug).then((col) => {
@@ -105,7 +105,7 @@ Schema.prototype.addIndex = function(options){
 		unique = true;
 	}
 
-	return connect.then((db) => {
+	return con.then((db) => {
 		return db.collection(this.tableSlug).createIndex(columnName, {unique: unique, name: columnName});
 	}).then(() => {
 		if(isAutoIncrement){
@@ -125,7 +125,7 @@ Schema.prototype.renameIndex = function(columnName, newColumnName){
 
 // Remove index
 Schema.prototype.removeIndex = function(columnName){
-	return connect.then((db) => {
+	return con.then((db) => {
 		return db.collection(this.tableSlug).dropIndex(columnName);
 	}).catch((err) => {
 		throw err;
@@ -134,7 +134,7 @@ Schema.prototype.removeIndex = function(columnName){
 
 // Read and define schema
 Schema.prototype.read = function(tableSlug){
-	return connect.then((db) => {
+	return con.then((db) => {
 		return db.collection("_schema").findOne({collectionSlug: tableSlug});
 	}).then((data) => {
 		this.tableName = data.collectionName;
@@ -156,7 +156,7 @@ Schema.prototype.define = function(tableName, tableSlug, def){
 	this.definition = def;
 
 	// Create schema in RMDB, do nothing in NoSQL
-	return connect.then((db) => {
+	return con.then((db) => {
 		return db.collection("_schema").insertOne({
 			collectionSlug: tableSlug,
 			collectionName: tableName,
@@ -234,7 +234,7 @@ Schema.prototype.removeColumn = function(label){
 
 // Utils --------------------------------------------------------
 Schema.prototype._writeSchema = function(){
-	return connect.then((db) => {
+	return con.then((db) => {
 		return db.collection("_schema").findOneAndUpdate({collectionSlug: this.tableSlug}, {
 			$set: {
 				fields: this.definition
@@ -245,7 +245,7 @@ Schema.prototype._writeSchema = function(){
 
 // Initial setup of counter object for collection
 Schema.prototype._setCounter = function(collection, columnLabel){
-	return connect.then((db) => {
+	return con.then((db) => {
 		let sequenceKey = `sequences.${columnLabel}`;
 
 		return db.collection("_counters").findOneAndUpdate({
@@ -260,7 +260,7 @@ Schema.prototype._setCounter = function(collection, columnLabel){
 
 // Increment counter
 Schema.prototype._incrementCounter = function(collection, columnLabel){
-	return connect.then((db) => {
+	return con.then((db) => {
 		return db.collection("_counters").findOne({
 			collection: collection
 		}).then((result) => {
@@ -286,6 +286,6 @@ Schema.prototype._validate = function(){
 };
 
 module.exports = function(connection){
-	connect = connection;
+	con = connection;
 	return Schema;
 };

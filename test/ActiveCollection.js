@@ -8,8 +8,8 @@ const mongoURL = f("mongodb://%s:%s@%s/%s", process.env.mongo_user, process.env.
 const connect = MongoClient.connect(mongoURL);
 
 // Test dependencies
-const ActiveRecord = require("../ActiveRecord.js");
-const ActiveCollection = require("../ActiveCollection");
+const ActiveRecord = require("../build/ActiveRecord.js");
+const ActiveCollection = require("../build/ActiveCollection");
 const utils = new (require("./utils.js"))(connect);
 const chai = require("chai");
 const assert = chai.assert;

@@ -1,7 +1,7 @@
 require("dotenv").config();
-const Promise = require("bluebird");
-const _ = require("lodash");
-const async = require("async");
+import Promise = require("bluebird");
+import _ = require("lodash");
+import async = require("async");
 const ActiveCollection = require("./ActiveCollection.js");
 const ActiveSchema = require("./ActiveSchema.js");
 

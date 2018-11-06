@@ -1,4 +1,4 @@
-var _ = require("lodash");
+import _ = require("lodash");
 
 class ActiveCollection extends Array{
 	get data(){

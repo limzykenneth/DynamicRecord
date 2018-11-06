@@ -5,7 +5,8 @@
   "main": "ActiveRecord.js",
   "scripts": {
     "test": "mocha",
-    "start_test_db": "sh test/mongo_test.sh"
+    "start_test_db": "sh test/mongo_test.sh",
+    "build": "tsc"
   },
   "author": "",
   "license": "BSD-2-Clause",
@@ -18,8 +19,10 @@
     "mongodb": "^2.2.31"
   },
   "devDependencies": {
+    "@types/node": "^10.12.2",
     "chai": "^4.1.2",
     "eslint": "^4.18.2",
-    "mocha": "^5.0.4"
+    "mocha": "^5.0.4",
+    "typescript": "^3.1.6"
   }
 }
