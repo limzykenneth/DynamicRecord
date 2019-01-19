@@ -17,7 +17,7 @@ class ActiveCollection extends Array {
      * @property {Array} data
      */
     get data() {
-        let result = [];
+        const result = [];
         _.each(this, (el, i) => {
             result.push(el.data);
         });

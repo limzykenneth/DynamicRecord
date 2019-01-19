@@ -64,21 +64,21 @@ class Schema{
 	 * @method createTable
 	 * @param {object} options
 	 * @param {string} options.tableSlug
-	 * @param {string} options.tableName
+	 * @param {string} [options.tableName]
 	 * @param {Array} options.indexColumns
 	 * @return {Promise}
 	 */
 	createTable(options:TableOptions){
-		let tableSlug:string = options.tableSlug;
+		const tableSlug:string = options.tableSlug;
 		let tableName:string = options.tableName;
-		let indexColumns = options.indexColumns; // Array
+		const indexColumns = options.indexColumns; // Array
 
 		if(!tableName){
 			tableName = tableSlug;
 		}
 
 		return con.then((db) => {
-			let promises = [];
+			const promises = [];
 
 			promises.push(db.createCollection(tableSlug).then((col) => {
 				this.tableName = tableName;
@@ -115,7 +115,7 @@ class Schema{
 		}).then(() => {
 			if(indexColumns){
 				if(Array.isArray(indexColumns)){
-					let promises = [];
+					const promises = [];
 					_.each(indexColumns, (el, i) => {
 						promises.push(this.addIndex({
 							name: el.name,
@@ -152,8 +152,8 @@ class Schema{
 	 * @return {Promise}
 	 */
 	addIndex(options:IndexOptions){
-		let columnName:string = options.name;
-		let isAutoIncrement:boolean = options.autoIncrement;
+		const columnName:string = options.name;
+		const isAutoIncrement:boolean = options.autoIncrement;
 		let unique:boolean = options.unique;
 		if(isAutoIncrement && unique === false){
 			console.warn("Auto increment index must be unique, setting to unique.");
@@ -241,9 +241,9 @@ class Schema{
 	 * @return {Promise}
 	 */
 	define(tableName:string, tableSlug:string, def:SchemaDefinitions){
-		var oldTableName:string = this.tableName;
-		var oldTableSlug:string = this.tableSlug;
-		var oldDef:SchemaDefinitions = this.definition;
+		const oldTableName:string = this.tableName;
+		const oldTableSlug:string = this.tableSlug;
+		const oldDef:SchemaDefinitions = this.definition;
 		this.tableName = tableName;
 		this.tableSlug = tableSlug;
 		this.definition = def;
@@ -295,7 +295,7 @@ class Schema{
 	 * @return {Promise}
 	 */
 	addColumns(def:SchemaDefinitions){
-		let oldDefinition:SchemaDefinitions = _.cloneDeep(this.definition);
+		const oldDefinition:SchemaDefinitions = _.cloneDeep(this.definition);
 		this.definition = this.definition.concat(def);
 
 		return this._writeSchema().catch((err) => {
@@ -313,7 +313,7 @@ class Schema{
 	 * @return {Promise}
 	 */
 	renameColumn(slug:string, newSlug:string){
-		var index = _.findIndex(this.definition, (el) => {
+		const index = _.findIndex(this.definition, (el) => {
 			return el.slug == slug;
 		});
 
@@ -336,10 +336,10 @@ class Schema{
 	 * @return {Promise}
 	 */
 	changeColumnType(slug:string, newType:string){
-		var index:number = _.findIndex(this.definition, (el) => {
+		const index:number = _.findIndex(this.definition, (el) => {
 			return el.slug == slug;
 		});
-		var oldType:string = this.definition[index].type;
+		const oldType:string = this.definition[index].type;
 		this.definition[index].type = newType;
 
 		return this._writeSchema().catch((err) => {
@@ -356,10 +356,10 @@ class Schema{
 	 * @return {Promise}
 	 */
 	removeColumn(slug:string){
-		var index:number = _.findIndex(this.definition, (el) => {
+		const index:number = _.findIndex(this.definition, (el) => {
 			return el.label == slug;
 		});
-		var deleted:Definition[] = this.definition.splice(index, 1);
+		const deleted:Definition[] = this.definition.splice(index, 1);
 
 		return this._writeSchema().catch((err) => {
 			this.definition.splice(index, 0, ...deleted);
@@ -396,7 +396,7 @@ class Schema{
 	 */
 	private _setCounter(collection:string, columnLabel:string){
 		return con.then((db) => {
-			let sequenceKey = `sequences.${columnLabel}`;
+			const sequenceKey = `sequences.${columnLabel}`;
 
 			return db.collection("_counters").findOneAndUpdate({
 				collection: collection
@@ -423,8 +423,8 @@ class Schema{
 			return db.collection("_counters").findOne({
 				collection: collection
 			}).then((result) => {
-				let newSequence = result.sequences[columnLabel] + 1;
-				let sequenceKey = `sequences.${columnLabel}`;
+				const newSequence = result.sequences[columnLabel] + 1;
+				const sequenceKey = `sequences.${columnLabel}`;
 
 				return db.collection("_counters").findOneAndUpdate({
 					collection: collection

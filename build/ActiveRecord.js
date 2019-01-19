@@ -20,13 +20,13 @@ const connect = require("./mongoConnection.js")(process.env.mongo_server, proces
  */
 class ActiveRecord {
     constructor(options) {
-        let tableSlug = options.tableSlug;
-        let tableName = options.tableName || options.tableSlug;
+        const tableSlug = options.tableSlug;
+        const tableName = options.tableName || options.tableSlug;
         let _db;
         this._databaseConnection = connect;
         let _schema;
         _schema = this.Schema = new (ActiveSchema(this._databaseConnection))();
-        let _ready = this._ready = connect.then((db) => {
+        const _ready = this._ready = connect.then((db) => {
             _db = this._db = db;
             return db.createCollection(tableSlug).then((col) => {
                 this._tableName = tableName;
@@ -40,7 +40,7 @@ class ActiveRecord {
          * @constructor
          * @param {object} data - Object containing data for this instance of ActiveRecord.Model
          */
-        let Model = this.Model = function (data, _preserveOriginal) {
+        const Model = this.Model = function (data, _preserveOriginal) {
             /**
              * The data contained in this instance. It is not kept in sync with the database
              * automatically.
@@ -72,7 +72,7 @@ class ActiveRecord {
                 else {
                     // Check if collection contains index that needs auto incrementing
                     return _db.collection("_counters").findOne({ collection: tableSlug }).then((res) => {
-                        let promises = [];
+                        const promises = [];
                         if (res !== null) {
                             // Auto incrementing index exist
                             _.each(res.sequences, (el, columnLabel) => {
@@ -124,9 +124,9 @@ class ActiveRecord {
          * @return {Promise}
          */
         Model.prototype.validate = function (schema) {
-            var result = false;
+            let result = false;
             _.each(this.data, (el, key) => {
-                var field = _.find(schema, (column) => {
+                const field = _.find(schema, (column) => {
                     return column.label == key;
                 });
                 if (field.type == "string") {
@@ -184,7 +184,7 @@ class ActiveRecord {
                 if (orderBy) {
                     models = _.sortBy(models, orderBy);
                 }
-                var results = new ActiveCollection();
+                const results = new ActiveCollection();
                 _.each(models, (model, i) => {
                     results.push(new this.Model(model, true));
                 });
@@ -202,7 +202,7 @@ class ActiveRecord {
     all() {
         return this._ready.then((col) => {
             return col.find().toArray().then((models) => {
-                var results = new ActiveCollection();
+                const results = new ActiveCollection();
                 _.each(models, (model, i) => {
                     results.push(new this.Model(model, true));
                 });
