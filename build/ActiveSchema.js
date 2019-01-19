@@ -6,12 +6,27 @@ const _ = require("lodash");
 let con;
 { }
 // Let's get mongodb working first
+/**
+ * Create an new ActiveSchema instance
+ *
+ * @class
+ */
 class Schema {
     constructor() {
         this.tableName = null;
         this.tableSlug = null;
         this.definition = [];
     }
+    /**
+     * Create a new table with the given options
+     *
+     * @method createTable
+     * @param {object} options
+     * @param {string} options.tableSlug
+     * @param {string} options.tableName
+     * @param {Array} options.indexColumns
+     * @return {Promise}
+     */
     createTable(options) {
         let tableSlug = options.tableSlug;
         let tableName = options.tableName;
@@ -81,6 +96,16 @@ class Schema {
             throw err;
         });
     }
+    /**
+     * Add an index to the table's schema
+     *
+     * @method addIndex
+     * @param {object} options
+     * @param {string} options.name
+     * @param {boolean} [options.autoInrement]
+     * @param {boolean} [options.unique]
+     * @return {Promise}
+     */
     addIndex(options) {
         let columnName = options.name;
         let isAutoIncrement = options.autoIncrement;
@@ -108,6 +133,13 @@ class Schema {
     renameIndex(columnName, newColumnName) {
         // Maybe drop index then recreate but do consider why you need to do this
     }
+    /**
+     * Remove an index to the table's schema
+     *
+     * @method removeIndex
+     * @param {string} columnName - The name of the index to remove
+     * @return {Promise}
+     */
     removeIndex(columnName) {
         return con.then((db) => {
             return db.collection(this.tableSlug).dropIndex(columnName)
@@ -127,6 +159,13 @@ class Schema {
             throw err;
         });
     }
+    /**
+     * Read the schema configuration from the database
+     *
+     * @method read
+     * @param {string} tableSlug
+     * @return {Promise}
+     */
     read(tableSlug) {
         return con.then((db) => {
             return db.collection("_schema").findOne({ collectionSlug: tableSlug });
@@ -139,6 +178,18 @@ class Schema {
             throw err;
         });
     }
+    /**
+     * Define the table's schema
+     *
+     * @method define
+     * @param {string} tableName
+     * @param {string} tableSlug
+     * @param {object[]} definition
+     * @param {string} definition[].name
+     * @param {string} definition[].slug
+     * @param {string} definition[].type
+     * @return {Promise}
+     */
     define(tableName, tableSlug, def) {
         var oldTableName = this.tableName;
         var oldTableSlug = this.tableSlug;
@@ -160,6 +211,14 @@ class Schema {
             throw err;
         });
     }
+    /**
+     * Add a single column to the table's schema definition
+     *
+     * @method addColumn
+     * @param {string} slug - The slug of the column to add
+     * @param {string} type
+     * @return {Promise}
+     */
     addColumn(slug, type) {
         this.definition.push({
             name: slug,
@@ -171,6 +230,16 @@ class Schema {
             throw err;
         });
     }
+    /**
+     * Add multiple columns to the table's schema definition
+     *
+     * @method addColumns
+     * @param {object[]} definition
+     * @param {string} definition[].name
+     * @param {string} definition[].slug
+     * @param {string} definition[].type
+     * @return {Promise}
+     */
     addColumns(def) {
         let oldDefinition = _.cloneDeep(this.definition);
         this.definition = this.definition.concat(def);
@@ -179,6 +248,14 @@ class Schema {
             throw err;
         });
     }
+    /**
+     * Rename a single column in the table's schema definition
+     *
+     * @method renameColumn
+     * @param {string} slug - The slug of the column to rename
+     * @param {string} newSlug
+     * @return {Promise}
+     */
     renameColumn(slug, newSlug) {
         var index = _.findIndex(this.definition, (el) => {
             return el.slug == slug;
@@ -191,6 +268,14 @@ class Schema {
             throw err;
         });
     }
+    /**
+     * Change the type of a single column in the table's schema definition
+     *
+     * @method changeColumnType
+     * @param {string} slug - The slug of the column to change type
+     * @param {string} newType
+     * @return {Promise}
+     */
     changeColumnType(slug, newType) {
         var index = _.findIndex(this.definition, (el) => {
             return el.slug == slug;
@@ -202,6 +287,13 @@ class Schema {
             throw err;
         });
     }
+    /**
+     * Remove a single column from the table's schema definition
+     *
+     * @method removeColumn
+     * @param {string} slug - The slug of the column to remove
+     * @return {Promise}
+     */
     removeColumn(slug) {
         var index = _.findIndex(this.definition, (el) => {
             return el.label == slug;
@@ -213,6 +305,13 @@ class Schema {
         });
     }
     // Utils --------------------------------------------------------
+    /**
+     * Update the new schema structure into the database
+     *
+     * @method _writeSchema
+     * @private
+     * @return {Promise}
+     */
     _writeSchema() {
         return con.then((db) => {
             return db.collection("_schema").findOneAndUpdate({ collectionSlug: this.tableSlug }, {
@@ -222,6 +321,15 @@ class Schema {
             });
         });
     }
+    /**
+     * Set an autoincrementing field to the _counters table (MongoDB only)
+     *
+     * @method _setCounter
+     * @private
+     * @param {string} collection - The slug of the collection to set
+     * @param {string} columnLabel - The slug of the column set as an autoincrementing index
+     * @return {Promise}
+     */
     _setCounter(collection, columnLabel) {
         return con.then((db) => {
             let sequenceKey = `sequences.${columnLabel}`;
@@ -234,6 +342,16 @@ class Schema {
             });
         });
     }
+    /**
+     * Increment an autoincrementing index (MongoDB only)
+     *
+     * @method _setCounter
+     * @private
+     * @param {string} collection - The slug of the collection to target
+     * @param {string} columnLabel - The slug of the autoincrementing column
+     * to increment
+     * @return {Promise} - Promise of the next number in the sequence
+     */
     _incrementCounter(collection, columnLabel) {
         return con.then((db) => {
             return db.collection("_counters").findOne({

@@ -7,6 +7,17 @@ const ActiveCollection = require("./ActiveCollection.js");
 const ActiveSchema = require("./ActiveSchema.js");
 // Let's get mongodb working first
 const connect = require("./mongoConnection.js")(process.env.mongo_server, process.env.mongo_db_name, process.env.mongo_user, process.env.mongo_pass);
+/** @namespace ActiveRecord */
+/**
+ * Creates a new ActiveRecord instance.
+ *
+ * @class
+ * @param {object} options
+ * @param {string} options.tableSlug - The slug of the table. Must be lowercase only
+ * and not containing any whitespace
+ * @param {string} [options.tableName] - The name of the table. Default to `options.tableSlug`
+ * if not provided
+ */
 class ActiveRecord {
     constructor(options) {
         let tableSlug = options.tableSlug;
@@ -15,14 +26,27 @@ class ActiveRecord {
         this._databaseConnection = connect;
         let _schema;
         _schema = this.Schema = new (ActiveSchema(this._databaseConnection))();
-        var _ready = this._ready = connect.then((db) => {
+        let _ready = this._ready = connect.then((db) => {
             _db = this._db = db;
             return db.createCollection(tableSlug).then((col) => {
                 this._tableName = tableName;
                 return Promise.resolve(col);
             });
         });
-        var Model = this.Model = function (data, _preserveOriginal) {
+        /**
+         * Create a new ActiveRecord.Model instance
+         *
+         * @name ActiveRecord.Model
+         * @constructor
+         * @param {object} data - Object containing data for this instance of ActiveRecord.Model
+         */
+        let Model = this.Model = function (data, _preserveOriginal) {
+            /**
+             * The data contained in this instance. It is not kept in sync with the database
+             * automatically.
+             *
+             * @property {object} data
+             */
             this.data = data;
             if (_preserveOriginal) {
                 this._original = _.cloneDeep(data);
@@ -31,6 +55,12 @@ class ActiveRecord {
                 this._original = null;
             }
         };
+        /**
+         * Save the data in this instance to the database
+         *
+         * @method save
+         * @return {Promise}
+         */
         Model.prototype.save = function () {
             return _ready.then((col) => {
                 if (this._original) {
@@ -67,6 +97,12 @@ class ActiveRecord {
                 }
             });
         };
+        /**
+         * Delete the entry this instance links to
+         *
+         * @method destroy
+         * @return {Promise}
+         */
         Model.prototype.destroy = function () {
             return _ready.then((col) => {
                 if (this._original) {
@@ -81,6 +117,12 @@ class ActiveRecord {
                 }
             });
         };
+        /**
+         * Validate the data in this instance conform to its schema
+         *
+         * @method validate
+         * @return {Promise}
+         */
         Model.prototype.validate = function (schema) {
             var result = false;
             _.each(this.data, (el, key) => {
@@ -97,6 +139,11 @@ class ActiveRecord {
             return result;
         };
     }
+    /**
+     * Close the connection to the database server.
+     *
+     * @method closeConnection
+     */
     closeConnection() {
         // Should only ever be called to terminate the node process
         this._ready.then((col) => {
@@ -106,6 +153,15 @@ class ActiveRecord {
             this._db.close();
         });
     }
+    /**
+     * Find the latest entry in the table that match the query.
+     *
+     * @method findBy
+     * @param {object} query - A key value pair that will be used to match for entry
+     * in the database
+     * @return {ActiveRecord.Model} An instance of ActiveRecord.Model created from the
+     * retrieved data
+     */
     findBy(query) {
         return this._ready.then((col) => {
             return col.findOne(query).then((model) => {
@@ -113,6 +169,15 @@ class ActiveRecord {
             });
         });
     }
+    /**
+     * Find all the entries in the table that match the query.
+     *
+     * @method where
+     * @param {object} query - A key value pair that will be used to match for entries
+     * @param {string|function} orderBy - The key to sort by or a sorting function
+     * @return {ActiveCollection} An instance of ActiveCollection containing a list of
+     * ActiveRecord.Model objects created from the retrieved data
+     */
     where(query, orderBy) {
         return this._ready.then((col) => {
             return col.find(query).toArray().then((models) => {
@@ -127,6 +192,13 @@ class ActiveRecord {
             });
         });
     }
+    /**
+     * Return all entries from the table
+     *
+     * @method all
+     * @return {ActiveCollection} An instance of ActiveCollection containing a list of
+     * ActiveRecord.Model objects created from all entries in the table
+     */
     all() {
         return this._ready.then((col) => {
             return col.find().toArray().then((models) => {
@@ -138,6 +210,13 @@ class ActiveRecord {
             });
         });
     }
+    /**
+     * Return the first entry in the table
+     *
+     * @method first
+     * @return {ActiveRecord.Model} An instance of ActiveRecord.Model created from the
+     * first entry in the table
+     */
     first() {
         return this._ready.then((col) => {
             return col.findOne().then((model) => {

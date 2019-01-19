@@ -21,13 +21,35 @@ interface IndexOptions{
 interface TableOptions{
 	tableSlug:string;
 	tableName:string;
-	indexColumns:any;
+	indexColumns:Array<IndexOptions> | IndexOptions;
 }
 
 // Let's get mongodb working first
+/**
+ * Create an new ActiveSchema instance
+ *
+ * @class
+ */
 class Schema{
+	/**
+	 * The name of the table.
+	 *
+	 * @property {string} tableName
+	 */
 	tableName:string;
+
+	/**
+	 * The slug of the table.
+	 *
+	 * @property {string} tableSlug
+	 */
 	tableSlug:string;
+
+	/**
+	 * The definition of the table's schema.
+	 *
+	 * @property {object} SchemaDefinition
+	 */
 	definition:SchemaDefinitions;
 
 	constructor(){
@@ -36,6 +58,16 @@ class Schema{
 		this.definition = [];
 	}
 
+	/**
+	 * Create a new table with the given options
+	 *
+	 * @method createTable
+	 * @param {object} options
+	 * @param {string} options.tableSlug
+	 * @param {string} options.tableName
+	 * @param {Array} options.indexColumns
+	 * @return {Promise}
+	 */
 	createTable(options:TableOptions){
 		let tableSlug:string = options.tableSlug;
 		let tableName:string = options.tableName;
@@ -109,6 +141,16 @@ class Schema{
 		});
 	}
 
+	/**
+	 * Add an index to the table's schema
+	 *
+	 * @method addIndex
+	 * @param {object} options
+	 * @param {string} options.name
+	 * @param {boolean} [options.autoInrement]
+	 * @param {boolean} [options.unique]
+	 * @return {Promise}
+	 */
 	addIndex(options:IndexOptions){
 		let columnName:string = options.name;
 		let isAutoIncrement:boolean = options.autoIncrement;
@@ -139,6 +181,13 @@ class Schema{
 		// Maybe drop index then recreate but do consider why you need to do this
 	}
 
+	/**
+	 * Remove an index to the table's schema
+	 *
+	 * @method removeIndex
+	 * @param {string} columnName - The name of the index to remove
+	 * @return {Promise}
+	 */
 	removeIndex(columnName:string){
 		return con.then((db) => {
 			return db.collection(this.tableSlug).dropIndex(columnName)
@@ -158,6 +207,13 @@ class Schema{
 		});
 	}
 
+	/**
+	 * Read the schema configuration from the database
+	 *
+	 * @method read
+	 * @param {string} tableSlug
+	 * @return {Promise}
+	 */
 	read(tableSlug:string){
 		return con.then((db) => {
 			return db.collection("_schema").findOne({collectionSlug: tableSlug});
@@ -172,6 +228,18 @@ class Schema{
 		});
 	}
 
+	/**
+	 * Define the table's schema
+	 *
+	 * @method define
+	 * @param {string} tableName
+	 * @param {string} tableSlug
+	 * @param {object[]} definition
+	 * @param {string} definition[].name
+	 * @param {string} definition[].slug
+	 * @param {string} definition[].type
+	 * @return {Promise}
+	 */
 	define(tableName:string, tableSlug:string, def:SchemaDefinitions){
 		var oldTableName:string = this.tableName;
 		var oldTableSlug:string = this.tableSlug;
@@ -195,6 +263,14 @@ class Schema{
 		});
 	}
 
+	/**
+	 * Add a single column to the table's schema definition
+	 *
+	 * @method addColumn
+	 * @param {string} slug - The slug of the column to add
+	 * @param {string} type
+	 * @return {Promise}
+	 */
 	addColumn(slug:string, type:string){
 		this.definition.push({
 			name: slug,
@@ -208,6 +284,16 @@ class Schema{
 		});
 	}
 
+	/**
+	 * Add multiple columns to the table's schema definition
+	 *
+	 * @method addColumns
+	 * @param {object[]} definition
+	 * @param {string} definition[].name
+	 * @param {string} definition[].slug
+	 * @param {string} definition[].type
+	 * @return {Promise}
+	 */
 	addColumns(def:SchemaDefinitions){
 		let oldDefinition:SchemaDefinitions = _.cloneDeep(this.definition);
 		this.definition = this.definition.concat(def);
@@ -218,6 +304,14 @@ class Schema{
 		});
 	}
 
+	/**
+	 * Rename a single column in the table's schema definition
+	 *
+	 * @method renameColumn
+	 * @param {string} slug - The slug of the column to rename
+	 * @param {string} newSlug
+	 * @return {Promise}
+	 */
 	renameColumn(slug:string, newSlug:string){
 		var index = _.findIndex(this.definition, (el) => {
 			return el.slug == slug;
@@ -233,6 +327,14 @@ class Schema{
 		});
 	}
 
+	/**
+	 * Change the type of a single column in the table's schema definition
+	 *
+	 * @method changeColumnType
+	 * @param {string} slug - The slug of the column to change type
+	 * @param {string} newType
+	 * @return {Promise}
+	 */
 	changeColumnType(slug:string, newType:string){
 		var index:number = _.findIndex(this.definition, (el) => {
 			return el.slug == slug;
@@ -246,6 +348,13 @@ class Schema{
 		});
 	}
 
+	/**
+	 * Remove a single column from the table's schema definition
+	 *
+	 * @method removeColumn
+	 * @param {string} slug - The slug of the column to remove
+	 * @return {Promise}
+	 */
 	removeColumn(slug:string){
 		var index:number = _.findIndex(this.definition, (el) => {
 			return el.label == slug;
@@ -259,6 +368,13 @@ class Schema{
 	}
 
 	// Utils --------------------------------------------------------
+	/**
+	 * Update the new schema structure into the database
+	 *
+	 * @method _writeSchema
+	 * @private
+	 * @return {Promise}
+	 */
 	private _writeSchema(){
 		return con.then((db) => {
 			return db.collection("_schema").findOneAndUpdate({collectionSlug: this.tableSlug}, {
@@ -269,6 +385,15 @@ class Schema{
 		});
 	}
 
+	/**
+	 * Set an autoincrementing field to the _counters table (MongoDB only)
+	 *
+	 * @method _setCounter
+	 * @private
+	 * @param {string} collection - The slug of the collection to set
+	 * @param {string} columnLabel - The slug of the column set as an autoincrementing index
+	 * @return {Promise}
+	 */
 	private _setCounter(collection:string, columnLabel:string){
 		return con.then((db) => {
 			let sequenceKey = `sequences.${columnLabel}`;
@@ -283,6 +408,16 @@ class Schema{
 		});
 	}
 
+	/**
+	 * Increment an autoincrementing index (MongoDB only)
+	 *
+	 * @method _setCounter
+	 * @private
+	 * @param {string} collection - The slug of the collection to target
+	 * @param {string} columnLabel - The slug of the autoincrementing column
+	 * to increment
+	 * @return {Promise} - Promise of the next number in the sequence
+	 */
 	private _incrementCounter(collection:string, columnLabel:string){
 		return con.then((db) => {
 			return db.collection("_counters").findOne({
