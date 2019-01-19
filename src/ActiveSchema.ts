@@ -141,7 +141,18 @@ class Schema{
 
 	removeIndex(columnName:string){
 		return con.then((db) => {
-			return db.collection(this.tableSlug).dropIndex(columnName);
+			return db.collection(this.tableSlug).dropIndex(columnName)
+				.then(() => {
+					return Promise.resolve(db);
+				});
+		}).then((db) => {
+			if(columnName === "_uid"){
+				return db.collection("_counters").findOneAndDelete({
+					collection: this.tableSlug
+				});
+			}else{
+				return Promise.resolve();
+			}
 		}).catch((err) => {
 			throw err;
 		});
