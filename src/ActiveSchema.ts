@@ -10,7 +10,7 @@ interface Definition{
 	type:string;
 }
 
-interface SchemaDefinitions extends Array<Definition>{}{}
+interface SchemaDefinitions extends Array<Definition>{}
 
 interface IndexOptions{
 	name:string;

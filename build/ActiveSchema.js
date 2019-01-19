@@ -4,7 +4,6 @@ require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
 let con;
-{ }
 // Let's get mongodb working first
 /**
  * Create an new ActiveSchema instance
