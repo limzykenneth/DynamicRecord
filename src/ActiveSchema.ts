@@ -218,9 +218,15 @@ class Schema{
 		return con.then((db) => {
 			return db.collection("_schema").findOne({collectionSlug: tableSlug});
 		}).then((data) => {
-			this.tableName = data.collectionName;
-			this.tableSlug = data.collectionSlug;
-			this.definition = data.fields;
+			if(data){
+				this.tableName = data.collectionName;
+				this.tableSlug = data.collectionSlug;
+				this.definition = data.fields;
+			}else{
+				this.tableName = "";
+				this.tableSlug = "";
+				this.definition = [];
+			}
 
 			return Promise.resolve();
 		}).catch((err) => {
