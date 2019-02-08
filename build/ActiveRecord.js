@@ -184,10 +184,7 @@ class ActiveRecord {
                 if (orderBy) {
                     models = _.sortBy(models, orderBy);
                 }
-                const results = new ActiveCollection();
-                _.each(models, (model, i) => {
-                    results.push(new this.Model(model, true));
-                });
+                const results = new ActiveCollection(this.Model, ...models);
                 return Promise.resolve(results);
             });
         });
@@ -202,10 +199,7 @@ class ActiveRecord {
     all() {
         return this._ready.then((col) => {
             return col.find().toArray().then((models) => {
-                const results = new ActiveCollection();
-                _.each(models, (model, i) => {
-                    results.push(new this.Model(model, true));
-                });
+                const results = new ActiveCollection(this.Model, ...models);
                 return Promise.resolve(results);
             });
         });
@@ -226,4 +220,5 @@ class ActiveRecord {
     }
 }
 ActiveRecord.ActiveSchema = new (ActiveSchema(connect))();
+ActiveRecord.ActiveCollection = ActiveCollection;
 module.exports = ActiveRecord;

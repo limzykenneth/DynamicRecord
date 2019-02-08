@@ -76,5 +76,51 @@ describe("ActiveCollection", function(){
 			"string": "Magna dolor."
 		}, "collection data include pushed entry");
 	});
+
+	describe("saveAll()", function(){
+		let col;
+		const testData = [
+			{
+				"string": "Velit tempor.",
+				"int": 42,
+				"float": 3.1415926536
+			},
+			{
+				"string": "Fugiat laboris cillum quis pariatur.",
+				"int": 42,
+				"float": 2.7182818285
+			},
+			{
+				"string": "Reprehenderit sint.",
+				"int": 10958,
+				"float": 2.7182818285
+			}
+		];
+		beforeEach(function(){
+			col = new ActiveCollection(Random.Model, ...testData);
+		});
+
+		afterEach(function(done){
+			connect.then((db) => {
+				// Clear out dummy data
+				return db.collection("random_table").deleteMany({});
+			}).then((r) => {
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
+
+		it("should call save function of all the models in the collection", function(done){
+			col.saveAll().then((res) => {
+				connect.then((db) => {
+					return db.collection("random_table").find().toArray();
+				}).then((res) => {
+					assert.deepEqual(res, col.data);
+					done();
+				});
+			});
+		});
+	});
 });
 // --------------------------------------------

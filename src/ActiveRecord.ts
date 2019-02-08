@@ -20,6 +20,7 @@ const connect = require("./mongoConnection.js")(process.env.mongo_server, proces
  */
 class ActiveRecord {
 	static ActiveSchema = new (ActiveSchema(connect))();
+	static ActiveCollection = ActiveCollection;
 
 	private _databaseConnection: any;
 	private _ready: any;
@@ -204,10 +205,7 @@ class ActiveRecord {
 					models = _.sortBy(models, orderBy);
 				}
 
-				const results = new ActiveCollection();
-				_.each(models, (model, i) => {
-					results.push(new this.Model(model, true));
-				});
+				const results = new ActiveCollection(this.Model, ...models);
 
 				return Promise.resolve(results);
 			});
@@ -224,10 +222,7 @@ class ActiveRecord {
 	all(){
 		return this._ready.then((col) => {
 			return col.find().toArray().then((models) => {
-				const results = new ActiveCollection();
-				_.each(models, (model, i) => {
-					results.push(new this.Model(model, true));
-				});
+				const results = new ActiveCollection(this.Model, ...models);
 
 				return Promise.resolve(results);
 			});
