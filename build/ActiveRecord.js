@@ -26,6 +26,7 @@ class ActiveRecord {
         this._databaseConnection = connect;
         let _schema;
         _schema = this.Schema = new (ActiveSchema(this._databaseConnection))();
+        let _collection = this.Collection = ActiveCollection;
         const _ready = this._ready = connect.then((db) => {
             _db = this._db = db;
             return db.createCollection(tableSlug).then((col) => {
