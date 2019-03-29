@@ -116,6 +116,15 @@ describe("ActiveRecord", function(){
 				done(err);
 			});
 		});
+		it("should populate the _original property of the returned model", function(done){
+			Random.findBy({"string": testData[0].string}).then((model) => {
+				assert.isNotNull(model._original, "'model._original' is populated");
+				assert.deepEqual(model.data, model._original, "'model._original' is a copy of 'model.data'");
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
 	});
 
 	describe("where()", function(){
@@ -149,6 +158,17 @@ describe("ActiveRecord", function(){
 				done(err);
 			});
 		});
+		it("should populate the _original property of all the returned models", function(done){
+			Random.where({"float": testData[1].float}).then((col) => {
+				_.each(col, (model) => {
+					assert.isNotNull(model._original, "'model._original' is populated");
+					assert.deepEqual(model.data, model._original, "'model._original' is a copy of 'model.data'");
+				});
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
 	});
 
 	describe("all()", function(){
@@ -171,7 +191,18 @@ describe("ActiveRecord", function(){
 				done(err);
 			});
 		});
-		it("should return an empty array descendent if database is empty");
+		it("should return an empty ActiveCollection if database is empty");
+		it("should populate the _original property of all the returned models", function(done){
+			Random.all().then((col) => {
+				_.each(col, (model) => {
+					assert.isNotNull(model._original, "'model._original' is populated");
+					assert.deepEqual(model.data, model._original, "'model._original' is a copy of 'model.data'");
+				});
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
 	});
 
 	describe("first()", function(){

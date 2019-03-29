@@ -204,6 +204,9 @@ class ActiveRecord {
         return this._ready.then((col) => {
             return col.find().toArray().then((models) => {
                 const results = new ActiveCollection(this.Model, ...models);
+                _.each(results, (result) => {
+                    result._original = _.cloneDeep(result.data);
+                });
                 return Promise.resolve(results);
             });
         });
