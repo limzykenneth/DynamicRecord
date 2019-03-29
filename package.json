@@ -5,7 +5,7 @@
   "main": "build/ActiveRecord.js",
   "scripts": {
     "test": "mocha",
-    "start_test_db": "sh test/mongo_test.sh",
+    "test_db": "sh test/mongo_test.sh",
     "build": "tsc"
   },
   "author": "",

@@ -186,6 +186,9 @@ class ActiveRecord {
                     models = _.sortBy(models, orderBy);
                 }
                 const results = new ActiveCollection(this.Model, ...models);
+                _.each(results, (result) => {
+                    result._original = _.cloneDeep(result.data);
+                });
                 return Promise.resolve(results);
             });
         });
