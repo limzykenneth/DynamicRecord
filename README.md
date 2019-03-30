@@ -1,11 +1,16 @@
-# Nothing to see here, why not have a look at [this](https://www.chippyipsum.com)?
+# Dynamic Record (Working Title)
 
-## Seriously, go away, I'll let you know when this is ready.
+### A bare minimum Javascript implementation of the Active Record pattern
 
-### I'm only putting this here so I can npm install it to test some stuff.
+Dynamic Record is a database abstraction package for node.js that is inspired by Ruby on Rails' ActiveRecord. We aim to support most major database systems including MongoDB, MySQL, PostgreSQL and many more.
 
-#### Still here? Why not go play with my [chatbot](https://designerken.be/404.html)!
+**Note**: Dynamic Record is currently in early Alpha and should not be considered production ready.
 
-##### I'm going to pretend you are no longer here...
+---
 
-###### \*Whistle\* \*Whistle\* \*Whistle\*
+## Usage
+Although the API is more or less as how we wanted it to be, changes can still occur, so for now to find out about how to use Dynamic Record, please see the inline documentations and tests for examples.
+
+---
+
+More to come...

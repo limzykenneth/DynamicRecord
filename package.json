@@ -2,13 +2,18 @@
   "name": "active-record",
   "version": "0.3.2",
   "description": "A bare minimum Javascript implementation of the Active Record pattern",
+  "keywords": [
+  ],
+  "homepage": "https://github.com/limzykenneth/DynamicRecord",
+  "bugs": "https://github.com/limzykenneth/DynamicRecord/issues",
+  "repository": "https://github.com/limzykenneth/DynamicRecord.git",
   "main": "build/ActiveRecord.js",
   "scripts": {
     "test": "mocha",
     "test_db": "sh test/mongo_test.sh",
     "build": "tsc"
   },
-  "author": "",
+  "author": "Kenneth Lim <limzy.kenneth@gmail.com> (https://designerken.be/designing/)",
   "license": "BSD-2-Clause",
   "dependencies": {
     "bluebird": "^3.5.1",
