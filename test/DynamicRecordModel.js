@@ -8,8 +8,8 @@ const mongoURL = f("mongodb://%s:%s@%s/%s", process.env.mongo_user, process.env.
 const connect = MongoClient.connect(mongoURL);
 
 // Test dependencies
-const ActiveRecord = require("../build/ActiveRecord.js");
-const ActiveCollection = require("../build/ActiveCollection.js");
+const DynamicRecord = require("../build/DynamicRecord.js");
+const DynamicCollection = require("../build/DynamicCollection.js");
 const utils = new (require("./utils.js"))(connect);
 const chai = require("chai");
 const assert = chai.assert;
@@ -20,7 +20,7 @@ let Random;
 // Clear table and insert dummy data
 before(function(done){
 	utils.dropTestTable(function(reply){
-		Random = new ActiveRecord({
+		Random = new DynamicRecord({
 			tableSlug: "random_table",
 			tableName: "Random Table"
 		});

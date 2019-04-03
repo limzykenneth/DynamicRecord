@@ -7,7 +7,7 @@
   "homepage": "https://github.com/limzykenneth/DynamicRecord",
   "bugs": "https://github.com/limzykenneth/DynamicRecord/issues",
   "repository": "https://github.com/limzykenneth/DynamicRecord.git",
-  "main": "build/ActiveRecord.js",
+  "main": "build/DynamicRecord.js",
   "scripts": {
     "test": "mocha",
     "test_db": "sh test/mongo_test.sh",

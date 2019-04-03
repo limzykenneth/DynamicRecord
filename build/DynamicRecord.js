@@ -3,13 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
-const ActiveCollection = require("./ActiveCollection.js");
-const ActiveSchema = require("./ActiveSchema.js");
+const DynamicCollection = require("./DynamicCollection.js");
+const DynamicSchema = require("./DynamicSchema.js");
 // Let's get mongodb working first
 const connect = require("./mongoConnection.js")(process.env.mongo_server, process.env.mongo_db_name, process.env.mongo_user, process.env.mongo_pass);
-/** @namespace ActiveRecord */
+/** @namespace DynamicRecord */
 /**
- * Creates a new ActiveRecord instance.
+ * Creates a new DynamicRecord instance.
  *
  * @class
  * @param {object} options
@@ -18,15 +18,15 @@ const connect = require("./mongoConnection.js")(process.env.mongo_server, proces
  * @param {string} [options.tableName] - The name of the table. Default to `options.tableSlug`
  * if not provided
  */
-class ActiveRecord {
+class DynamicRecord {
     constructor(options) {
         const tableSlug = options.tableSlug;
         const tableName = options.tableName || options.tableSlug;
         let _db;
         this._databaseConnection = connect;
         let _schema;
-        _schema = this.Schema = new (ActiveSchema(this._databaseConnection))();
-        let _collection = this.Collection = ActiveCollection;
+        _schema = this.Schema = new (DynamicSchema(this._databaseConnection))();
+        let _collection = this.Collection = DynamicCollection;
         const _ready = this._ready = connect.then((db) => {
             _db = this._db = db;
             return db.createCollection(tableSlug).then((col) => {
@@ -35,11 +35,11 @@ class ActiveRecord {
             });
         });
         /**
-         * Create a new ActiveRecord.Model instance
+         * Create a new DynamicRecord.Model instance
          *
-         * @name ActiveRecord.Model
+         * @name DynamicRecord.Model
          * @constructor
-         * @param {object} data - Object containing data for this instance of ActiveRecord.Model
+         * @param {object} data - Object containing data for this instance of DynamicRecord.Model
          */
         const Model = this.Model = function (data, _preserveOriginal) {
             /**
@@ -160,7 +160,7 @@ class ActiveRecord {
      * @method findBy
      * @param {object} query - A key value pair that will be used to match for entry
      * in the database
-     * @return {ActiveRecord.Model} An instance of ActiveRecord.Model created from the
+     * @return {DynamicRecord.Model} An instance of DynamicRecord.Model created from the
      * retrieved data
      */
     findBy(query) {
@@ -176,8 +176,8 @@ class ActiveRecord {
      * @method where
      * @param {object} query - A key value pair that will be used to match for entries
      * @param {string|function} orderBy - The key to sort by or a sorting function
-     * @return {ActiveCollection} An instance of ActiveCollection containing a list of
-     * ActiveRecord.Model objects created from the retrieved data
+     * @return {DynamicCollection} An instance of DynamicCollection containing a list of
+     * DynamicRecord.Model objects created from the retrieved data
      */
     where(query, orderBy) {
         return this._ready.then((col) => {
@@ -185,7 +185,7 @@ class ActiveRecord {
                 if (orderBy) {
                     models = _.sortBy(models, orderBy);
                 }
-                const results = new ActiveCollection(this.Model, ...models);
+                const results = new DynamicCollection(this.Model, ...models);
                 _.each(results, (result) => {
                     result._original = _.cloneDeep(result.data);
                 });
@@ -197,13 +197,13 @@ class ActiveRecord {
      * Return all entries from the table
      *
      * @method all
-     * @return {ActiveCollection} An instance of ActiveCollection containing a list of
-     * ActiveRecord.Model objects created from all entries in the table
+     * @return {DynamicCollection} An instance of DynamicCollection containing a list of
+     * DynamicRecord.Model objects created from all entries in the table
      */
     all() {
         return this._ready.then((col) => {
             return col.find().toArray().then((models) => {
-                const results = new ActiveCollection(this.Model, ...models);
+                const results = new DynamicCollection(this.Model, ...models);
                 _.each(results, (result) => {
                     result._original = _.cloneDeep(result.data);
                 });
@@ -215,7 +215,7 @@ class ActiveRecord {
      * Return the first entry in the table
      *
      * @method first
-     * @return {ActiveRecord.Model} An instance of ActiveRecord.Model created from the
+     * @return {DynamicRecord.Model} An instance of DynamicRecord.Model created from the
      * first entry in the table
      */
     first() {
@@ -226,6 +226,6 @@ class ActiveRecord {
         });
     }
 }
-ActiveRecord.ActiveSchema = new (ActiveSchema(connect))();
-ActiveRecord.ActiveCollection = ActiveCollection;
-module.exports = ActiveRecord;
+DynamicRecord.DynamicSchema = new (DynamicSchema(connect))();
+DynamicRecord.DynamicCollection = DynamicCollection;
+module.exports = DynamicRecord;

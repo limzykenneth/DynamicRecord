@@ -2,15 +2,15 @@ import _ = require("lodash");
 import Promise = require("bluebird");
 
 /**
- * ActiveCollection is an extension of the native Array object thus
+ * DynamicCollection is an extension of the native Array object thus
  * implementing all of Array's methods and properties.
  *
- * @namespace ActiveCollection
+ * @namespace DynamicCollection
  * @class
  * @extends Array
  *
  */
-class ActiveCollection extends Array{
+class DynamicCollection extends Array{
 	constructor(Model, ...data){
 		super();
 
@@ -45,4 +45,4 @@ class ActiveCollection extends Array{
 	}
 }
 
-module.exports = ActiveCollection;
+module.exports = DynamicCollection;

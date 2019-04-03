@@ -8,8 +8,8 @@ const mongoURL = f("mongodb://%s:%s@%s/%s", process.env.mongo_user, process.env.
 const connect = MongoClient.connect(mongoURL);
 
 // Test dependencies
-const ActiveRecord = require("../build/ActiveRecord.js");
-const ActiveCollection = require("../build/ActiveCollection.js");
+const DynamicRecord = require("../build/DynamicRecord.js");
+const DynamicCollection = require("../build/DynamicCollection.js");
 const utils = new (require("./utils.js"))(connect);
 const chai = require("chai");
 const assert = chai.assert;
@@ -20,7 +20,7 @@ let Random;
 // Clear table and insert dummy data
 before(function(done){
 	utils.dropTestTable(function(reply){
-		Random = new ActiveRecord({
+		Random = new DynamicRecord({
 			tableSlug: "random_table",
 			tableName: "Random Table"
 		});
@@ -137,7 +137,7 @@ describe("Schema", function(){
 	});
 
 	describe("addIndex()", function(){
-		// Instance of ActiveSchema used for testing
+		// Instance of DynamicSchema used for testing
 		let table;
 
 		beforeEach(function(done){
@@ -250,7 +250,7 @@ describe("Schema", function(){
 					done(err);
 				});
 			});
-			// Following potentially tested in ActiveRecordModel.js
+			// Following potentially tested in DynamicRecordModel.js
 			it("should increment the counter when a new entry is added", function(done){
 				table.addIndex({
 					name: "tableSlug",
@@ -337,7 +337,7 @@ describe("Schema", function(){
 	});
 
 	describe("removeIndex()", function(){
-		// Instance of ActiveSchema used for testing
+		// Instance of DynamicSchema used for testing
 		let table;
 
 		beforeEach(function(done){

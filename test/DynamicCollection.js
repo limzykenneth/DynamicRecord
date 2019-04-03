@@ -8,20 +8,20 @@ const mongoURL = f("mongodb://%s:%s@%s/%s", process.env.mongo_user, process.env.
 const connect = MongoClient.connect(mongoURL);
 
 // Test dependencies
-const ActiveRecord = require("../build/ActiveRecord.js");
-const ActiveCollection = require("../build/ActiveCollection");
+const DynamicRecord = require("../build/DynamicRecord.js");
+const DynamicCollection = require("../build/DynamicCollection");
 const utils = new (require("./utils.js"))(connect);
 const chai = require("chai");
 const assert = chai.assert;
 
-// Main instance of ActiveRecord to which code will be tested
+// Main instance of DynamicRecord to which code will be tested
 let Random;
 
 // ------------------ Setups ------------------
 // Clear table and insert dummy data
 before(function(done){
 	utils.dropTestTable(function(reply){
-		Random = new ActiveRecord({
+		Random = new DynamicRecord({
 			tableSlug: "random_table",
 			tableName: "Random Table"
 		});
@@ -42,10 +42,10 @@ after(function(done){
 // --------------------------------------------
 
 // ----------------- Tests --------------------
-describe("ActiveCollection", function(){
+describe("DynamicCollection", function(){
 	let col;
 	beforeEach(function(){
-		col = new ActiveCollection();
+		col = new DynamicCollection();
 	});
 	afterEach(function(){
 		col = null;
@@ -65,7 +65,7 @@ describe("ActiveCollection", function(){
 	it("should have a property 'data' that returns a regular array of data", function(){
 		assert.exists(col.data, "collection data exist");
 		assert.isArray(col.data, "collection data is an array");
-		assert.notInstanceOf(col.data, ActiveCollection, "collection data is not an instance of ActiveCollection");
+		assert.notInstanceOf(col.data, DynamicCollection, "collection data is not an instance of DynamicCollection");
 	});
 	it("should update 'data' property whenever its data is updated", function(){
 		col.push(new Random.Model({
@@ -97,7 +97,7 @@ describe("ActiveCollection", function(){
 			}
 		];
 		beforeEach(function(){
-			col = new ActiveCollection(Random.Model, ...testData);
+			col = new DynamicCollection(Random.Model, ...testData);
 		});
 
 		afterEach(function(done){
@@ -118,6 +118,8 @@ describe("ActiveCollection", function(){
 				}).then((res) => {
 					assert.deepEqual(res, col.data);
 					done();
+				}).catch((err) => {
+					done(err);
 				});
 			});
 		});

@@ -3,15 +3,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const _ = require("lodash");
 const Promise = require("bluebird");
 /**
- * ActiveCollection is an extension of the native Array object thus
+ * DynamicCollection is an extension of the native Array object thus
  * implementing all of Array's methods and properties.
  *
- * @namespace ActiveCollection
+ * @namespace DynamicCollection
  * @class
  * @extends Array
  *
  */
-class ActiveCollection extends Array {
+class DynamicCollection extends Array {
     constructor(Model, ...data) {
         super();
         const models = [];
@@ -41,4 +41,4 @@ class ActiveCollection extends Array {
         return Promise.all(promises);
     }
 }
-module.exports = ActiveCollection;
+module.exports = DynamicCollection;

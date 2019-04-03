@@ -8,8 +8,8 @@ const mongoURL = f("mongodb://%s:%s@%s/%s", process.env.mongo_user, process.env.
 const connect = MongoClient.connect(mongoURL);
 
 // Test dependencies
-const ActiveRecord = require("../build/ActiveRecord.js");
-const ActiveCollection = require("../build/ActiveCollection.js");
+const DynamicRecord = require("../build/DynamicRecord.js");
+const DynamicCollection = require("../build/DynamicCollection.js");
 const utils = new (require("./utils.js"))(connect);
 const chai = require("chai");
 const assert = chai.assert;
@@ -20,7 +20,7 @@ let Random;
 // Clear table and insert dummy data
 before(function(done){
 	utils.dropTestTable(function(reply){
-		Random = new ActiveRecord({
+		Random = new DynamicRecord({
 			tableSlug: "random_table",
 			tableName: "Random Table"
 		});
@@ -41,7 +41,7 @@ after(function(done){
 // --------------------------------------------
 
 // ----------------- Tests --------------------
-describe("ActiveRecord", function(){
+describe("DynamicRecord", function(){
 	// Data to be inserted into database for testing
 	// Each element in array correspond to an entry in database
 	// Objects keys are just for reference, not meant to represent actual types
@@ -100,7 +100,7 @@ describe("ActiveRecord", function(){
 				done(err);
 			});
 		});
-		it("should return a single object of type ActiveRecord.Model", function(done){
+		it("should return a single object of type DynamicRecord.Model", function(done){
 			Random.findBy({"string": testData[0].string}).then((model) => {
 				assert.instanceOf(model, Random.Model, "'model' is and instance of 'Random.Model'");
 				done();
@@ -138,10 +138,10 @@ describe("ActiveRecord", function(){
 				done(err);
 			});
 		});
-		it("should return an array descendent of type ActiveCollection", function(done){
+		it("should return an array descendent of type DynamicCollection", function(done){
 			Random.where({"float": testData[1].float}).then((col) => {
 				assert.instanceOf(col, Array, "collection is an instance of Array");
-				assert.instanceOf(col, ActiveCollection, "collection is an instance of ActiveCollection");
+				assert.instanceOf(col, DynamicCollection, "collection is an instance of DynamicCollection");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -150,7 +150,7 @@ describe("ActiveRecord", function(){
 		it("should return an empty array descendent if query returns nothing", function(done){
 			Random.where({"string": "Not exist"}).then((col) => {
 				assert.instanceOf(col, Array, "collection is an instance of Array");
-				assert.instanceOf(col, ActiveCollection, "collection is an instance of ActiveCollection");
+				assert.instanceOf(col, DynamicCollection, "collection is an instance of DynamicCollection");
 				assert.isEmpty(col, "collection is empty");
 				assert.isEmpty(col.data, "collection data is empty");
 				done();
@@ -182,16 +182,16 @@ describe("ActiveRecord", function(){
 				done(err);
 			});
 		});
-		it("should return an array descendent of type ActiveCollection", function(done){
+		it("should return an array descendent of type DynamicCollection", function(done){
 			Random.all().then((col) => {
 				assert.instanceOf(col, Array, "collection is an instance of Array");
-				assert.instanceOf(col, ActiveCollection, "collection is an instance of ActiveCollection");
+				assert.instanceOf(col, DynamicCollection, "collection is an instance of DynamicCollection");
 				done();
 			}).catch((err) => {
 				done(err);
 			});
 		});
-		it("should return an empty ActiveCollection if database is empty");
+		it("should return an empty DynamicCollection if database is empty");
 		it("should populate the _original property of all the returned models", function(done){
 			Random.all().then((col) => {
 				_.each(col, (model) => {
@@ -214,7 +214,7 @@ describe("ActiveRecord", function(){
 				done(err);
 			});
 		});
-		it("should return a single object of type ActiveRecord.Model", function(done){
+		it("should return a single object of type DynamicRecord.Model", function(done){
 			Random.first().then((model) => {
 				assert.instanceOf(model, Random.Model, "'model' is and instance of 'Random.Model'");
 				done();
