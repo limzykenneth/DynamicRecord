@@ -9,6 +9,7 @@
   "repository": "https://github.com/limzykenneth/DynamicRecord.git",
   "main": "build/DynamicRecord.js",
   "scripts": {
+    "pretest": "npm run build",
     "test": "mocha",
     "test_db": "sh test/mongo_test.sh",
     "build": "tsc"

@@ -72,7 +72,7 @@ class DynamicRecord {
                 }
                 else {
                     // Check if collection contains index that needs auto incrementing
-                    return _db.collection("_counters").findOne({ collection: tableSlug }).then((res) => {
+                    return _db.collection("_counters").findOne({ _$id: tableSlug }).then((res) => {
                         const promises = [];
                         if (res !== null) {
                             // Auto incrementing index exist

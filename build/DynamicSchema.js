@@ -14,7 +14,7 @@ class Schema {
     constructor() {
         this.tableName = null;
         this.tableSlug = null;
-        this.definition = [];
+        this.definition = {};
     }
     /**
      * Create a new table with the given options
@@ -27,23 +27,22 @@ class Schema {
      * @return {Promise}
      */
     createTable(options) {
-        const tableSlug = options.tableSlug;
-        let tableName = options.tableName;
-        const indexColumns = options.indexColumns; // Array
-        if (!tableName) {
-            tableName = tableSlug;
-        }
+        const tableSlug = options.$id;
+        const tableName = options.title;
+        // const indexColumns = options.indexColumns; // Array
+        const columns = options.properties;
         return con.then((db) => {
             const promises = [];
+            // NOTE: Do we need to check for existence first?
             promises.push(db.createCollection(tableSlug).then((col) => {
                 this.tableName = tableName;
                 this.tableSlug = tableSlug;
                 return Promise.resolve(db);
             }));
             promises.push(db.createCollection("_counters").then((col) => {
-                return col.indexExists("collection").then((result) => {
+                return col.indexExists("_$id").then((result) => {
                     if (result === false) {
-                        return col.createIndex("collection", { unique: true }).then(() => {
+                        return col.createIndex("_$id", { unique: true }).then(() => {
                             return Promise.resolve();
                         });
                     }
@@ -52,43 +51,39 @@ class Schema {
                     }
                 }).then(() => {
                     return col.insertOne({
-                        collection: tableSlug,
+                        _$id: tableSlug,
                         sequences: {}
                     }).then(() => {
                         return Promise.resolve(db);
                     });
                 });
             }));
-            promises.push(db.collection("_schema").insertOne({
-                collectionSlug: tableSlug,
-                collectionName: tableName,
-                fields: []
-            }));
+            const databaseInsert = {
+                _$schema: options.$schema,
+                _$id: options.$id,
+                title: options.title,
+                description: options.description,
+                type: options.type,
+                properties: options.properties,
+                required: options.required
+            };
+            promises.push(db.collection("_schema").insertOne(databaseInsert));
+            this.definition = columns;
+            promises.push(this._writeSchema());
             return Promise.all(promises);
         }).then(() => {
-            if (indexColumns) {
-                if (Array.isArray(indexColumns)) {
-                    const promises = [];
-                    _.each(indexColumns, (el, i) => {
-                        promises.push(this.addIndex({
-                            name: el.name,
-                            unique: el.unique,
-                            autoIncrement: el.autoIncrement
-                        }));
-                    });
-                    return Promise.all(promises);
+            // Handle index columns
+            let promises = [];
+            _.each(columns, (column, key) => {
+                if (column.isIndex) {
+                    promises.push(this.addIndex({
+                        name: key,
+                        unique: column.isUnique,
+                        autoIncrement: column.isAutoIncrement
+                    }));
                 }
-                else {
-                    return this.addIndex({
-                        name: indexColumns.name,
-                        unique: indexColumns.unique,
-                        autoIncrement: indexColumns.autoIncrement
-                    });
-                }
-            }
-            else {
-                return Promise.resolve();
-            }
+            });
+            return Promise.all(promises);
         }).catch((err) => {
             this.tableName = null;
             this.tableSlug = null;
@@ -148,7 +143,7 @@ class Schema {
         }).then((db) => {
             if (columnName === "_uid") {
                 return db.collection("_counters").findOneAndDelete({
-                    collection: this.tableSlug
+                    _$id: this.tableSlug
                 });
             }
             else {
@@ -167,17 +162,17 @@ class Schema {
      */
     read(tableSlug) {
         return con.then((db) => {
-            return db.collection("_schema").findOne({ collectionSlug: tableSlug });
+            return db.collection("_schema").findOne({ _$id: tableSlug });
         }).then((data) => {
             if (data) {
-                this.tableName = data.collectionName;
-                this.tableSlug = data.collectionSlug;
-                this.definition = data.fields;
+                this.tableName = data.title;
+                this.tableSlug = data._$id;
+                this.definition = data.properties;
             }
             else {
                 this.tableName = "";
                 this.tableSlug = "";
-                this.definition = [];
+                this.definition = {};
             }
             return Promise.resolve();
         }).catch((err) => {
@@ -188,7 +183,6 @@ class Schema {
      * Define the table's schema
      *
      * @method define
-     * @param {string} tableName
      * @param {string} tableSlug
      * @param {object[]} definition
      * @param {string} definition[].name
@@ -196,22 +190,28 @@ class Schema {
      * @param {string} definition[].type
      * @return {Promise}
      */
-    define(tableName, tableSlug, def) {
-        const oldTableName = this.tableName;
+    define(tableSlug, def) {
         const oldTableSlug = this.tableSlug;
         const oldDef = this.definition;
-        this.tableName = tableName;
         this.tableSlug = tableSlug;
         this.definition = def;
         // Create schema in RMDB, do nothing in NoSQL
         return con.then((db) => {
-            return db.collection("_schema").insertOne({
-                collectionSlug: tableSlug,
-                collectionName: tableName,
-                fields: def
+            // return db.collection("_schema").insertOne({
+            // 	collectionSlug: tableSlug,
+            // 	collectionName: tableName,
+            // 	fields: def
+            // });
+            return db.collection("_schema").findOneAndUpdate({
+                _$id: tableSlug,
+            }, {
+                $set: {
+                    properties: def
+                }
+            }, {
+                upsert: true
             });
         }).catch((err) => {
-            this.tableName = oldTableName;
             this.tableSlug = oldTableSlug;
             this.definition = oldDef;
             throw err;
@@ -221,18 +221,23 @@ class Schema {
      * Add a single column to the table's schema definition
      *
      * @method addColumn
-     * @param {string} slug - The slug of the column to add
+     * @param {string} name - The name of the column to add
      * @param {string} type
      * @return {Promise}
      */
-    addColumn(slug, type) {
-        this.definition.push({
-            name: slug,
-            slug: slug,
-            type: type
-        });
+    addColumn(name, type, description = "") {
+        if (!this.definition[name]) {
+            this.definition[name] = {
+                description: description,
+                type: type
+            };
+        }
+        else {
+            // Column name already exist
+            throw new Error("Column name already exist");
+        }
         return this._writeSchema().catch((err) => {
-            this.definition.pop();
+            delete this.definition[name];
             throw err;
         });
     }
@@ -240,15 +245,12 @@ class Schema {
      * Add multiple columns to the table's schema definition
      *
      * @method addColumns
-     * @param {object[]} definition
-     * @param {string} definition[].name
-     * @param {string} definition[].slug
-     * @param {string} definition[].type
+     * @param {object} definition
      * @return {Promise}
      */
     addColumns(def) {
         const oldDefinition = _.cloneDeep(this.definition);
-        this.definition = this.definition.concat(def);
+        this.definition = _.assign(this.definition, def);
         return this._writeSchema().catch((err) => {
             this.definition = _.cloneDeep(oldDefinition);
             throw err;
@@ -258,19 +260,16 @@ class Schema {
      * Rename a single column in the table's schema definition
      *
      * @method renameColumn
-     * @param {string} slug - The slug of the column to rename
-     * @param {string} newSlug
+     * @param {string} name - The name of the column to rename
+     * @param {string} newName
      * @return {Promise}
      */
-    renameColumn(slug, newSlug) {
-        const index = _.findIndex(this.definition, (el) => {
-            return el.slug == slug;
-        });
-        this.definition[index].name = newSlug;
-        this.definition[index].slug = newSlug;
+    renameColumn(name, newName) {
+        this.definition[newName] = _.cloneDeep(this.definition[name]);
+        delete this.definition[name];
         return this._writeSchema().catch((err) => {
-            this.definition[index].name = slug;
-            this.definition[index].slug = slug;
+            this.definition[name] = _.cloneDeep(this.definition[newName]);
+            delete this.definition[newName];
             throw err;
         });
     }
@@ -278,18 +277,15 @@ class Schema {
      * Change the type of a single column in the table's schema definition
      *
      * @method changeColumnType
-     * @param {string} slug - The slug of the column to change type
+     * @param {string} name - The name of the column to change type
      * @param {string} newType
      * @return {Promise}
      */
-    changeColumnType(slug, newType) {
-        const index = _.findIndex(this.definition, (el) => {
-            return el.slug == slug;
-        });
-        const oldType = this.definition[index].type;
-        this.definition[index].type = newType;
+    changeColumnType(name, newType) {
+        const oldType = this.definition[name].type;
+        this.definition[name].type = newType;
         return this._writeSchema().catch((err) => {
-            this.definition[index].type = oldType;
+            this.definition[name].type = oldType;
             throw err;
         });
     }
@@ -297,16 +293,14 @@ class Schema {
      * Remove a single column from the table's schema definition
      *
      * @method removeColumn
-     * @param {string} slug - The slug of the column to remove
+     * @param {string} name - The name of the column to remove
      * @return {Promise}
      */
-    removeColumn(slug) {
-        const index = _.findIndex(this.definition, (el) => {
-            return el.label == slug;
-        });
-        const deleted = this.definition.splice(index, 1);
+    removeColumn(name) {
+        const deleted = _.cloneDeep(this.definition[name]);
+        delete this.definition[name];
         return this._writeSchema().catch((err) => {
-            this.definition.splice(index, 0, ...deleted);
+            this.definition[name] = deleted;
             throw err;
         });
     }
@@ -320,9 +314,9 @@ class Schema {
      */
     _writeSchema() {
         return con.then((db) => {
-            return db.collection("_schema").findOneAndUpdate({ collectionSlug: this.tableSlug }, {
+            return db.collection("_schema").findOneAndUpdate({ _$id: this.tableSlug }, {
                 $set: {
-                    fields: this.definition
+                    properties: this.definition
                 }
             });
         });
@@ -340,7 +334,7 @@ class Schema {
         return con.then((db) => {
             const sequenceKey = `sequences.${columnLabel}`;
             return db.collection("_counters").findOneAndUpdate({
-                collection: collection
+                _$id: collection
             }, {
                 $set: {
                     [sequenceKey]: 0
@@ -361,12 +355,12 @@ class Schema {
     _incrementCounter(collection, columnLabel) {
         return con.then((db) => {
             return db.collection("_counters").findOne({
-                collection: collection
+                _$id: collection
             }).then((result) => {
                 const newSequence = result.sequences[columnLabel] + 1;
                 const sequenceKey = `sequences.${columnLabel}`;
                 return db.collection("_counters").findOneAndUpdate({
-                    collection: collection
+                    _$id: collection
                 }, {
                     $set: {
                         [sequenceKey]: newSequence

@@ -1,0 +1,29 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "random_table.schema.json",
+	"title": "Random Table",
+	"description": "Dynamic Record's test schema",
+	"type": "object",
+	"properties": {
+		"string": {
+			"description": "Column of type 'string'",
+			"type": "string"
+		},
+		"int": {
+			"description": "Column of type 'integer'",
+			"type": "integer",
+			"isIndex": "true",
+			"isUnique": "true",
+			"isAutoIncrement": "true"
+		},
+		"float": {
+			"description": "Column of type 'Number'",
+			"type": "number"
+		},
+		"testIndex": {
+			"description": "Field used to test addIndex() functionality",
+			"type": "integer"
+		}
+	},
+	"required": ["string", "int", "float"]
+}

@@ -14,6 +14,9 @@ const utils = new (require("./utils.js"))(connect);
 const chai = require("chai");
 const assert = chai.assert;
 
+// Schema definition
+const testSchema = Object.freeze(require("./random_table.schema.json"));
+
 let Random;
 
 // ------------------ Setups ------------------
@@ -21,8 +24,7 @@ let Random;
 before(function(done){
 	utils.dropTestTable(function(reply){
 		Random = new DynamicRecord({
-			tableSlug: "random_table",
-			tableName: "Random Table"
+			tableSlug: testSchema.$id
 		});
 		done();
 	});
@@ -52,7 +54,7 @@ describe("Schema", function(){
 
 		afterEach(function(done){
 			connect.then((db) => {
-				var promises = [db.dropCollection("_schema"), db.dropCollection("random_table")];
+				var promises = [db.dropCollection("_schema"), db.dropCollection(testSchema.$id)];
 				return Promise.all(promises);
 			}).then(() => {
 				done();
@@ -63,23 +65,20 @@ describe("Schema", function(){
 
 		it("should create an empty table or collection in the database", function(done){
 			let table = Random.Schema;
-			table.createTable({
-				tableSlug: "random_table",
-				tableName: "Random Table"
-			}).then((col) => {
+			table.createTable(testSchema).then((col) => {
 				return connect.then((db) => {
 					return db.listCollections().toArray();
 				});
 			}).then((cols) => {
 				// List all collections and find the newly created collection
 				let result = _.find(cols, function(el){
-					return el.name == "random_table";
+					return el.name == testSchema.$id;
 				});
 				assert.exists(result, "collection exists in database");
 
 				// Check for entry in schema
 				return connect.then((db) => {
-					return db.collection("_schema").findOne({collectionSlug: "random_table"});
+					return db.collection("_schema").findOne({_$id: testSchema.$id});
 				});
 			}).then((col) => {
 				assert.isNotNull(col);
@@ -90,42 +89,9 @@ describe("Schema", function(){
 		});
 		it("should create an empty table or collection with provided index", function(done){
 			let table = Random.Schema;
-			table.createTable({
-				tableSlug: "random_table",
-				tableName: "Random Table",
-				indexColumns: {
-					name: "tableSlug",
-					unique: true
-				}
-			}).then(() => {
+			table.createTable(testSchema).then(() => {
 				return connect.then((db) => {
-					return db.collection("random_table").indexExists("tableSlug");
-				});
-			}).then((res) => {
-				assert.isTrue(res);
-				done();
-			}).catch((err) => {
-				done(err);
-			});
-		});
-		it("should create an empty table or collection with all provided indexes", function(done){
-			let table = Random.Schema;
-			table.createTable({
-				tableSlug: "random_table",
-				tableName: "Random Table",
-				indexColumns: [
-					{
-						name: "tableSlug",
-						unique: true
-					},
-					{
-						name: "tableName",
-						unique: false
-					}
-				]
-			}).then(() => {
-				return connect.then((db) => {
-					return db.collection("random_table").indexExists(["tableSlug", "tableName"]);
+					return db.collection(testSchema.$id).indexExists("int");
 				});
 			}).then((res) => {
 				assert.isTrue(res);
@@ -143,10 +109,7 @@ describe("Schema", function(){
 		beforeEach(function(done){
 			utils.dropTestTable(function(reply){
 				table = Random.Schema;
-				table.createTable({
-					tableSlug: "random_table",
-					tableName: "Random Table"
-				}).then(() => {
+				table.createTable(testSchema).then(() => {
 					done();
 				}).catch((err) => {
 					done(err);
@@ -155,7 +118,7 @@ describe("Schema", function(){
 		});
 		afterEach(function(done){
 			connect.then((db) => {
-				var promises = [db.dropCollection("_schema"), db.dropCollection("random_table"), db.dropCollection("_counters")];
+				var promises = [db.dropCollection("_schema"), db.dropCollection(testSchema.$id), db.dropCollection("_counters")];
 				return Promise.all(promises);
 			}).then(() => {
 				done();
@@ -166,10 +129,10 @@ describe("Schema", function(){
 
 		it("should create a new index", function(done){
 			table.addIndex({
-				name: "tableSlug"
+				name: "testIndex"
 			}, true).then(() => {
 				return connect.then((db) => {
-					return db.collection("random_table").indexExists("tableSlug");
+					return db.collection(testSchema.$id).indexExists("testIndex");
 				});
 			}).then((res) => {
 				assert.isTrue(res, "index exists in database");
@@ -180,14 +143,14 @@ describe("Schema", function(){
 		});
 		it("should make the index unique by default", function(done){
 			table.addIndex({
-				name: "tableSlug"
+				name: "testIndex"
 			}).then(() => {
 				return connect.then((db) => {
-					return db.collection("random_table").listIndexes().toArray();
+					return db.collection(testSchema.$id).listIndexes().toArray();
 				});
 			}).then((res) => {
 				var index = _.find(res, function(el){
-					return el.name == "tableSlug";
+					return el.name == "testIndex";
 				});
 				assert.isTrue(index.unique, "index is marked as unique");
 				done();
@@ -197,15 +160,15 @@ describe("Schema", function(){
 		});
 		it("should not make the index unique if passed false to unique", function(done){
 			table.addIndex({
-				name: "tableSlug",
+				name: "testIndex",
 				unique: false
 			}).then(() => {
 				return connect.then((db) => {
-					return db.collection("random_table").listIndexes().toArray();
+					return db.collection(testSchema.$id).listIndexes().toArray();
 				});
 			}).then((res) => {
 				var index = _.find(res, function(el){
-					return el.name == "tableSlug";
+					return el.name == "testIndex";
 				});
 				assert.isNotOk(index.unique, "index is not marked as unique");
 				done();
@@ -217,16 +180,16 @@ describe("Schema", function(){
 		describe("auto increment", function(){
 			it("should create an entry in _counters collection if set as auto increment", function(done){
 				table.addIndex({
-					name: "tableSlug",
+					name: "testIndex",
 					autoIncrement: true
 				}).then(() => {
 					return connect.then((db) => {
-						return db.collection("_counters").findOne({collection: "random_table"});
+						return db.collection("_counters").findOne({_$id: testSchema.$id});
 					});
 				}).then((res) => {
 					assert.isNotNull(res, "entry not found in _counters collection");
 					assert.isDefined(res.sequences, "entry not defined correctly");
-					assert.strictEqual(res.sequences.tableSlug, 0, "entry not initialized correctly");
+					assert.strictEqual(res.sequences.testIndex, 0, "entry not initialized correctly");
 					done();
 				}).catch((err) => {
 					done(err);
@@ -234,15 +197,15 @@ describe("Schema", function(){
 			});
 			it("should make the index unique if set as auto increment", function(done){
 				table.addIndex({
-					name: "tableSlug",
+					name: "testIndex",
 					autoIncrement: true
 				}).then(() => {
 					return connect.then((db) => {
-						return db.collection("random_table").listIndexes().toArray();
+						return db.collection(testSchema.$id).listIndexes().toArray();
 					});
 				}).then((res) => {
 					var index = _.find(res, function(el){
-						return el.name == "tableSlug";
+						return el.name == "testIndex";
 					});
 					assert.isTrue(index.unique, "index is marked as unique");
 					done();
@@ -253,7 +216,7 @@ describe("Schema", function(){
 			// Following potentially tested in DynamicRecordModel.js
 			it("should increment the counter when a new entry is added", function(done){
 				table.addIndex({
-					name: "tableSlug",
+					name: "testIndex",
 					autoIncrement: true
 				}).then(() => {
 					let model = new Random.Model({
@@ -265,14 +228,12 @@ describe("Schema", function(){
 					return model.save();
 				}).then((col) => {
 					return connect.then((db) => {
-						return db.collection("random_table").findOne({
-							"string": "Laborum non culpa.",
-							"int": 27,
-							"float": 6.2831853072
+						return db.collection(testSchema.$id).findOne({
+							"string": "Laborum non culpa."
 						});
 					});
 				}).then((m) => {
-					assert.equal(m.tableSlug, 1, "auto increment index is set to 1");
+					assert.equal(m.testIndex, 1, "auto increment index is set to 1");
 
 					let model2 = new Random.Model({
 						"string": "Fugiat laboris cillum quis pariatur.",
@@ -283,14 +244,12 @@ describe("Schema", function(){
 					return model2.save();
 				}).then((col) => {
 					return connect.then((db) => {
-						return db.collection("random_table").findOne({
-							"string": "Fugiat laboris cillum quis pariatur.",
-							"int": 42,
-							"float": 2.7182818285
+						return db.collection(testSchema.$id).findOne({
+							"string": "Fugiat laboris cillum quis pariatur."
 						});
 					});
 				}).then((m) => {
-					assert.equal(m.tableSlug, 2, "auto increment index is set to 2");
+					assert.equal(m.testIndex, 2, "auto increment index is set to 2");
 					done();
 				}).catch((err) => {
 					done(err);
@@ -298,7 +257,7 @@ describe("Schema", function(){
 			});
 			it("should increment entry in the _counters collection", function(done){
 				table.addIndex({
-					name: "tableSlug",
+					name: "testIndex",
 					autoIncrement: true
 				}).then(() => {
 					let model = new Random.Model({
@@ -310,10 +269,10 @@ describe("Schema", function(){
 					return model.save();
 				}).then((col) => {
 					return connect.then((db) => {
-						return db.collection("_counters").findOne({collection: "random_table"});
+						return db.collection("_counters").findOne({_$id: testSchema.$id});
 					});
 				}).then((res) => {
-					assert.equal(res.sequences.tableSlug, 1);
+					assert.equal(res.sequences.testIndex, 1);
 
 					let model2 = new Random.Model({
 						"string": "Fugiat laboris cillum quis pariatur.",
@@ -324,10 +283,10 @@ describe("Schema", function(){
 					return model2.save();
 				}).then((col) => {
 					return connect.then((db) => {
-						return db.collection("_counters").findOne({collection: "random_table"});
+						return db.collection("_counters").findOne({_$id: testSchema.$id});
 					});
 				}).then((res) => {
-					assert.equal(res.sequences.tableSlug, 2);
+					assert.equal(res.sequences.testIndex, 2);
 					done();
 				}).catch((err) => {
 					done(err);
@@ -343,12 +302,9 @@ describe("Schema", function(){
 		beforeEach(function(done){
 			utils.dropTestTable(function(reply){
 				table = Random.Schema;
-				table.createTable({
-					tableSlug: "random_table",
-					tableName: "Random Table"
-				}).then(() => {
+				table.createTable(testSchema).then(() => {
 					return table.addIndex({
-						name: "tableSlug",
+						name: "testIndex",
 					});
 				}).then(() => {
 					done();
@@ -360,7 +316,7 @@ describe("Schema", function(){
 
 		afterEach(function(done){
 			connect.then((db) => {
-				var promises = [db.dropCollection("_schema"), db.dropCollection("random_table")];
+				var promises = [db.dropCollection("_schema"), db.dropCollection(testSchema.$id)];
 				return Promise.all(promises);
 			}).then(() => {
 				done();
@@ -370,13 +326,13 @@ describe("Schema", function(){
 		});
 
 		it("should remove the column from the index list", function(done){
-			table.removeIndex("tableSlug").then(() => {
+			table.removeIndex("testIndex").then(() => {
 				return connect.then((db) => {
-					return db.collection("random_table").listIndexes().toArray();
+					return db.collection(testSchema.$id).listIndexes().toArray();
 				});
 			}).then((res) => {
 				var index = _.find(res, function(el){
-					return el.name == "tableSlug";
+					return el.name == "testIndex";
 				});
 				assert.isUndefined(index, "index does not exist in database");
 				done();
@@ -398,7 +354,7 @@ describe("Schema", function(){
 			it("should remove relevant entry from _counters collection", function(done){
 				table.removeIndex("autoIncrement").then(() => {
 					return connect.then((db) => {
-						return db.collection("random_table").listIndexes().toArray();
+						return db.collection(testSchema.$id).listIndexes().toArray();
 					}).then((res) => {
 						var index = _.find(res, function(el){
 							return el.name == "autoIncrement";
@@ -418,27 +374,12 @@ describe("Schema", function(){
 			connect.then((db) => {
 				return db.createCollection("_schema");
 			}).then((col) => {
-				return col.insertOne({
-					collectionName: "Random Table",
-					collectionSlug: "random_table",
-					fields: [
-						{
-							"name": "String",
-							"slug": "string",
-							"type": "string"
-						},
-						{
-							"name": "Int",
-							"slug": "int",
-							"type": "int"
-						},
-						{
-							"name": "float",
-							"slug": "float",
-							"type": "float"
-						}
-					]
-				});
+				const databaseInsert = _.cloneDeep(testSchema);
+				databaseInsert._$id = databaseInsert.$id;
+				databaseInsert._$schema = databaseInsert.$schema;
+				delete databaseInsert.$id;
+				delete databaseInsert.$schema;
+				return col.insertOne(databaseInsert);
 			}).then(() => {
 				done();
 			}).catch((err) => {
@@ -458,25 +399,9 @@ describe("Schema", function(){
 
 		it("should read the schema entry from the database correctly", function(done){
 			let table = Random.Schema;
-			table.read("random_table").then(() => {
-				assert.equal(table.tableSlug, "random_table", "object slug is equal to 'random_table'");
-				assert.deepEqual(table.definition, [
-					{
-						"name": "String",
-						"slug": "string",
-						"type": "string"
-					},
-					{
-						"name": "Int",
-						"slug": "int",
-						"type": "int"
-					},
-					{
-						"name": "float",
-						"slug": "float",
-						"type": "float"
-					}
-				], "object definition is as defined");
+			table.read(testSchema.$id).then(() => {
+				assert.equal(table.tableSlug, testSchema.$id, "object slug is equal to testSchema.$id");
+				assert.deepEqual(table.definition, testSchema.properties, "object definition is as defined");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -497,20 +422,12 @@ describe("Schema", function(){
 
 		it("should write the schema definition to the database", function(done){
 			let table = Random.Schema;
-			table.define("Random Table", "random_table", [{
-				"slug": "test_column",
-				"name": "Test Column",
-				"type": "string"
-			}]).then(() => {
+			table.define(testSchema.$id, testSchema.properties).then(() => {
 				return connect.then((db) => {
-					return db.collection("_schema").findOne({collectionSlug: "random_table"});
+					return db.collection("_schema").findOne({_$id: testSchema.$id});
 				});
 			}).then((data) => {
-				assert.deepEqual(data.fields, [{
-					"slug": "test_column",
-					"name": "Test Column",
-					"type": "string"
-				}], "database entry has correct definition");
+				assert.deepEqual(data.properties, testSchema.properties, "database entry has correct definition");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -518,12 +435,7 @@ describe("Schema", function(){
 		});
 		it("should set the correct name and slug", function(done){
 			let table = Random.Schema;
-			table.define("Random Table", "random_table", [{
-				"slug": "test_column",
-				"name": "Test Column",
-				"type": "string"
-			}]).then(() => {
-				assert.equal(table.tableName, "Random Table", "object name is set correctly");
+			table.define("random_table", testSchema.properties).then(() => {
 				assert.equal(table.tableSlug, "random_table", "object slug is set correctly");
 				done();
 			}).catch((err) => {
@@ -532,16 +444,8 @@ describe("Schema", function(){
 		});
 		it("should set the correct definition", function(done){
 			let table = Random.Schema;
-			table.define("Random Table", "random_table", [{
-				"slug": "test_column",
-				"name": "Test Column",
-				"type": "string"
-			}]).then(() => {
-				assert.deepEqual(table.definition, [{
-					"slug": "test_column",
-					"name": "Test Column",
-					"type": "string"
-				}], "object definition is set correctly");
+			table.define("random_table", testSchema.properties).then(() => {
+				assert.deepEqual(table.definition, testSchema.properties, "object definition is set correctly");
 				done();
 			}).catch((err) => {
 				done(err);
@@ -552,22 +456,14 @@ describe("Schema", function(){
 	describe("addColumn()", function(){
 		beforeEach(function(done){
 			connect.then((db) => {
-				return db.collection("_schema").insertOne({
-					collectionName: "Random Table",
-					collectionSlug: "random_table",
-					fields: [
-						{
-							"label": "string",
-							"type": "string"
-						}, {
-							"label": "int",
-							"type": "int"
-						}, {
-							"label": "float",
-							"type": "float"
-						}
-					]
-				});
+				return db.createCollection("_schema");
+			}).then((col) => {
+				const databaseInsert = _.cloneDeep(testSchema);
+				databaseInsert._$id = databaseInsert.$id;
+				databaseInsert._$schema = databaseInsert.$schema;
+				delete databaseInsert.$id;
+				delete databaseInsert.$schema;
+				return col.insertOne(databaseInsert);
 			}).then(() => {
 				done();
 			}).catch((err) => {
@@ -587,27 +483,28 @@ describe("Schema", function(){
 
 		it("should add a column entry to the definition and database", function(done){
 			let table = Random.Schema;
-			table.read("random_table").then(() => {
-				assert.isDefined(table.tableName);
+			table.read(testSchema.$id).then(() => {
+				assert.isDefined(table.tableSlug);
 				assert.isDefined(table.definition);
-				assert.lengthOf(table.definition, 3);
 
-				return table.addColumn("test_column", "string");
+				return table.addColumn("test_column", "string", "test description");
 			}).then(() => {
 				assert.deepInclude(table.definition, {
-					"name": "test_column",
-					"slug": "test_column",
-					"type": "string"
+					"test_column": {
+						"description": "test description",
+						"type": "string"
+					}
 				}, "object definition include new column");
 
 				return connect.then((db) => {
-					return db.collection("_schema").findOne({collectionSlug: "random_table"});
+					return db.collection("_schema").findOne({_$id: testSchema.$id});
 				});
 			}).then((data) => {
-				assert.deepInclude(data.fields, {
-					"name": "test_column",
-					"slug": "test_column",
-					"type": "string"
+				assert.deepInclude(data.properties, {
+					"test_column": {
+						"description": "test description",
+						"type": "string"
+					}
 				}, "database entry include new column");
 				done();
 			}).catch((err) => {
@@ -619,27 +516,14 @@ describe("Schema", function(){
 	describe("removeColumn()", function(){
 		beforeEach(function(done){
 			connect.then((db) => {
-				return db.collection("_schema").insertOne({
-					collectionName: "Random Table",
-					collectionSlug: "random_table",
-					fields: [
-						{
-							"name": "String",
-							"slug": "string",
-							"type": "string"
-						},
-						{
-							"name": "Int",
-							"slug": "int",
-							"type": "int"
-						},
-						{
-							"name": "float",
-							"slug": "float",
-							"type": "float"
-						}
-					]
-				});
+				return db.createCollection("_schema");
+			}).then((col) => {
+				const databaseInsert = _.cloneDeep(testSchema);
+				databaseInsert._$id = databaseInsert.$id;
+				databaseInsert._$schema = databaseInsert.$schema;
+				delete databaseInsert.$id;
+				delete databaseInsert.$schema;
+				return col.insertOne(databaseInsert);
 			}).then(() => {
 				done();
 			}).catch((err) => {
@@ -660,27 +544,28 @@ describe("Schema", function(){
 		it("should remove a specified column entry from the definition", function(done){
 			let table = Random.Schema;
 
-			table.read("random_table").then(() => {
-				assert.isDefined(table.tableName);
+			table.read(testSchema.$id).then(() => {
+				assert.isDefined(table.tableSlug);
 				assert.isDefined(table.definition);
-				assert.lengthOf(table.definition, 3);
 
 				return table.removeColumn("float");
 			}).then(() => {
 				assert.notDeepInclude(table.definition, {
-					"name": "Float",
-					"slug": "float",
-					"type": "float"
+					"float": {
+						"description": "Column of type 'Number'",
+						"type": "number"
+					}
 				}, "removed field is not in object definition");
 
 				return connect.then((db) => {
-					return db.collection("_schema").findOne({collectionSlug: "random_table"});
+					return db.collection("_schema").findOne({_$id: testSchema.$id});
 				});
 			}).then((data) => {
-				assert.notDeepInclude(data.fields, {
-					"name": "Float",
-					"slug": "float",
-					"type": "float"
+				assert.notDeepInclude(data.properties, {
+					"float": {
+						"description": "Column of type 'Number'",
+						"type": "number"
+					}
 				}, "removed field is not in database entry");
 				done();
 			}).catch((err) => {
@@ -692,25 +577,14 @@ describe("Schema", function(){
 	describe("renameColumn()", function(){
 		beforeEach(function(done){
 			connect.then((db) => {
-				return db.collection("_schema").insertOne({
-					collectionName: "Random Table",
-					collectionSlug: "random_table",
-					fields: [
-						{
-							"name": "String",
-							"slug": "string",
-							"type": "string"
-						}, {
-							"name": "Int",
-							"slug": "int",
-							"type": "int"
-						}, {
-							"name": "Float",
-							"slug": "float",
-							"type": "float"
-						}
-					]
-				});
+				return db.createCollection("_schema");
+			}).then((col) => {
+				const databaseInsert = _.cloneDeep(testSchema);
+				databaseInsert._$id = databaseInsert.$id;
+				databaseInsert._$schema = databaseInsert.$schema;
+				delete databaseInsert.$id;
+				delete databaseInsert.$schema;
+				return col.insertOne(databaseInsert);
 			}).then(() => {
 				done();
 			}).catch((err) => {
@@ -731,37 +605,52 @@ describe("Schema", function(){
 		it("should rename a specified column entry in the definition", function(done){
 			let table = Random.Schema;
 
-			table.read("random_table").then(() => {
-				assert.isDefined(table.tableName);
+			table.read(testSchema.$id).then(() => {
+				assert.isDefined(table.tableSlug);
 				assert.isDefined(table.definition);
-				assert.lengthOf(table.definition, 3);
 
 				return table.renameColumn("int", "number");
 			}).then(() => {
 				assert.notDeepInclude(table.definition, {
-					"name": "Int",
-					"slug": "int",
-					"type": "int"
+					"int": {
+						"description": "Column of type 'integer'",
+						"type": "integer",
+						"isIndex": "true",
+						"isUnique": "true",
+						"isAutoIncrement": "true"
+					}
 				}, "object definition does not include old label");
 				assert.deepInclude(table.definition, {
-					"name": "number",
-					"slug": "number",
-					"type": "int"
+					"number": {
+						"description": "Column of type 'integer'",
+						"type": "integer",
+						"isIndex": "true",
+						"isUnique": "true",
+						"isAutoIncrement": "true"
+					}
 				}, "object definition includes new label");
 
 				return connect.then((db) => {
-					return db.collection("_schema").findOne({collectionSlug: "random_table"});
+					return db.collection("_schema").findOne({_$id: testSchema.$id});
 				});
 			}).then((data) => {
-				assert.notDeepInclude(data.fields, {
-					"name": "Int",
-					"slug": "int",
-					"type": "int"
+				assert.notDeepInclude(data.properties, {
+					"int": {
+						"description": "Column of type 'integer'",
+						"type": "integer",
+						"isIndex": "true",
+						"isUnique": "true",
+						"isAutoIncrement": "true"
+					}
 				}, "database entry does not include old label");
-				assert.deepInclude(data.fields, {
-					"name": "number",
-					"slug": "number",
-					"type": "int"
+				assert.deepInclude(data.properties, {
+					"number": {
+						"description": "Column of type 'integer'",
+						"type": "integer",
+						"isIndex": "true",
+						"isUnique": "true",
+						"isAutoIncrement": "true"
+					}
 				}, "database entry includes new label");
 
 				done();
@@ -769,30 +658,21 @@ describe("Schema", function(){
 				done(err);
 			});
 		});
+
+		it("should rename the _counter entry if it is an auto incrementing index");
 	});
 
 	describe("changeColumnType()", function(){
 		beforeEach(function(done){
 			connect.then((db) => {
-				return db.collection("_schema").insertOne({
-					collectionName: "Random Table",
-					collectionSlug: "random_table",
-					fields: [
-						{
-							"name": "String",
-							"slug": "string",
-							"type": "string"
-						}, {
-							"name": "Int",
-							"slug": "int",
-							"type": "int"
-						}, {
-							"name": "Float",
-							"slug": "float",
-							"type": "float"
-						}
-					]
-				});
+				return db.createCollection("_schema");
+			}).then((col) => {
+				const databaseInsert = _.cloneDeep(testSchema);
+				databaseInsert._$id = databaseInsert.$id;
+				databaseInsert._$schema = databaseInsert.$schema;
+				delete databaseInsert.$id;
+				delete databaseInsert.$schema;
+				return col.insertOne(databaseInsert);
 			}).then(() => {
 				done();
 			}).catch((err) => {
@@ -813,37 +693,40 @@ describe("Schema", function(){
 		it("should change the specified column type in the definition", function(done){
 			let table = Random.Schema;
 
-			table.read("random_table").then(() => {
-				assert.isDefined(table.tableName);
+			table.read(testSchema.$id).then(() => {
+				assert.isDefined(table.tableSlug);
 				assert.isDefined(table.definition);
-				assert.lengthOf(table.definition, 3);
 
-				return table.changeColumnType("float", "double");
+				return table.changeColumnType("float", "integer");
 			}).then(() => {
 				assert.notDeepInclude(table.definition, {
-					"name": "Float",
-					"slug": "float",
-					"type": "float"
+					"float": {
+						"description": "Column of type 'Number'",
+						"type": "number"
+					}
 				}, "object definition does not include old type");
 				assert.deepInclude(table.definition, {
-					"name": "Float",
-					"slug": "float",
-					"type": "double"
+					"float": {
+						"description": "Column of type 'Number'",
+						"type": "integer"
+					}
 				}, "object definition includes new type");
 
 				return connect.then((db) => {
-					return db.collection("_schema").findOne({collectionSlug: "random_table"});
+					return db.collection("_schema").findOne({_$id: testSchema.$id});
 				});
 			}).then((data) => {
-				assert.notDeepInclude(data.fields, {
-					"name": "Float",
-					"slug": "float",
-					"type": "float"
+				assert.notDeepInclude(data.properties, {
+					"float": {
+						"description": "Column of type 'Number'",
+						"type": "number"
+					}
 				}, "database entry does not include old type");
-				assert.deepInclude(data.fields, {
-					"name": "Float",
-					"slug": "float",
-					"type": "double"
+				assert.deepInclude(data.properties, {
+					"float": {
+						"description": "Column of type 'Number'",
+						"type": "integer"
+					}
 				}, "database entry includes new type");
 
 				done();

@@ -13,4 +13,9 @@ Although the API is more or less as how we wanted it to be, changes can still oc
 
 ---
 
+## Notes
+`_schema` metadatabse uses json-schema and each entry is a json-schema object. In RMDB they will be saved as string, with the `$id` duplicated as a separate unique index column for fast querying (reasoning: the whole json-schema structure has no reason to be queried separately and `properties` can be some times very deeply nested).
+
+A table storing the schemas will be created that will be used internally (in both NoSQL and RMDB).
+
 More to come...
