@@ -237,7 +237,7 @@ class Schema{
 				this.definition = {};
 			}
 
-			return Promise.resolve();
+			return Promise.resolve(this);
 		}).catch((err) => {
 			throw err;
 		});
@@ -262,11 +262,6 @@ class Schema{
 
 		// Create schema in RMDB, do nothing in NoSQL
 		return con.then((db) => {
-			// return db.collection("_schema").insertOne({
-			// 	collectionSlug: tableSlug,
-			// 	collectionName: tableName,
-			// 	fields: def
-			// });
 			return db.collection("_schema").findOneAndUpdate({
 				_$id: tableSlug,
 			}, {

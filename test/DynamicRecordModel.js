@@ -14,28 +14,43 @@ const utils = new (require("./utils.js"))(connect);
 const chai = require("chai");
 const assert = chai.assert;
 
+// Schema definition
+const testSchema = Object.freeze(require("./random_table.schema.json"));
+
 let Random;
 
 // ------------------ Setups ------------------
 // Clear table and insert dummy data
 before(function(done){
-	utils.dropTestTable(function(reply){
-		Random = new DynamicRecord({
-			tableSlug: "random_table",
-			tableName: "Random Table"
+	utils.dropTestTable().then(() => {
+		connect.then((db) => {
+			return db.createCollection(testSchema.$id).then(() => Promise.resolve(db));
+		}).then((db) => {
+			return db.createCollection("_schema");
+		}).then((col) => {
+			const databaseInsert = _.cloneDeep(testSchema);
+			databaseInsert._$id = databaseInsert.$id;
+			databaseInsert._$schema = databaseInsert.$schema;
+			delete databaseInsert.$id;
+			delete databaseInsert.$schema;
+			return col.insertOne(databaseInsert);
+		}).then(() => {
+			Random = new DynamicRecord({
+				tableSlug: testSchema.$id
+			});
+			done();
 		});
-		done();
 	});
 });
 
 // Close all database connections
 after(function(done){
-	utils.dropTestTable(function(reply){
+	utils.dropTestTable().then(() => {
 		Random.closeConnection();
 		connect.then((db) => {
 			db.close();
+			done();
 		});
-		done();
 	});
 });
 // --------------------------------------------
@@ -105,7 +120,7 @@ describe("Model", function(){
 		before(function(done){
 			connect.then((db) => {
 				// Fill with dummy data
-				return db.collection("random_table").insertMany(testData);
+				return db.collection(testSchema.$id).insertMany(testData);
 			}).then((r) => {
 				done();
 			}).catch((err) => {
@@ -116,7 +131,7 @@ describe("Model", function(){
 		after(function(done){
 			connect.then((db) => {
 				// Clear out dummy data
-				return db.collection("random_table").deleteMany({});
+				return db.collection(testSchema.$id).deleteMany({});
 			}).then((r) => {
 				done();
 			}).catch((err) => {
@@ -133,7 +148,7 @@ describe("Model", function(){
 			});
 			model.save().then((col) => {
 				return connect.then((db) => {
-					return db.collection("random_table").findOne({
+					return db.collection(testSchema.$id).findOne({
 						"string": "Laborum non culpa.",
 						"int": 27,
 						"float": 6.2831853072
@@ -154,7 +169,7 @@ describe("Model", function(){
 				return model.save();
 			}).then((col) => {
 				return connect.then((db) => {
-					return db.collection("random_table").findOne({"int": 10958});
+					return db.collection(testSchema.$id).findOne({"int": 10958});
 				});
 			}).then((m) => {
 				assert.deepEqual(m, model.data, "returned result is equal to 'model.data'");
@@ -181,7 +196,7 @@ describe("Model", function(){
 	describe("destroy()", function(){
 		beforeEach(function(done){
 			connect.then((db) => {
-				db.collection("random_table").insertOne({
+				db.collection(testSchema.$id).insertOne({
 					"string": "Delete me"
 				}).then((r) => {
 					done();
@@ -193,7 +208,7 @@ describe("Model", function(){
 
 		afterEach(function(done){
 			connect.then((db) => {
-				db.collection("random_table").deleteOne({
+				db.collection(testSchema.$id).deleteOne({
 					"string": "Delete me"
 				}).then((r) => {
 					done();
@@ -208,7 +223,7 @@ describe("Model", function(){
 			Random.findBy({"string": "Delete me"}).then((model) => {
 				testModel = model;
 				return connect.then((db) => {
-					return db.collection("random_table").findOne({"string": "Delete me"});
+					return db.collection(testSchema.$id).findOne({"string": "Delete me"});
 				});
 			}).then((model) => {
 				assert.isNotNull(model, "model is not null");
@@ -216,7 +231,7 @@ describe("Model", function(){
 				return testModel.destroy();
 			}).then(() => {
 				return connect.then((db) => {
-					return db.collection("random_table").findOne({"string": "Delete me"});
+					return db.collection(testSchema.$id).findOne({"string": "Delete me"});
 				});
 			}).then((model) => {
 				assert.isNull(model, "model is null");

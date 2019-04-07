@@ -14,29 +14,43 @@ const utils = new (require("./utils.js"))(connect);
 const chai = require("chai");
 const assert = chai.assert;
 
-// Main instance of DynamicRecord to which code will be tested
+// Schema definition
+const testSchema = Object.freeze(require("./random_table.schema.json"));
+
 let Random;
 
 // ------------------ Setups ------------------
 // Clear table and insert dummy data
 before(function(done){
-	utils.dropTestTable(function(reply){
-		Random = new DynamicRecord({
-			tableSlug: "random_table",
-			tableName: "Random Table"
+	utils.dropTestTable().then(() => {
+		connect.then((db) => {
+			return db.createCollection(testSchema.$id).then(() => Promise.resolve(db));
+		}).then((db) => {
+			return db.createCollection("_schema");
+		}).then((col) => {
+			const databaseInsert = _.cloneDeep(testSchema);
+			databaseInsert._$id = databaseInsert.$id;
+			databaseInsert._$schema = databaseInsert.$schema;
+			delete databaseInsert.$id;
+			delete databaseInsert.$schema;
+			return col.insertOne(databaseInsert);
+		}).then(() => {
+			Random = new DynamicRecord({
+				tableSlug: testSchema.$id
+			});
+			done();
 		});
-		done();
 	});
 });
 
 // Close all database connections
 after(function(done){
-	utils.dropTestTable(function(reply){
+	utils.dropTestTable().then(() => {
 		Random.closeConnection();
 		connect.then((db) => {
 			db.close();
+			done();
 		});
-		done();
 	});
 });
 // --------------------------------------------
@@ -103,7 +117,7 @@ describe("DynamicCollection", function(){
 		afterEach(function(done){
 			connect.then((db) => {
 				// Clear out dummy data
-				return db.collection("random_table").deleteMany({});
+				return db.collection(testSchema.$id).deleteMany({});
 			}).then((r) => {
 				done();
 			}).catch((err) => {
@@ -114,9 +128,11 @@ describe("DynamicCollection", function(){
 		it("should call save function of all the models in the collection", function(done){
 			col.saveAll().then((res) => {
 				connect.then((db) => {
-					return db.collection("random_table").find().toArray();
+					return db.collection(testSchema.$id).find().toArray();
 				}).then((res) => {
-					assert.deepEqual(res, col.data);
+					_.each(col.data, (el) => {
+						assert.deepInclude(res, el);
+					});
 					done();
 				}).catch((err) => {
 					done(err);

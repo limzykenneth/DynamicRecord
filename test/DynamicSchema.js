@@ -22,22 +22,35 @@ let Random;
 // ------------------ Setups ------------------
 // Clear table and insert dummy data
 before(function(done){
-	utils.dropTestTable(function(reply){
-		Random = new DynamicRecord({
-			tableSlug: testSchema.$id
+	utils.dropTestTable().then(() => {
+		connect.then((db) => {
+			return db.createCollection(testSchema.$id).then(() => Promise.resolve(db));
+		}).then((db) => {
+			return db.createCollection("_schema");
+		}).then((col) => {
+			const databaseInsert = _.cloneDeep(testSchema);
+			databaseInsert._$id = databaseInsert.$id;
+			databaseInsert._$schema = databaseInsert.$schema;
+			delete databaseInsert.$id;
+			delete databaseInsert.$schema;
+			return col.insertOne(databaseInsert);
+		}).then(() => {
+			Random = new DynamicRecord({
+				tableSlug: testSchema.$id
+			});
+			done();
 		});
-		done();
 	});
 });
 
 // Close all database connections
 after(function(done){
-	utils.dropTestTable(function(reply){
+	utils.dropTestTable().then(() => {
 		Random.closeConnection();
 		connect.then((db) => {
 			db.close();
+			done();
 		});
-		done();
 	});
 });
 // --------------------------------------------
@@ -46,10 +59,8 @@ after(function(done){
 describe("Schema", function(){
 	// Tests
 	describe("createTable()", function(){
-		beforeEach(function(done){
-			utils.dropTestTable(function(reply){
-				done();
-			});
+		beforeEach(function(){
+			return utils.dropTestTable();
 		});
 
 		afterEach(function(done){
@@ -107,7 +118,7 @@ describe("Schema", function(){
 		let table;
 
 		beforeEach(function(done){
-			utils.dropTestTable(function(reply){
+			utils.dropTestTable().then((reply) => {
 				table = Random.Schema;
 				table.createTable(testSchema).then(() => {
 					done();
@@ -300,7 +311,7 @@ describe("Schema", function(){
 		let table;
 
 		beforeEach(function(done){
-			utils.dropTestTable(function(reply){
+			utils.dropTestTable().then((reply) => {
 				table = Random.Schema;
 				table.createTable(testSchema).then(() => {
 					return table.addIndex({

@@ -15,23 +15,28 @@ const connect = require("./mongoConnection.js")(process.env.mongo_server, proces
  * @param {object} options
  * @param {string} options.tableSlug - The slug of the table. Must be lowercase only
  * and not containing any whitespace
- * @param {string} [options.tableName] - The name of the table. Default to `options.tableSlug`
- * if not provided
  */
 class DynamicRecord {
     constructor(options) {
         const tableSlug = options.tableSlug;
-        const tableName = options.tableName || options.tableSlug;
         let _db;
         this._databaseConnection = connect;
-        let _schema;
-        _schema = this.Schema = new (DynamicSchema(this._databaseConnection))();
-        let _collection = this.Collection = DynamicCollection;
+        const _schema = this.Schema = new (DynamicSchema(this._databaseConnection))();
+        this.Collection = DynamicCollection;
         const _ready = this._ready = connect.then((db) => {
             _db = this._db = db;
-            return db.createCollection(tableSlug).then((col) => {
-                this._tableName = tableName;
-                return Promise.resolve(col);
+            // Collection must already exist in database
+            // DO NOT create the collection
+            return this.Schema.read(tableSlug).then((schema) => {
+                if (schema.tableSlug === "")
+                    return Promise.reject(`Table with name ${tableSlug} does not exist`);
+                const col = db.collection(tableSlug);
+                if (col) {
+                    return Promise.resolve(col);
+                }
+                else {
+                    return Promise.reject(`Table with name ${tableSlug} does not exist`);
+                }
             });
         });
         /**

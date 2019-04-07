@@ -14,59 +14,76 @@ const utils = new (require("./utils.js"))(connect);
 const chai = require("chai");
 const assert = chai.assert;
 
+// Schema definition
+const testSchema = Object.freeze(require("./random_table.schema.json"));
+// Data to be inserted into database for testing
+// Each element in array correspond to an entry in database
+// Objects keys are just for reference, not meant to represent actual types
+const testData = [
+	{
+		"string": "Velit tempor.",
+		"int": 42,
+		"float": 3.1415926536,
+		"testIndex": 0
+	},
+	{
+		"string": "Fugiat laboris cillum quis pariatur.",
+		"int": 42,
+		"float": 2.7182818285,
+		"testIndex": 1
+	},
+	{
+		"string": "Reprehenderit sint.",
+		"int": 10958,
+		"float": 2.7182818285,
+		"testIndex": 2
+	}
+];
+
 let Random;
 
 // ------------------ Setups ------------------
 // Clear table and insert dummy data
 before(function(done){
-	utils.dropTestTable(function(reply){
-		Random = new DynamicRecord({
-			tableSlug: "random_table",
-			tableName: "Random Table"
+	utils.dropTestTable().then(() => {
+		connect.then((db) => {
+			return db.createCollection(testSchema.$id).then(() => Promise.resolve(db));
+		}).then((db) => {
+			return db.createCollection("_schema");
+		}).then((col) => {
+			const databaseInsert = _.cloneDeep(testSchema);
+			databaseInsert._$id = databaseInsert.$id;
+			databaseInsert._$schema = databaseInsert.$schema;
+			delete databaseInsert.$id;
+			delete databaseInsert.$schema;
+			return col.insertOne(databaseInsert);
+		}).then(() => {
+			Random = new DynamicRecord({
+				tableSlug: testSchema.$id
+			});
+			done();
 		});
-		done();
 	});
 });
 
 // Close all database connections
 after(function(done){
-	utils.dropTestTable(function(reply){
+	utils.dropTestTable().then(() => {
 		Random.closeConnection();
 		connect.then((db) => {
 			db.close();
+			done();
 		});
-		done();
 	});
 });
 // --------------------------------------------
 
 // ----------------- Tests --------------------
 describe("DynamicRecord", function(){
-	// Data to be inserted into database for testing
-	// Each element in array correspond to an entry in database
-	// Objects keys are just for reference, not meant to represent actual types
-	const testData = [
-		{
-			"string": "Velit tempor.",
-			"int": 42,
-			"float": 3.1415926536
-		},
-		{
-			"string": "Fugiat laboris cillum quis pariatur.",
-			"int": 42,
-			"float": 2.7182818285
-		},
-		{
-			"string": "Reprehenderit sint.",
-			"int": 10958,
-			"float": 2.7182818285
-		}
-	];
-
 	before(function(done){
 		// Fill with dummy data
 		connect.then((db) => {
-			return db.collection("random_table").insertMany(testData);
+			return db.collection(testSchema.$id).insertMany(testData);
 		}).then((r) => {
 			done();
 		}).catch((err) => {
@@ -76,7 +93,7 @@ describe("DynamicRecord", function(){
 
 	after(function(done){
 		connect.then((db) => {
-			return db.collection("random_table").deleteMany({});
+			return db.collection(testSchema.$id).deleteMany({});
 		}).then((r) => {
 			done();
 		}).catch((err) => {
