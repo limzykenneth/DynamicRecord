@@ -22,14 +22,12 @@ class Schema {
      * @method createTable
      * @param {object} options
      * @param {string} options.tableSlug
-     * @param {string} [options.tableName]
-     * @param {Array} options.indexColumns
+     * @param {string} [options.tableName] Defaults to `options.tableSlug`
      * @return {Promise}
      */
     createTable(options) {
         const tableSlug = options.$id;
-        const tableName = options.title;
-        // const indexColumns = options.indexColumns; // Array
+        const tableName = options.title || options.$id;
         const columns = options.properties;
         return con.then((db) => {
             const promises = [];

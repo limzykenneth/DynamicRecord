@@ -18,16 +18,15 @@ const connect = require("./mongoConnection.js")(process.env.mongo_server, proces
  */
 class DynamicRecord {
     constructor(options) {
+        this._databaseConnection = connect;
+        const _schema = this.schema = new (DynamicSchema(this._databaseConnection))();
         const tableSlug = options.tableSlug;
         let _db;
-        this._databaseConnection = connect;
-        const _schema = this.Schema = new (DynamicSchema(this._databaseConnection))();
-        this.Collection = DynamicCollection;
+        // Initialize database connection and populate schema instance
         const _ready = this._ready = connect.then((db) => {
             _db = this._db = db;
             // Collection must already exist in database
-            // DO NOT create the collection
-            return this.Schema.read(tableSlug).then((schema) => {
+            return this.schema.read(tableSlug).then((schema) => {
                 if (schema.tableSlug === "")
                     return Promise.reject(`Table with name ${tableSlug} does not exist`);
                 const col = db.collection(tableSlug);
@@ -231,6 +230,7 @@ class DynamicRecord {
         });
     }
 }
-DynamicRecord.DynamicSchema = new (DynamicSchema(connect))();
+// Static constructors for their own separate use
+DynamicRecord.DynamicSchema = DynamicSchema(connect);
 DynamicRecord.DynamicCollection = DynamicCollection;
 module.exports = DynamicRecord;

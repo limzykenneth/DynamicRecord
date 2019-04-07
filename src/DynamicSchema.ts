@@ -72,14 +72,12 @@ class Schema{
 	 * @method createTable
 	 * @param {object} options
 	 * @param {string} options.tableSlug
-	 * @param {string} [options.tableName]
-	 * @param {Array} options.indexColumns
+	 * @param {string} [options.tableName] Defaults to `options.tableSlug`
 	 * @return {Promise}
 	 */
 	createTable(options:TableSchema){
 		const tableSlug:string = options.$id;
-		const tableName:string = options.title;
-		// const indexColumns = options.indexColumns; // Array
+		const tableName:string = options.title || options.$id;
 		const columns:SchemaDefinitions = options.properties;
 
 		return con.then((db) => {
