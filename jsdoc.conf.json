@@ -1,3 +1,13 @@
 {
-    "plugins": ["plugins/markdown"]
+    "plugins": ["plugins/markdown"],
+    "opts": {
+        "destination": "./docs/",
+        "readme": "./README.md",
+        "package": "./package.json"
+    },
+    "templates": {
+    	"default": {
+    		"useLongnameInNav": "true"
+    	}
+    }
 }

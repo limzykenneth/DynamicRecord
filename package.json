@@ -13,7 +13,7 @@
     "test_db": "sh test/mongo_test.sh",
     "build": "tsc",
     "predocs": "npm test && rm -rf docs/",
-    "docs": "jsdoc --package ./package.json --readme ./README.md -c ./jsdoc.conf.json build/ -d docs"
+    "docs": "jsdoc -c ./jsdoc.conf.json build/"
   },
   "author": "Kenneth Lim <limzy.kenneth@gmail.com> (https://designerken.be/designing/)",
   "license": "BSD-2-Clause",
