@@ -7,15 +7,6 @@ const DynamicSchema = require("./DynamicSchema.js");
 // Let's get mongodb working first
 const connect = require("./mongoConnection.js")(process.env.mongo_server, process.env.mongo_db_name, process.env.mongo_user, process.env.mongo_pass);
 
-/** @namespace DynamicRecord */
-/**
- * Creates a new DynamicRecord instance.
- *
- * @class
- * @param {object} options
- * @param {string} options.tableSlug - The slug of the table. Must be lowercase only
- * and not containing any whitespace
- */
 class DynamicRecord {
 	// Static constructors for their own separate use
 	static DynamicSchema = DynamicSchema(connect);
@@ -30,6 +21,15 @@ class DynamicRecord {
 	// Instance specific Schema object
 	schema: any;
 
+	/**
+	 * Creates a new DynamicRecord instance.
+	 *
+	 * @name DynamicRecord
+	 * @class
+	 * @param {object} options
+	 * @param {string} options.tableSlug - The slug of the table. Must be lowercase only
+	 * and not containing any whitespace
+	 */
 	constructor(options){
 		this._databaseConnection = connect;
 		const _schema = this.schema = new (DynamicSchema(this._databaseConnection))();
@@ -54,18 +54,28 @@ class DynamicRecord {
 		});
 
 		/**
-		 * Create a new DynamicRecord.Model instance
+		 * Create a new DynamicRecord.Model instance.
 		 *
 		 * @name DynamicRecord.Model
+		 * @memberOf DynamicRecord
+		 * @instance
 		 * @constructor
-		 * @param {object} data - Object containing data for this instance of DynamicRecord.Model
+		 * @param {object} data - Object containing data for this instance of
+		 * DynamicRecord.Model
 		 */
 		const Model = this.Model = function(data, _preserveOriginal){
 			/**
-			 * The data contained in this instance. It is not kept in sync with the database
-			 * automatically.
+			 * The data contained in this instance. It is not kept in sync with
+			 * the database automatically.
 			 *
-			 * @property {object} data
+			 * You should be directly modifying this object. When done and you
+			 * wish to save the data to the database, call `save()` on the
+			 * parent object instance.
+			 *
+			 * @name data
+			 * @type object
+			 * @memberOf DynamicRecord.Model
+			 * @instance
 			 */
 			this.data = data;
 
@@ -77,9 +87,11 @@ class DynamicRecord {
 		};
 
 		/**
-		 * Save the data in this instance to the database
+		 * Save the data in this instance to the database.
 		 *
 		 * @method save
+		 * @memberOf DynamicRecord.Model
+		 * @instance
 		 * @return {Promise}
 		 */
 		Model.prototype.save = function(){
@@ -119,9 +131,12 @@ class DynamicRecord {
 		};
 
 		/**
-		 * Delete the entry this instance links to
+		 * Delete the entry this instance links to. Clear the data property
+		 * of this instance as well.
 		 *
 		 * @method destroy
+		 * @memberOf DynamicRecord.Model
+		 * @instance
 		 * @return {Promise}
 		 */
 		Model.prototype.destroy = function(){
@@ -139,10 +154,14 @@ class DynamicRecord {
 		};
 
 		/**
-		 * Validate the data in this instance conform to its schema
+		 * Validate the data in this instance conform to its schema.
+		 *
+		 * **Implementation not settled**
 		 *
 		 * @method validate
-		 * @return {Promise}
+		 * @memberOf DynamicRecord.Model
+		 * @instance
+		 * @return {boolean}
 		 */
 		Model.prototype.validate = function(schema){
 			let result = false;
@@ -164,9 +183,12 @@ class DynamicRecord {
 	}
 
 	/**
-	 * Close the connection to the database server.
+	 * Close the connection to the database server. Only used to terminate
+	 * the running node instance.
 	 *
 	 * @method closeConnection
+	 * @memberOf DynamicRecord
+	 * @instance
 	 */
 	closeConnection(){
 		// Should only ever be called to terminate the node process
@@ -182,10 +204,11 @@ class DynamicRecord {
 	 * Find the latest entry in the table that match the query.
 	 *
 	 * @method findBy
+	 * @memberOf DynamicRecord
+	 * @instance
 	 * @param {object} query - A key value pair that will be used to match for entry
 	 * in the database
-	 * @return {DynamicRecord.Model} An instance of DynamicRecord.Model created from the
-	 * retrieved data
+	 * @return {Promise} Return promise of DynamicRecord.Model
 	 */
 	findBy(query: object){
 		return this._ready.then((col) => {
@@ -198,11 +221,16 @@ class DynamicRecord {
 	/**
 	 * Find all the entries in the table that match the query.
 	 *
+	 * You can sort the returned data by providing a string key to sort the
+	 * data by or a sorting function to manually sort the data. By default
+	 * they are sorted in the order they are in in the database.
+	 *
 	 * @method where
+	 * @memberOf DynamicRecord
+	 * @instance
 	 * @param {object} query - A key value pair that will be used to match for entries
 	 * @param {string|function} orderBy - The key to sort by or a sorting function
-	 * @return {DynamicCollection} An instance of DynamicCollection containing a list of
-	 * DynamicRecord.Model objects created from the retrieved data
+	 * @return {Promise} Return promise of DynamicCollection
 	 */
 	where(query: object, orderBy: string | Function){
 		return this._ready.then((col) => {
@@ -223,11 +251,12 @@ class DynamicRecord {
 	}
 
 	/**
-	 * Return all entries from the table
+	 * Return all entries from the table.
 	 *
 	 * @method all
-	 * @return {DynamicCollection} An instance of DynamicCollection containing a list of
-	 * DynamicRecord.Model objects created from all entries in the table
+	 * @memberOf DynamicRecord
+	 * @instance
+	 * @return {Promise} Return promise of DynamicCollection.
 	 */
 	all(){
 		return this._ready.then((col) => {
@@ -244,11 +273,12 @@ class DynamicRecord {
 	}
 
 	/**
-	 * Return the first entry in the table
+	 * Return the first entry in the table.
 	 *
 	 * @method first
-	 * @return {DynamicRecord.Model} An instance of DynamicRecord.Model created from the
-	 * first entry in the table
+	 * @memberOf DynamicRecord
+	 * @instance
+	 * @return {Promise} Return promise of DynamicRecord.Model
 	 */
 	first(){
 		return this._ready.then((col) => {

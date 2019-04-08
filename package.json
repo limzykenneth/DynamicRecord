@@ -2,8 +2,7 @@
   "name": "dynamic-record",
   "version": "0.3.2",
   "description": "A bare minimum Javascript implementation of the Active Record pattern",
-  "keywords": [
-  ],
+  "keywords": [],
   "homepage": "https://github.com/limzykenneth/DynamicRecord",
   "bugs": "https://github.com/limzykenneth/DynamicRecord/issues",
   "repository": "https://github.com/limzykenneth/DynamicRecord.git",
@@ -12,7 +11,9 @@
     "pretest": "npm run build",
     "test": "mocha",
     "test_db": "sh test/mongo_test.sh",
-    "build": "tsc"
+    "build": "tsc",
+    "predocs": "npm test && rm -rf docs/",
+    "docs": "jsdoc --package ./package.json --readme ./README.md -c ./jsdoc.conf.json build/ -d docs"
   },
   "author": "Kenneth Lim <limzy.kenneth@gmail.com> (https://designerken.be/designing/)",
   "license": "BSD-2-Clause",
@@ -27,6 +28,7 @@
     "@types/node": "^10.12.2",
     "chai": "^4.1.2",
     "eslint": "^4.18.2",
+    "jsdoc": "^3.5.5",
     "mocha": "^5.0.4",
     "typescript": "^3.1.6"
   }

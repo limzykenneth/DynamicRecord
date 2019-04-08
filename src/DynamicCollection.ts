@@ -1,16 +1,19 @@
 import _ = require("lodash");
 import Promise = require("bluebird");
 
-/**
- * DynamicCollection is an extension of the native Array object thus
- * implementing all of Array's methods and properties.
- *
- * @namespace DynamicCollection
- * @class
- * @extends Array
- *
- */
 class DynamicCollection extends Array{
+	/**
+	 * Creates a new DynamicCollection instance.
+	 *
+	 * DynamicCollection is an extension of the native Array object thus
+	 * implementing all of Array's methods and properties.
+	 *
+	 * @name DynamicCollection
+	 * @constructor
+	 * @extends Array
+	 * @param {DynamicRecord.Model} Model - The Model constructor to use for
+	 *                              this collection
+	 */
 	constructor(Model, ...data){
 		super();
 
@@ -23,7 +26,7 @@ class DynamicCollection extends Array{
 	/**
 	 * Returns a native array of data objects
 	 *
-	 * @property {Array} data
+	 * @type Array
 	 */
 	get data(){
 		const result = [];
@@ -33,6 +36,16 @@ class DynamicCollection extends Array{
 		return result;
 	}
 
+	/**
+	 * Save all the model instances in the DynamicCollection.
+	 *
+	 * Simply calls all the individual model's `save()` method.
+	 *
+	 * @method saveAll
+	 * @memberOf DynamicCollection
+	 * @instance
+	 * @return {Promise}
+	 */
 	saveAll(){
 		const promises = [];
 		_.each(this, (model) => {

@@ -36,43 +36,69 @@ interface TableSchema{
 /**
  * Create an new DynamicSchema instance
  *
+ * @name DynamicSchema
  * @class
  */
 class Schema{
-	/**
-	 * The name of the table.
-	 *
-	 * @property {string} tableName
-	 */
 	tableName:string;
 
-	/**
-	 * The slug of the table.
-	 *
-	 * @property {string} tableSlug
-	 */
 	tableSlug:string;
 
-	/**
-	 * The definition of the table's schema.
-	 *
-	 * @property {object} SchemaDefinition
-	 */
 	definition:SchemaDefinitions;
 
 	constructor(){
+		/**
+		 * The name of the table.
+		 *
+		 * @name tableName
+		 * @type string
+		 * @memberOf DynamicSchema
+		 * @instance
+		 */
 		this.tableName = null;
+
+		/**
+		 * The slug of the table.
+		 *
+		 * @name tableSlug
+		 * @type string
+		 * @memberOf DynamicSchema
+		 * @instance
+		 */
 		this.tableSlug = null;
+
+		/**
+		 * The definition of the table's schema.
+		 *
+		 * @name SchemaDefinitions
+		 * @type object
+		 * @memberOf DynamicSchema
+		 * @instance
+		 */
 		this.definition = {};
 	}
 
 	/**
-	 * Create a new table with the given options
+	 * Create a new table with the given schema. Schema must adhere to the
+	 * JSON Schema definition set out in
+	 * [https://json-schema.org/](https://json-schema.org/)
+	 *
+	 * Each property corresponds to each column in the database. A few
+	 * custom attributes to each property can be included for use by
+	 * DynamicSchema to generate columns for special behaviour.
+	 *
+	 * These properties are:
+	 * - `isIndex`: Whether the column is an index field
+	 * - `isUnique`: Whether the column is an unique field
+	 * - `isAutoIncrement`: Whether the column is an auto-incrementing integer
 	 *
 	 * @method createTable
-	 * @param {object} options
-	 * @param {string} options.tableSlug
-	 * @param {string} [options.tableName] Defaults to `options.tableSlug`
+	 * @memberOf DynamicSchema
+	 * @instance
+	 * @param {object} schema
+	 * @param {string} schema.$id - ID of the table, must be unique
+	 * @param {string} [schema.title] - Defaults to `schema.$id`
+	 * @param {object} schema.properties - The column definitions of the table
 	 * @return {Promise}
 	 */
 	createTable(options:TableSchema){
@@ -152,6 +178,8 @@ class Schema{
 	 * Add an index to the table's schema
 	 *
 	 * @method renameTable
+	 * @memberOf DynamicSchema
+	 * @instance
 	 * @param {string} newSlug
 	 * @param {string} [newName] Defaults to newSlug
 	 * @return {Promise}
@@ -182,13 +210,17 @@ class Schema{
 	}
 
 	/**
-	 * Add an index to the table's schema
+	 * Add an index to the table's schema.
 	 *
 	 * @method addIndex
+	 * @memberOf DynamicSchema
+	 * @instance
 	 * @param {object} options
-	 * @param {string} options.name
-	 * @param {boolean} [options.autoInrement]
-	 * @param {boolean} [options.unique]
+	 * @param {string} options.name - The name of the column to be used as index
+	 * @param {boolean} [options.unique] - Whether the index is unique or not
+	 * @param {boolean} [options.autoInrement] - Whether it is an
+	 *                  auto-incrementing index or not. If true, `options.unique`
+	 *                  is automatically set to true
 	 * @return {Promise}
 	 */
 	addIndex(options:IndexOptions){
@@ -225,6 +257,8 @@ class Schema{
 	 * Remove an index to the table's schema
 	 *
 	 * @method removeIndex
+	 * @memberOf DynamicSchema
+	 * @instance
 	 * @param {string} columnName - The name of the index to remove
 	 * @return {Promise}
 	 */
@@ -248,11 +282,13 @@ class Schema{
 	}
 
 	/**
-	 * Read the schema configuration from the database
+	 * Read the schema definition from the database.
 	 *
 	 * @method read
-	 * @param {string} tableSlug
-	 * @return {Promise}
+	 * @memberOf DynamicSchema
+	 * @instance
+	 * @param {string} tableSlug - The name of the table schema to retrieve
+	 * @return {Promise} - Return promise, resolves to this object instance
 	 */
 	read(tableSlug:string){
 		return con.then((db) => {
@@ -275,13 +311,13 @@ class Schema{
 	}
 
 	/**
-	 * Define the table's schema
+	 * Define the table's columns. Passed object must adhere to `properties`
+	 * attribute of [JSON Schema](https://json-schema.org/)'s definition.
 	 *
 	 * @method define
-	 * @param {object[]} definition
-	 * @param {string} definition[].name
-	 * @param {string} definition[].slug
-	 * @param {string} definition[].type
+	 * @memberOf DynamicSchema
+	 * @instance
+	 * @param {object} definition - Definition of the table columns
 	 * @return {Promise}
 	 */
 	define(def:SchemaDefinitions){
@@ -306,11 +342,14 @@ class Schema{
 	}
 
 	/**
-	 * Add a single column to the table's schema definition
+	 * Add a single column to the table's schema definition.
 	 *
 	 * @method addColumn
+	 * @memberOf DynamicSchema
+	 * @instance
 	 * @param {string} name - The name of the column to add
-	 * @param {string} type
+	 * @param {string} type - Type of the column to add
+	 * @param {string} [description] - Description of the column to add
 	 * @return {Promise}
 	 */
 	addColumn(name:string, type:string, description:string = ""){
@@ -331,10 +370,13 @@ class Schema{
 	}
 
 	/**
-	 * Add multiple columns to the table's schema definition
+	 * Add multiple columns to the table's schema definition.
 	 *
 	 * @method addColumns
-	 * @param {object} definition
+	 * @memberOf DynamicSchema
+	 * @instance
+	 * @param {object} definitions - Object of objects containing new columns
+	 *                               definitions
 	 * @return {Promise}
 	 */
 	addColumns(def:SchemaDefinitions){
@@ -348,11 +390,13 @@ class Schema{
 	}
 
 	/**
-	 * Rename a single column in the table's schema definition
+	 * Rename a single column in the table's schema definition.
 	 *
 	 * @method renameColumn
+	 * @memberOf DynamicSchema
+	 * @instance
 	 * @param {string} name - The name of the column to rename
-	 * @param {string} newName
+	 * @param {string} newName - The new name of the target column
 	 * @return {Promise}
 	 */
 	renameColumn(name:string, newName:string){
@@ -386,11 +430,13 @@ class Schema{
 	}
 
 	/**
-	 * Change the type of a single column in the table's schema definition
+	 * Change the type of a single column in the table's schema definition.
 	 *
 	 * @method changeColumnType
+	 * @memberOf DynamicSchema
+	 * @instance
 	 * @param {string} name - The name of the column to change type
-	 * @param {string} newType
+	 * @param {string} newType - The new type of the target column
 	 * @return {Promise}
 	 */
 	changeColumnType(name:string, newType:string){
@@ -404,9 +450,11 @@ class Schema{
 	}
 
 	/**
-	 * Remove a single column from the table's schema definition
+	 * Remove a single column from the table's schema definition.
 	 *
 	 * @method removeColumn
+	 * @memberOf DynamicSchema
+	 * @instance
 	 * @param {string} name - The name of the column to remove
 	 * @return {Promise}
 	 */
@@ -425,6 +473,8 @@ class Schema{
 	 * Update the new schema structure into the database
 	 *
 	 * @method _writeSchema
+	 * @memberOf DynamicSchema
+	 * @instance
 	 * @private
 	 * @return {Promise}
 	 */
@@ -442,6 +492,8 @@ class Schema{
 	 * Set an autoincrementing field to the _counters table (MongoDB only)
 	 *
 	 * @method _setCounter
+	 * @memberOf DynamicSchema
+	 * @instance
 	 * @private
 	 * @param {string} collection - The slug of the collection to set
 	 * @param {string} columnLabel - The slug of the column set as an autoincrementing index
@@ -465,6 +517,8 @@ class Schema{
 	 * Increment an autoincrementing index (MongoDB only)
 	 *
 	 * @method _setCounter
+	 * @memberOf DynamicSchema
+	 * @instance
 	 * @private
 	 * @param {string} collection - The slug of the collection to target
 	 * @param {string} columnLabel - The slug of the autoincrementing column
