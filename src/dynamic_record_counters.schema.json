@@ -6,7 +6,7 @@
 	"type": "object",
 	"properties": {
 		"_$id": {
-			"description": "The id of the schema in question, corresponds to the '$id' field in the schema's definition",
+			"description": "The id of the schema in question, corresponds to the '_$id' field in the schema's definition",
 			"type": "string"
 		},
 		"sequences": {
@@ -14,5 +14,5 @@
 			"type": "object"
 		}
 	},
-	"required": ["$id", "sequences"]
+	"required": ["_$id", "sequences"]
 }

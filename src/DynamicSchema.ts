@@ -151,6 +151,39 @@ class Schema{
 	/**
 	 * Add an index to the table's schema
 	 *
+	 * @method renameTable
+	 * @param {string} newSlug
+	 * @param {string} [newName] Defaults to newSlug
+	 * @return {Promise}
+	 */
+	renameTable(newSlug:string, newName:string){
+		return con.then((db) => {
+			const promises = [];
+
+			promises.push(db.collection("_schema").findOneAndUpdate({"_$id": this.tableSlug}, {
+				$set: {
+					"_$id": newSlug,
+					"title": newName || newSlug
+				}
+			}));
+			promises.push(db.collection("_counters").findOneAndUpdate({"_$id": this.tableSlug}, {
+				$set: {
+					"_$id": newSlug
+				}
+			}));
+			promises.push(db.renameCollection(this.tableSlug, newSlug));
+
+			return Promise.all(promises);
+		}).then(() => {
+			this.tableSlug = newSlug;
+			this.tableName = newName || newSlug;
+			return Promise.resolve();
+		});
+	}
+
+	/**
+	 * Add an index to the table's schema
+	 *
 	 * @method addIndex
 	 * @param {object} options
 	 * @param {string} options.name
@@ -245,23 +278,20 @@ class Schema{
 	 * Define the table's schema
 	 *
 	 * @method define
-	 * @param {string} tableSlug
 	 * @param {object[]} definition
 	 * @param {string} definition[].name
 	 * @param {string} definition[].slug
 	 * @param {string} definition[].type
 	 * @return {Promise}
 	 */
-	define(tableSlug:string, def:SchemaDefinitions){
-		const oldTableSlug:string = this.tableSlug;
+	define(def:SchemaDefinitions){
 		const oldDef:SchemaDefinitions = this.definition;
-		this.tableSlug = tableSlug;
 		this.definition = def;
 
 		// Create schema in RMDB, do nothing in NoSQL
 		return con.then((db) => {
 			return db.collection("_schema").findOneAndUpdate({
-				_$id: tableSlug,
+				_$id: this.tableSlug,
 			}, {
 				$set:{
 					properties: def
@@ -270,7 +300,6 @@ class Schema{
 				upsert: true
 			});
 		}).catch((err) => {
-			this.tableSlug = oldTableSlug;
 			this.definition = oldDef;
 			throw err;
 		});

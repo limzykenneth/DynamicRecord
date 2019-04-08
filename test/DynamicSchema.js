@@ -63,17 +63,6 @@ describe("Schema", function(){
 			return utils.dropTestTable();
 		});
 
-		afterEach(function(done){
-			connect.then((db) => {
-				var promises = [db.dropCollection("_schema"), db.dropCollection(testSchema.$id)];
-				return Promise.all(promises);
-			}).then(() => {
-				done();
-			}).catch((err) => {
-				done(err);
-			});
-		});
-
 		it("should create an empty table or collection in the database", function(done){
 			let table = Random.schema;
 			table.createTable(testSchema).then((col) => {
@@ -113,7 +102,7 @@ describe("Schema", function(){
 		});
 	});
 
-	describe("addIndex()", function(){
+	describe("renameTable()", function(){
 		// Instance of DynamicSchema used for testing
 		let table;
 
@@ -127,14 +116,93 @@ describe("Schema", function(){
 				});
 			});
 		});
-		afterEach(function(done){
+
+		it("should rename the table in database and object instance", function(done){
 			connect.then((db) => {
-				var promises = [db.dropCollection("_schema"), db.dropCollection(testSchema.$id), db.dropCollection("_counters")];
-				return Promise.all(promises);
-			}).then(() => {
-				done();
+				return table.renameTable("test_table", "Test Table").then(() => {
+					return db.listCollections({name: testSchema.$id}).toArray();
+				}).then((col) => {
+					assert.isEmpty(col, "collection under original name no longer exist");
+					return db.listCollections({name: "test_table"}).toArray();
+				}).then((col) => {
+					assert.isNotEmpty(col, "collection under new name exist");
+					assert.lengthOf(col, 1, "only has one collection with name test_table");
+					assert.equal(table.tableSlug, "test_table", "slug is updated in object");
+					assert.equal(table.tableName, "Test Table", "name is updated in object");
+					done();
+				});
 			}).catch((err) => {
 				done(err);
+			});
+		});
+		it("should default new name to new slug", function(done){
+			connect.then((db) => {
+				return table.renameTable("test_table").then(() => {
+					return db.listCollections({name: testSchema.$id}).toArray();
+				}).then((col) => {
+					assert.isEmpty(col, "collection under original name no longer exist");
+					return db.listCollections({name: "test_table"}).toArray();
+				}).then((col) => {
+					assert.isNotEmpty(col, "collection under new name exist");
+					assert.lengthOf(col, 1, "only has one collection with name test_table");
+					assert.equal(table.tableSlug, "test_table", "slug is updated in object");
+					assert.equal(table.tableName, "test_table", "name is defaulted to slug in object");
+					return db.collection("_schema").findOne({"_$id": "test_table"});
+				}).then((entry) => {
+					assert.equal(entry.title, "test_table", "name is defaulted to slug in schema entry");
+					done();
+				});
+			}).catch((err) => {
+				done(err);
+			});
+		});
+		it("should rename the entry in _schema table", function(done){
+			connect.then((db) => {
+				return table.renameTable("test_table").then(() => {
+					return db.collection("_schema").findOne({"_$id": "test_table"});
+				}).then((entry) => {
+					assert.isNotNull(entry, "entry with new name exist");
+					assert.equal(entry.title, "test_table", "name is defaulted to slug in schema entry");
+					assert.equal(entry._$id, "test_table", "slug is updated in schema entry");
+					return db.collection("_schema").findOne({"_$id": testSchema.$id});
+				}).then((entry) => {
+					assert.isNull(entry, "entry with old name doesn't exist");
+					done();
+				});
+			}).catch((err) => {
+				done(err);
+			});
+		});
+		it("should rename the entry in _counters table", function(done){
+			connect.then((db) => {
+				return table.renameTable("test_table").then(() => {
+					return db.collection("_counters").findOne({"_$id": "test_table"});
+				}).then((entry) => {
+					assert.isNotNull(entry, "entry with new name exist");
+					assert.equal(entry._$id, "test_table", "slug is updated in schema entry");
+					return db.collection("_counters").findOne({"_$id": testSchema.$id});
+				}).then((entry) => {
+					assert.isNull(entry, "entry with old name doesn't exist");
+					done();
+				});
+			}).catch((err) => {
+				done(err);
+			});
+		});
+	});
+
+	describe("addIndex()", function(){
+		// Instance of DynamicSchema used for testing
+		let table;
+
+		beforeEach(function(done){
+			utils.dropTestTable().then((reply) => {
+				table = Random.schema;
+				table.createTable(testSchema).then(() => {
+					done();
+				}).catch((err) => {
+					done(err);
+				});
 			});
 		});
 
@@ -325,17 +393,6 @@ describe("Schema", function(){
 			});
 		});
 
-		afterEach(function(done){
-			connect.then((db) => {
-				var promises = [db.dropCollection("_schema"), db.dropCollection(testSchema.$id)];
-				return Promise.all(promises);
-			}).then(() => {
-				done();
-			}).catch((err) => {
-				done(err);
-			});
-		});
-
 		it("should remove the column from the index list", function(done){
 			table.removeIndex("testIndex").then(() => {
 				return connect.then((db) => {
@@ -398,16 +455,6 @@ describe("Schema", function(){
 			});
 		});
 
-		afterEach(function(done){
-			connect.then((db) => {
-				return db.dropCollection("_schema");
-			}).then(() => {
-				done();
-			}).catch((err) => {
-				done(err);
-			});
-		});
-
 		it("should read the schema entry from the database correctly", function(done){
 			let table = Random.schema;
 			table.read(testSchema.$id).then(() => {
@@ -433,7 +480,7 @@ describe("Schema", function(){
 
 		it("should write the schema definition to the database", function(done){
 			let table = Random.schema;
-			table.define(testSchema.$id, testSchema.properties).then(() => {
+			table.define(testSchema.properties).then(() => {
 				return connect.then((db) => {
 					return db.collection("_schema").findOne({_$id: testSchema.$id});
 				});
@@ -444,18 +491,9 @@ describe("Schema", function(){
 				done(err);
 			});
 		});
-		it("should set the correct name and slug", function(done){
-			let table = Random.schema;
-			table.define("random_table", testSchema.properties).then(() => {
-				assert.equal(table.tableSlug, "random_table", "object slug is set correctly");
-				done();
-			}).catch((err) => {
-				done(err);
-			});
-		});
 		it("should set the correct definition", function(done){
 			let table = Random.schema;
-			table.define("random_table", testSchema.properties).then(() => {
+			table.define(testSchema.properties).then(() => {
 				assert.deepEqual(table.definition, testSchema.properties, "object definition is set correctly");
 				done();
 			}).catch((err) => {
