@@ -5,7 +5,7 @@
 	"description": "Dynamic Record's NoSQL auto increment index counter schema",
 	"type": "object",
 	"properties": {
-		"$id": {
+		"_$id": {
 			"description": "The id of the schema in question, corresponds to the '$id' field in the schema's definition",
 			"type": "string"
 		},

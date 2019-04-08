@@ -103,7 +103,12 @@ describe("DynamicRecord", function(){
 
 	// Tests
 	describe("Constructor", function(){
-		it("should retrieve the specified table or collection from the database");
+		it("should retrieve the specified table or collection from the database", function(done){
+			assert.equal(Random.schema.tableSlug, testSchema.$id);
+			assert.equal(Random.schema.tableName, testSchema.title);
+			assert.deepEqual(Random.schema.definition, testSchema.properties);
+			done();
+		});
 	});
 
 	describe("findBy()", function(){

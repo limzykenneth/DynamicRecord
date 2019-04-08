@@ -670,7 +670,26 @@ describe("Schema", function(){
 			});
 		});
 
-		it("should rename the _counter entry if it is an auto incrementing index");
+		it("should rename the _counters entry if it is an auto incrementing index", function(done){
+			let table = Random.schema;
+
+			table.read(testSchema.$id).then(() => {
+				assert.isDefined(table.tableSlug);
+				assert.isDefined(table.definition);
+
+				return table.renameColumn("int", "number");
+			}).then(() => {
+				return connect.then((db) => {
+					return db.collection("_counters").findOne({"_$id": table.tableSlug});
+				});
+			}).then((entry) => {
+				assert.hasAnyKeys(entry.sequences, "number", "sequences has key 'number'");
+				assert.doesNotHaveAnyKeys(entry.sequences, "int", "sequences doesn't have key 'int'");
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
 	});
 
 	describe("changeColumnType()", function(){

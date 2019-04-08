@@ -260,10 +260,28 @@ class Schema {
     renameColumn(name, newName) {
         this.definition[newName] = _.cloneDeep(this.definition[name]);
         delete this.definition[name];
-        return this._writeSchema().catch((err) => {
-            this.definition[name] = _.cloneDeep(this.definition[newName]);
-            delete this.definition[newName];
-            throw err;
+        return con.then((db) => {
+            return this._writeSchema().then(() => {
+                return db.collection("_counters").findOne({ "_$id": this.tableSlug });
+            }).then((entry) => {
+                if (entry) {
+                    const sequences = _.cloneDeep(entry.sequences);
+                    sequences[newName] = sequences[name];
+                    delete sequences[name];
+                    return db.collection("_counters").findOneAndUpdate({ "_$id": this.tableSlug }, {
+                        $set: {
+                            sequences: sequences
+                        }
+                    });
+                }
+                else {
+                    return Promise.resolve();
+                }
+            }).catch((err) => {
+                this.definition[name] = _.cloneDeep(this.definition[newName]);
+                delete this.definition[newName];
+                throw err;
+            });
         });
     }
     /**
