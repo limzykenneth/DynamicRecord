@@ -2,7 +2,19 @@
   "name": "dynamic-record",
   "version": "0.3.2",
   "description": "A bare minimum Javascript implementation of the Active Record pattern",
-  "keywords": [],
+  "keywords": [
+    "orm",
+    "mongodb",
+    "odm",
+    "object relational mapping",
+    "db",
+    "database",
+    "query",
+    "active-record"
+  ],
+  "engines": {
+    "node": ">=10.15.0"
+  },
   "homepage": "https://github.com/limzykenneth/DynamicRecord",
   "bugs": "https://github.com/limzykenneth/DynamicRecord/issues",
   "repository": "https://github.com/limzykenneth/DynamicRecord.git",
