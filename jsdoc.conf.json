@@ -1,13 +1,22 @@
 {
-    "plugins": ["plugins/markdown"],
-    "opts": {
-        "destination": "./docs/",
-        "readme": "./README.md",
-        "package": "./package.json"
-    },
-    "templates": {
-    	"default": {
-    		"useLongnameInNav": "true"
-    	}
-    }
+	"plugins": ["plugins/markdown"],
+	"opts": {
+		"destination": "./docs/",
+		"readme": "./README.md",
+		"package": "./package.json",
+		"template": "node_modules/tui-jsdoc-template"
+	},
+	"templates": {
+		"name": "Dynamic Record",
+		"footerText": "Dynamic Record by Kenneth Lim",
+		"logo": {
+			"url": "",
+	        "width": "0px",
+	        "height": "0px",
+	        "link": ""
+		},
+		"default": {
+			"useLongnameInNav": "true"
+		}
+	}
 }

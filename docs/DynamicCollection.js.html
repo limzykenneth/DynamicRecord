@@ -1,0 +1,137 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Source: DynamicCollection.js | Dynamic Record</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/bootstrap.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-jsdoc.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/tui-doc.css">
+
+    
+</head>
+<body>
+<nav class="lnb" id="lnb">
+    <div class="logo" style="width: 0px; height: 0px">
+        
+            <img src="img/toast-ui.png" width="100%" height="100%">
+        
+    </div>
+    <div class="title">
+        <h1><a href="index.html" class="link">Dynamic Record</a></h1>
+        
+            <span class="version">v0.3.2</span>
+        
+    </div>
+    <div class="search-container" id="search-container">
+        <input type="text" placeholder="Search">
+        <ul></ul>
+    </div>
+    
+    <div class="lnb-api hidden"><h3>Classes</h3><ul><li><a href="DynamicCollection.html">DynamicCollection</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="DynamicCollection_sub"><div class="member-type">Members</div><ul class="inner"><li><a href="DynamicCollection.html#data">data</a></li></ul><div class="member-type">Methods</div><ul class="inner"><li><a href="DynamicCollection.html#saveAll">saveAll</a></li></ul></div></li><li><a href="DynamicRecord.html">DynamicRecord</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="DynamicRecord_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="DynamicRecord.html#all">all</a></li><li><a href="DynamicRecord.html#closeConnection">closeConnection</a></li><li><a href="DynamicRecord.html#findBy">findBy</a></li><li><a href="DynamicRecord.html#first">first</a></li><li><a href="DynamicRecord.html#where">where</a></li></ul></div></li><li><a href="DynamicRecord.Model.html">DynamicRecord.Model</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="DynamicRecord.Model_sub"><div class="member-type">Members</div><ul class="inner"><li><a href="DynamicRecord.Model.html#data">data</a></li></ul><div class="member-type">Methods</div><ul class="inner"><li><a href="DynamicRecord.Model.html#destroy">destroy</a></li><li><a href="DynamicRecord.Model.html#save">save</a></li><li><a href="DynamicRecord.Model.html#validate">validate</a></li></ul></div></li><li><a href="DynamicSchema.html">DynamicSchema</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="DynamicSchema_sub"><div class="member-type">Members</div><ul class="inner"><li><a href="DynamicSchema.html#SchemaDefinitions">SchemaDefinitions</a></li><li><a href="DynamicSchema.html#tableName">tableName</a></li><li><a href="DynamicSchema.html#tableSlug">tableSlug</a></li></ul><div class="member-type">Methods</div><ul class="inner"><li><a href="DynamicSchema.html#addColumn">addColumn</a></li><li><a href="DynamicSchema.html#addColumns">addColumns</a></li><li><a href="DynamicSchema.html#addIndex">addIndex</a></li><li><a href="DynamicSchema.html#changeColumnType">changeColumnType</a></li><li><a href="DynamicSchema.html#createTable">createTable</a></li><li><a href="DynamicSchema.html#define">define</a></li><li><a href="DynamicSchema.html#read">read</a></li><li><a href="DynamicSchema.html#removeColumn">removeColumn</a></li><li><a href="DynamicSchema.html#removeIndex">removeIndex</a></li><li><a href="DynamicSchema.html#renameColumn">renameColumn</a></li><li><a href="DynamicSchema.html#renameTable">renameTable</a></li></ul></div></li></ul></div>
+</nav>
+<div id="resizer"></div>
+
+<div class="main" id="main">
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const _ = require("lodash");
+const Promise = require("bluebird");
+class DynamicCollection extends Array {
+    /**
+     * Creates a new DynamicCollection instance.
+     *
+     * DynamicCollection is an extension of the native Array object thus
+     * implementing all of Array's methods and properties.
+     *
+     * @name DynamicCollection
+     * @constructor
+     * @extends Array
+     * @param {DynamicRecord.Model} Model - The Model constructor to use for
+     *                              this collection
+     */
+    constructor(Model, ...data) {
+        super();
+        const models = [];
+        _.each(data, (d) => {
+            this.push(new Model(d));
+        });
+    }
+    /**
+     * Returns a native array of data objects
+     *
+     * @type Array
+     */
+    get data() {
+        const result = [];
+        _.each(this, (el, i) => {
+            result.push(el.data);
+        });
+        return result;
+    }
+    /**
+     * Save all the model instances in the DynamicCollection.
+     *
+     * Simply calls all the individual model's `save()` method.
+     *
+     * @method saveAll
+     * @memberOf DynamicCollection
+     * @instance
+     * @return {Promise}
+     */
+    saveAll() {
+        const promises = [];
+        _.each(this, (model) => {
+            if (model.save) {
+                promises.push(model.save());
+            }
+        });
+        return Promise.all(promises);
+    }
+}
+module.exports = DynamicCollection;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<footer>
+    <img class="logo" src="img/toast-ui.png" style="width: 0px; height: 0px">
+    <div class="footer-text">Dynamic Record by Kenneth Lim</div>
+</footer>
+<script>prettyPrint();</script>
+<script src="scripts/jquery.min.js"></script>
+<script src="scripts/tui-doc.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+    <script>
+        var id = '_sub'.replace(/"/g, '_');
+        var selectedApi = document.getElementById(id); // do not use jquery selector
+        var $selectedApi = $(selectedApi);
+
+        $selectedApi.removeClass('hidden');
+        $selectedApi.parent().find('.glyphicon').removeClass('glyphicon-plus').addClass('glyphicon-minus');
+        showLnbApi();
+    </script>
+
+</body>
+</html>
