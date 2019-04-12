@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
+const Ajv = require("ajv");
+const rootSchema = require("./json-schema-draft-07.schema.json");
+const ajv = new Ajv();
 let con;
 // Let's get mongodb working first
 /**
@@ -40,6 +43,8 @@ class Schema {
          * @instance
          */
         this.definition = {};
+        // Setup validator for JSON Schema draft 07
+        this._validateRootSchema = ajv.compile(rootSchema);
     }
     /**
      * Create a new table with the given schema. Schema must adhere to the
@@ -65,6 +70,9 @@ class Schema {
      * @return {Promise}
      */
     createTable(options) {
+        if (!this._validateRootSchema(options)) {
+            return Promise.reject(this._validateRootSchema.errors);
+        }
         const tableSlug = options.$id;
         const tableName = options.title || options.$id;
         const columns = options.properties;
@@ -124,7 +132,7 @@ class Schema {
         }).catch((err) => {
             this.tableName = null;
             this.tableSlug = null;
-            throw err;
+            throw Promise.reject(err);
         });
     }
     /**

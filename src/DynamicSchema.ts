@@ -1,7 +1,10 @@
 require("dotenv").config();
 import Promise = require("bluebird");
 import _ = require("lodash");
+import Ajv = require("ajv");
+import rootSchema = require("./json-schema-draft-07.schema.json");
 
+const ajv = new Ajv();
 let con;
 
 interface Definition{
@@ -46,6 +49,8 @@ class Schema{
 
 	definition:SchemaDefinitions;
 
+	private _validateRootSchema:any;
+
 	constructor(){
 		/**
 		 * The name of the table.
@@ -76,6 +81,9 @@ class Schema{
 		 * @instance
 		 */
 		this.definition = {};
+
+		// Setup validator for JSON Schema draft 07
+		this._validateRootSchema = ajv.compile(rootSchema);
 	}
 
 	/**
@@ -102,6 +110,10 @@ class Schema{
 	 * @return {Promise}
 	 */
 	createTable(options:TableSchema){
+		if(!this._validateRootSchema(options)){
+			return Promise.reject(this._validateRootSchema.errors);
+		}
+
 		const tableSlug:string = options.$id;
 		const tableName:string = options.title || options.$id;
 		const columns:SchemaDefinitions = options.properties;
@@ -170,7 +182,7 @@ class Schema{
 		}).catch((err) => {
 			this.tableName = null;
 			this.tableSlug = null;
-			throw err;
+			throw Promise.reject(err);
 		});
 	}
 
