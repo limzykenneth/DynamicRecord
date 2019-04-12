@@ -134,9 +134,9 @@ describe("DynamicCollection", function(){
 						assert.deepInclude(res, el);
 					});
 					done();
-				}).catch((err) => {
-					done(err);
 				});
+			}).catch((err) => {
+				done(err);
 			});
 		});
 	});
