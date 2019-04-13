@@ -3,7 +3,7 @@ const rootSchema = require("./json-schema-draft-07.schema.json");
 
 let connect;
 
-ajv = new Ajv({
+const ajv = new Ajv({
 	loadSchema: loadSchema
 });
 
@@ -13,7 +13,6 @@ function loadSchema(tableSlug){
 	return connect.then((db) => {
 		return db.collection("_schema").findOne({"_$id": tableSlug});
 	}).then((schema) => {
-		console.log(schema);
 		return Promise.resolve(schema);
 	});
 }
