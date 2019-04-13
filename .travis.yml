@@ -1,0 +1,16 @@
+language: node_js
+node_js:
+  - 8
+  - 10
+  - 11
+services: mongodb
+before_script:
+  - sleep 15
+  - mongo mongo_test_db --eval 'db.createUser({user:"travis",pwd:"test",roles:["readWrite"]});'
+env:
+  mongo_server: 127.0.0.1:27017
+  mongo_db_name: mongo_test_db
+  mongo_user: travis
+  mongo_pass: test
+script:
+  - npm test
