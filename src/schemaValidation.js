@@ -1,6 +1,7 @@
 const Ajv = require("ajv");
 const _ = require("lodash");
 const rootSchema = require("./json-schema-draft-07.schema.json");
+const countersSchema = require("./dynamic_record_counters.schema.json");
 
 let connect;
 
@@ -8,7 +9,8 @@ const ajv = new Ajv({
 	loadSchema: loadSchema
 });
 
-ajv.addSchema(rootSchema, "rootSchema");
+ajv.addSchema(rootSchema, "rootSchema")
+	.addSchema(countersSchema, "countersSchema");
 
 function loadSchema(tableSlug){
 	return connect.then((db) => {
