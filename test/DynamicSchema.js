@@ -10,6 +10,7 @@ const connect = MongoClient.connect(mongoURL);
 // Test dependencies
 const DynamicRecord = require("../build/DynamicRecord.js");
 const DynamicCollection = require("../build/DynamicCollection.js");
+const DynamicSchema = DynamicRecord.DynamicSchema;
 const utils = new (require("./utils.js"))(connect);
 const chai = require("chai");
 const assert = chai.assert;
@@ -64,7 +65,7 @@ describe("Schema", function(){
 		});
 
 		it("should create an empty table or collection in the database", function(done){
-			let table = Random.schema;
+			let table = new DynamicSchema();
 			table.createTable(testSchema).then((col) => {
 				return connect.then((db) => {
 					return db.listCollections().toArray();
