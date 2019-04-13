@@ -23,7 +23,7 @@
     "pretest": "npm run build",
     "test": "mocha",
     "test_db": "sh test/mongo_test.sh",
-    "build": "tsc",
+    "build": "tsc --resolveJsonModule",
     "predocs": "npm test && rm -rf docs/",
     "docs": "jsdoc -c ./jsdoc.conf.json build/",
     "prepublish-docs": "npm run docs",
@@ -32,6 +32,7 @@
   "author": "Kenneth Lim <limzy.kenneth@gmail.com> (https://designerken.be/designing/)",
   "license": "BSD-2-Clause",
   "dependencies": {
+    "ajv": "^6.10.0",
     "bluebird": "^3.5.1",
     "dotenv": "^5.0.1",
     "lodash": "^4.17.11",

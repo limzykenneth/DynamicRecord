@@ -2,7 +2,8 @@ require("dotenv").config();
 import Promise = require("bluebird");
 import _ = require("lodash");
 
-let con;
+let connect;
+const schemaValidator = new (require("./schemaValidation.js"))(connect);
 
 interface Definition{
 	description:string;
@@ -68,14 +69,27 @@ class Schema{
 		this.tableSlug = null;
 
 		/**
-		 * The definition of the table's schema.
+		 * The table's column definitions.
 		 *
-		 * @name SchemaDefinitions
+		 * @name definition
 		 * @type object
 		 * @memberOf DynamicSchema
 		 * @instance
 		 */
 		this.definition = {};
+
+		// Async setup, should be moved to a one time setup script
+		// connect.then((db) => {
+		// 	return db.collection("_schema").indexExists("_$id").then((result) => {
+		// 		if(!result){
+		// 			return Promise.resolve(db);
+		// 		}
+		// 	});
+		// }).then((db) => {
+		// 	return db.collection("_schema").createIndex("_$id", {
+		// 		unique: true
+		// 	});
+		// });
 	}
 
 	/**
@@ -101,12 +115,16 @@ class Schema{
 	 * @param {object} schema.properties - The column definitions of the table
 	 * @return {Promise}
 	 */
-	createTable(options:TableSchema){
-		const tableSlug:string = options.$id;
-		const tableName:string = options.title || options.$id;
-		const columns:SchemaDefinitions = options.properties;
+	createTable(schema:TableSchema){
+		if(!schemaValidator.validate("rootSchema", schema)){
+			return Promise.reject(schemaValidator.errors);
+		}
 
-		return con.then((db) => {
+		const tableSlug:string = schema.$id;
+		const tableName:string = schema.title || schema.$id;
+		const columns:SchemaDefinitions = schema.properties;
+
+		return connect.then((db) => {
 			const promises = [];
 
 			// NOTE: Do we need to check for existence first?
@@ -136,13 +154,13 @@ class Schema{
 			}));
 
 			const databaseInsert = {
-				_$schema: options.$schema,
-				_$id: options.$id,
-				title: options.title,
-				description: options.description,
-				type: options.type,
-				properties: options.properties,
-				required: options.required
+				_$schema: schema.$schema,
+				_$id: schema.$id,
+				title: schema.title,
+				description: schema.description,
+				type: schema.type,
+				properties: schema.properties,
+				required: schema.required
 			}
 			promises.push(db.collection("_schema").insertOne(databaseInsert));
 
@@ -170,7 +188,7 @@ class Schema{
 		}).catch((err) => {
 			this.tableName = null;
 			this.tableSlug = null;
-			throw err;
+			throw Promise.reject(err);
 		});
 	}
 
@@ -185,7 +203,7 @@ class Schema{
 	 * @return {Promise}
 	 */
 	renameTable(newSlug:string, newName:string){
-		return con.then((db) => {
+		return connect.then((db) => {
 			const promises = [];
 
 			promises.push(db.collection("_schema").findOneAndUpdate({"_$id": this.tableSlug}, {
@@ -236,7 +254,7 @@ class Schema{
 			unique = true;
 		}
 
-		return con.then((db) => {
+		return connect.then((db) => {
 			return db.collection(this.tableSlug).createIndex(columnName, {unique: unique, name: columnName});
 		}).then(() => {
 			if(isAutoIncrement){
@@ -263,7 +281,7 @@ class Schema{
 	 * @return {Promise}
 	 */
 	removeIndex(columnName:string){
-		return con.then((db) => {
+		return connect.then((db) => {
 			return db.collection(this.tableSlug).dropIndex(columnName)
 				.then(() => {
 					return Promise.resolve(db);
@@ -291,7 +309,7 @@ class Schema{
 	 * @return {Promise} - Return promise, resolves to this object instance
 	 */
 	read(tableSlug:string){
-		return con.then((db) => {
+		return connect.then((db) => {
 			return db.collection("_schema").findOne({_$id: tableSlug});
 		}).then((data) => {
 			if(data){
@@ -325,7 +343,7 @@ class Schema{
 		this.definition = def;
 
 		// Create schema in RMDB, do nothing in NoSQL
-		return con.then((db) => {
+		return connect.then((db) => {
 			return db.collection("_schema").findOneAndUpdate({
 				_$id: this.tableSlug,
 			}, {
@@ -403,7 +421,7 @@ class Schema{
 		this.definition[newName] = _.cloneDeep(this.definition[name]);
 		delete this.definition[name];
 
-		return con.then((db) => {
+		return connect.then((db) => {
 			return this._writeSchema().then(() => {
 				return db.collection("_counters").findOne({"_$id": this.tableSlug});
 			}).then((entry) => {
@@ -479,7 +497,7 @@ class Schema{
 	 * @return {Promise}
 	 */
 	private _writeSchema(){
-		return con.then((db) => {
+		return connect.then((db) => {
 			return db.collection("_schema").findOneAndUpdate({_$id: this.tableSlug}, {
 				$set: {
 					properties: this.definition
@@ -500,7 +518,7 @@ class Schema{
 	 * @return {Promise}
 	 */
 	private _setCounter(collection:string, columnLabel:string){
-		return con.then((db) => {
+		return connect.then((db) => {
 			const sequenceKey = `sequences.${columnLabel}`;
 
 			return db.collection("_counters").findOneAndUpdate({
@@ -526,7 +544,7 @@ class Schema{
 	 * @return {Promise} - Promise of the next number in the sequence
 	 */
 	private _incrementCounter(collection:string, columnLabel:string){
-		return con.then((db) => {
+		return connect.then((db) => {
 			return db.collection("_counters").findOne({
 				_$id: collection
 			}).then((result) => {
@@ -553,6 +571,6 @@ class Schema{
 }
 
 module.exports = function(connection){
-	con = connection;
+	connect = connection;
 	return Schema;
 };

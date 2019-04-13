@@ -10,6 +10,7 @@ const connect = MongoClient.connect(mongoURL);
 // Test dependencies
 const DynamicRecord = require("../build/DynamicRecord.js");
 const DynamicCollection = require("../build/DynamicCollection.js");
+const DynamicSchema = DynamicRecord.DynamicSchema;
 const utils = new (require("./utils.js"))(connect);
 const chai = require("chai");
 const assert = chai.assert;
@@ -64,7 +65,7 @@ describe("Schema", function(){
 		});
 
 		it("should create an empty table or collection in the database", function(done){
-			let table = Random.schema;
+			let table = new DynamicSchema();
 			table.createTable(testSchema).then((col) => {
 				return connect.then((db) => {
 					return db.listCollections().toArray();
@@ -88,7 +89,7 @@ describe("Schema", function(){
 			});
 		});
 		it("should create an empty table or collection with provided index", function(done){
-			let table = Random.schema;
+			let table = new DynamicSchema();
 			table.createTable(testSchema).then(() => {
 				return connect.then((db) => {
 					return db.collection(testSchema.$id).indexExists("int");
@@ -108,7 +109,7 @@ describe("Schema", function(){
 
 		beforeEach(function(done){
 			utils.dropTestTable().then((reply) => {
-				table = Random.schema;
+				table = new DynamicSchema();
 				table.createTable(testSchema).then(() => {
 					done();
 				}).catch((err) => {
@@ -197,7 +198,7 @@ describe("Schema", function(){
 
 		beforeEach(function(done){
 			utils.dropTestTable().then((reply) => {
-				table = Random.schema;
+				table = new DynamicSchema();
 				table.createTable(testSchema).then(() => {
 					done();
 				}).catch((err) => {
@@ -380,7 +381,7 @@ describe("Schema", function(){
 
 		beforeEach(function(done){
 			utils.dropTestTable().then((reply) => {
-				table = Random.schema;
+				table = new DynamicSchema();
 				table.createTable(testSchema).then(() => {
 					return table.addIndex({
 						name: "testIndex",
@@ -456,7 +457,7 @@ describe("Schema", function(){
 		});
 
 		it("should read the schema entry from the database correctly", function(done){
-			let table = Random.schema;
+			let table = new DynamicSchema();
 			table.read(testSchema.$id).then(() => {
 				assert.equal(table.tableSlug, testSchema.$id, "object slug is equal to testSchema.$id");
 				assert.deepEqual(table.definition, testSchema.properties, "object definition is as defined");
@@ -479,7 +480,7 @@ describe("Schema", function(){
 		});
 
 		it("should write the schema definition to the database", function(done){
-			let table = Random.schema;
+			let table = new DynamicSchema();
 			table.define(testSchema.properties).then(() => {
 				return connect.then((db) => {
 					return db.collection("_schema").findOne({_$id: testSchema.$id});
@@ -492,7 +493,7 @@ describe("Schema", function(){
 			});
 		});
 		it("should set the correct definition", function(done){
-			let table = Random.schema;
+			let table = new DynamicSchema();
 			table.define(testSchema.properties).then(() => {
 				assert.deepEqual(table.definition, testSchema.properties, "object definition is set correctly");
 				done();
@@ -531,7 +532,7 @@ describe("Schema", function(){
 		});
 
 		it("should add a column entry to the definition and database", function(done){
-			let table = Random.schema;
+			let table = new DynamicSchema();
 			table.read(testSchema.$id).then(() => {
 				assert.isDefined(table.tableSlug);
 				assert.isDefined(table.definition);
@@ -591,7 +592,7 @@ describe("Schema", function(){
 		});
 
 		it("should remove a specified column entry from the definition", function(done){
-			let table = Random.schema;
+			let table = new DynamicSchema();
 
 			table.read(testSchema.$id).then(() => {
 				assert.isDefined(table.tableSlug);
@@ -652,7 +653,7 @@ describe("Schema", function(){
 		});
 
 		it("should rename a specified column entry in the definition", function(done){
-			let table = Random.schema;
+			let table = new DynamicSchema();
 
 			table.read(testSchema.$id).then(() => {
 				assert.isDefined(table.tableSlug);
@@ -709,7 +710,7 @@ describe("Schema", function(){
 		});
 
 		it("should rename the _counters entry if it is an auto incrementing index", function(done){
-			let table = Random.schema;
+			let table = new DynamicSchema();
 
 			table.read(testSchema.$id).then(() => {
 				assert.isDefined(table.tableSlug);
@@ -759,7 +760,7 @@ describe("Schema", function(){
 		});
 
 		it("should change the specified column type in the definition", function(done){
-			let table = Random.schema;
+			let table = new DynamicSchema();
 
 			table.read(testSchema.$id).then(() => {
 				assert.isDefined(table.tableSlug);

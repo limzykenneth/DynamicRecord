@@ -14,3 +14,8 @@ env:
   mongo_pass: test
 script:
   - npm test
+deploy:
+  provider: surge
+  project: ./docs/
+  domain: dynamic-record.js.org
+  skip_cleanup: true

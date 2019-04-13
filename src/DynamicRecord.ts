@@ -6,6 +6,7 @@ const DynamicSchema = require("./DynamicSchema.js");
 
 // Let's get mongodb working first
 const connect = require("./mongoConnection.js")(process.env.mongo_server, process.env.mongo_db_name, process.env.mongo_user, process.env.mongo_pass);
+const schemaValidator = new (require("./schemaValidation.js"))(connect);
 
 class DynamicRecord {
 	// Static constructors for their own separate use
@@ -45,6 +46,7 @@ class DynamicRecord {
 				if(schema.tableSlug === "") return Promise.reject(`Table with name ${tableSlug} does not exist`);
 
 				const col = db.collection(tableSlug);
+
 				if(col){
 					return Promise.resolve(col);
 				}else{
@@ -95,7 +97,13 @@ class DynamicRecord {
 		 * @return {Promise}
 		 */
 		Model.prototype.save = function(){
-			return _ready.then((col) => {
+			return schemaValidator.compileAsync({$ref: _schema.tableSlug}).then((validate) => {
+				if(validate(this.data)){
+					return _ready;
+				}else{
+					return Promise.reject(validate.errors);
+				}
+			}).then((col) => {
 				if(this._original){
 					return col.updateOne(this._original, this.data, {upsert: true}).then((result) => {
 						this._original = _.cloneDeep(this.data);
@@ -127,6 +135,8 @@ class DynamicRecord {
 						});
 					});
 				}
+			}).catch((err) => {
+				return Promise.reject(err);
 			});
 		};
 
