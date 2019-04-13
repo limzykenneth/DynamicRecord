@@ -48,6 +48,7 @@ class DynamicCollection extends Array {
         const promises = [];
         _.each(this, (model) => {
             if (model.save) {
+                // Consider doing bulk write
                 promises.push(model.save());
             }
         });

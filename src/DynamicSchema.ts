@@ -77,6 +77,19 @@ class Schema{
 		 * @instance
 		 */
 		this.definition = {};
+
+		// Async setup, should be moved to a one time setup script
+		// connect.then((db) => {
+		// 	return db.collection("_schema").indexExists("_$id").then((result) => {
+		// 		if(!result){
+		// 			return Promise.resolve(db);
+		// 		}
+		// 	});
+		// }).then((db) => {
+		// 	return db.collection("_schema").createIndex("_$id", {
+		// 		unique: true
+		// 	});
+		// });
 	}
 
 	/**
