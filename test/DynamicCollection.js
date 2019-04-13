@@ -9,7 +9,7 @@ const connect = MongoClient.connect(mongoURL);
 
 // Test dependencies
 const DynamicRecord = require("../build/DynamicRecord.js");
-const DynamicCollection = require("../build/DynamicCollection");
+const DynamicCollection = DynamicRecord.DynamicCollection;
 const utils = new (require("./utils.js"))(connect);
 const chai = require("chai");
 const assert = chai.assert;
