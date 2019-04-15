@@ -15,7 +15,7 @@
   "engines": {
     "node": ">=10.15.0"
   },
-  "homepage": "https://github.com/limzykenneth/DynamicRecord",
+  "homepage": "https://dynamic-record.js.org",
   "bugs": "https://github.com/limzykenneth/DynamicRecord/issues",
   "repository": "https://github.com/limzykenneth/DynamicRecord.git",
   "main": "build/DynamicRecord.js",
