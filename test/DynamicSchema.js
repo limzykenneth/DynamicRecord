@@ -103,6 +103,74 @@ describe("Schema", function(){
 		});
 	});
 
+	describe("dropTable()", function(){
+		let table;
+
+		beforeEach(function(done){
+			utils.dropTestTable().then((reply) => {
+				table = new DynamicSchema();
+				table.createTable(testSchema).then(() => {
+					done();
+				}).catch((err) => {
+					done(err);
+				});
+			});
+		});
+
+		after(function(){
+			return utils.dropTestTable();
+		});
+
+		it("should remove the table's entry in the _schema table", function(done){
+			connect.then((db) => {
+				table.dropTable().then(() => {
+					return db.collection("_schema").findOne({"_$id": testSchema.$id});
+				}).then((schema) => {
+					assert.isNull(schema, "Entry under _schema table is deleted.");
+					done();
+				});
+			}).catch((err) => {
+				done(err);
+			});
+		});
+		it("should drop the table itself", function(done){
+			connect.then((db) => {
+				table.dropTable().then(() => {
+					return db.listCollections({name: testSchema.$id}).toArray();
+				}).then((items) => {
+					assert.isEmpty(items, "Table is dropped from the database");
+					done();
+				});
+			}).catch((err) => {
+				done(err);
+			});
+		});
+		it("should remove the table's entry in the _counters table", function(done){
+			connect.then((db) => {
+				table.dropTable().then(() => {
+					return db.collection("_counters").findOne({"_$id": testSchema.$id});
+				}).then((schema) => {
+					assert.isNull(schema, "Entry under _counters table is deleted.");
+					done();
+				});
+			}).catch((err) => {
+				done(err);
+			});
+		});
+		it("should remove existing data from the instance", function(done){
+			connect.then((db) => {
+				table.dropTable().then(() => {
+					assert.isNull(table.tableName, "Table name is set to null");
+					assert.isNull(table.tableSlug, "Table slug is set to null");
+					assert.isEmpty(table.definition, "Table definition is emptied");
+					done();
+				});
+			}).catch((err) => {
+				done(err);
+			});
+		});
+	});
+
 	describe("renameTable()", function(){
 		// Instance of DynamicSchema used for testing
 		let table;

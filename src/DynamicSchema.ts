@@ -192,8 +192,34 @@ class Schema{
 		});
 	}
 
+
 	/**
-	 * Add an index to the table's schema
+	 * Drop the table from the database.
+	 *
+	 * @method dropTable
+	 * @memberOf DynamicSchema
+	 * @instance
+	 * @return {Promise}
+	 */
+	dropTable(){
+		return connect.then((db) => {
+			return db.collection("_schema").deleteOne({"_$id": this.tableSlug}).then((result) => {
+				return db.collection(this.tableSlug).drop();
+			}).then(() => {
+				return db.collection("_counters").deleteOne({"_$id": this.tableSlug});
+			}).then(() => {
+				this.tableName = null;
+				this.tableSlug = null;
+				this.definition = {};
+				return Promise.resolve();
+			});
+		}).catch((err) => {
+			return Promise.reject(err);
+		});
+	}
+
+	/**
+	 * Add an index to the table's schema.
 	 *
 	 * @method renameTable
 	 * @memberOf DynamicSchema
