@@ -13,7 +13,7 @@ env:
   mongo_user: travis
   mongo_pass: test
 script:
-  - npm test
+  - npm run docs
 deploy:
   provider: surge
   project: ./docs/
