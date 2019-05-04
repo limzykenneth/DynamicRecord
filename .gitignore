@@ -97,3 +97,6 @@ Temporary Items
 
 # Test database
 test/test_db
+
+# Documentation
+docs/
