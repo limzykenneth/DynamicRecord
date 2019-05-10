@@ -219,7 +219,7 @@ class Schema{
 	}
 
 	/**
-	 * Add an index to the table's schema.
+	 * Rename the table.
 	 *
 	 * @method renameTable
 	 * @memberOf DynamicSchema
