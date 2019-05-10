@@ -44,12 +44,12 @@ before(function(done){
 });
 
 // Close all database connections
-after(function(done){
-	utils.dropTestTable().then(() => {
-		Random.closeConnection();
-		connect.then((db) => {
-			db.close();
-			done();
+after(function(){
+	return utils.dropTestTable().then(() => {
+		return Random.closeConnection();
+	}).then(() => {
+		return connect.then((db) => {
+			return db.close();
 		});
 	});
 });
@@ -114,31 +114,26 @@ describe("DynamicCollection", function(){
 			col = new DynamicCollection(Random.Model, ...testData);
 		});
 
-		afterEach(function(done){
-			connect.then((db) => {
-				// Clear out dummy data
-				return db.collection(testSchema.$id).deleteMany({});
-			}).then((r) => {
-				done();
+		afterEach(function(){
+			return utils.dropTestTable();
+		});
+
+		it("should call save function of all the models in the collection", function(){
+			return col.saveAll().then((res) => {
+				return connect.then((db) => {
+					return db.collection(testSchema.$id).find().toArray();
+				});
+			}).then((res) => {
+				_.each(col.data, (el) => {
+					assert.deepInclude(res, el);
+				});
+				return Promise.resolve();
 			}).catch((err) => {
-				done(err);
+				return Promise.reject(err);
 			});
 		});
 
-		it("should call save function of all the models in the collection", function(done){
-			col.saveAll().then((res) => {
-				connect.then((db) => {
-					return db.collection(testSchema.$id).find().toArray();
-				}).then((res) => {
-					_.each(col.data, (el) => {
-						assert.deepInclude(res, el);
-					});
-					done();
-				});
-			}).catch((err) => {
-				done(err);
-			});
-		});
+		it("should set the autoincrementing index correctly");
 	});
 });
 // --------------------------------------------
