@@ -94,20 +94,20 @@ class DynamicRecord {
 		 * @method save
 		 * @memberOf DynamicRecord.Model
 		 * @instance
-		 * @return {Promise}
+		 * @return {Promise} Return promise of this DynamicRecord.Model instance
 		 */
 		Model.prototype.save = function(){
 			return schemaValidator.compileAsync({$ref: _schema.tableSlug}).then((validate) => {
 				if(validate(this.data)){
 					return _ready;
 				}else{
-					return Promise.reject(validate.errors);
+					return Promise.reject(new Error(validate.errors));
 				}
 			}).then((col) => {
 				if(this._original){
 					return col.updateOne(this._original, this.data, {upsert: true}).then((result) => {
 						this._original = _.cloneDeep(this.data);
-						return Promise.resolve(col);
+						return Promise.resolve(this);
 					});
 				}else{
 					// Check if collection contains index that needs auto incrementing
@@ -131,7 +131,7 @@ class DynamicRecord {
 						// Save data into the database
 						return col.insertOne(this.data).then((result) => {
 							this._original = _.cloneDeep(this.data);
-							return Promise.resolve(col);
+							return Promise.resolve(this);
 						});
 					});
 				}
@@ -147,7 +147,7 @@ class DynamicRecord {
 		 * @method destroy
 		 * @memberOf DynamicRecord.Model
 		 * @instance
-		 * @return {Promise}
+		 * @return {Promise} Return promise of this DynamicRecord.Model instance
 		 */
 		Model.prototype.destroy = function(){
 			return _ready.then((col) => {
@@ -155,7 +155,7 @@ class DynamicRecord {
 					return col.deleteOne(this._original).then((result) => {
 						this._original = null;
 						this.data = null;
-						return Promise.resolve(col);
+						return Promise.resolve(this);
 					});
 				}else{
 					throw new Error("Model not saved in database yet.");
@@ -218,7 +218,7 @@ class DynamicRecord {
 	 * @instance
 	 * @param {object} query - A key value pair that will be used to match for entry
 	 * in the database
-	 * @return {Promise} Return promise of DynamicRecord.Model
+	 * @return {Promise} Return promise of DynamicRecord.Model instance
 	 */
 	findBy(query: object){
 		return this._ready.then((col) => {
@@ -240,7 +240,7 @@ class DynamicRecord {
 	 * @instance
 	 * @param {object} query - A key value pair that will be used to match for entries
 	 * @param {string|function} orderBy - The key to sort by or a sorting function
-	 * @return {Promise} Return promise of DynamicCollection
+	 * @return {Promise} Return promise of DynamicCollection instance
 	 */
 	where(query: object, orderBy: string | Function){
 		return this._ready.then((col) => {
@@ -266,7 +266,7 @@ class DynamicRecord {
 	 * @method all
 	 * @memberOf DynamicRecord
 	 * @instance
-	 * @return {Promise} Return promise of DynamicCollection.
+	 * @return {Promise} Return promise of DynamicCollection instance
 	 */
 	all(){
 		return this._ready.then((col) => {
@@ -288,7 +288,7 @@ class DynamicRecord {
 	 * @method first
 	 * @memberOf DynamicRecord
 	 * @instance
-	 * @return {Promise} Return promise of DynamicRecord.Model
+	 * @return {Promise} Return promise of DynamicRecord.Model instance
 	 */
 	first(){
 		return this._ready.then((col) => {

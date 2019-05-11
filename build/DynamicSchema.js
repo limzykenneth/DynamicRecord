@@ -75,7 +75,7 @@ class Schema {
      * @param {string} schema.$id - ID of the table, must be unique
      * @param {string} [schema.title] - Defaults to `schema.$id`
      * @param {object} schema.properties - The column definitions of the table
-     * @return {Promise}
+     * @return {Promise} Return promise of the instance containing the new table
      */
     createTable(schema) {
         if (!schemaValidator.validate("rootSchema", schema)) {
@@ -90,7 +90,7 @@ class Schema {
             promises.push(db.createCollection(tableSlug).then((col) => {
                 this.tableName = tableName;
                 this.tableSlug = tableSlug;
-                return Promise.resolve(db);
+                return Promise.resolve();
             }));
             promises.push(db.createCollection("_counters").then((col) => {
                 return col.indexExists("_$id").then((result) => {
@@ -107,7 +107,7 @@ class Schema {
                         _$id: tableSlug,
                         sequences: {}
                     }).then(() => {
-                        return Promise.resolve(db);
+                        return Promise.resolve();
                     });
                 });
             }));
@@ -137,6 +137,8 @@ class Schema {
                 }
             });
             return Promise.all(promises);
+        }).then(() => {
+            return Promise.resolve(this);
         }).catch((err) => {
             this.tableName = null;
             this.tableSlug = null;
@@ -149,7 +151,7 @@ class Schema {
      * @method dropTable
      * @memberOf DynamicSchema
      * @instance
-     * @return {Promise}
+     * @return {Promise} Return promise of empty DynamicSchema instance
      */
     dropTable() {
         return connect.then((db) => {
@@ -161,7 +163,7 @@ class Schema {
                 this.tableName = null;
                 this.tableSlug = null;
                 this.definition = {};
-                return Promise.resolve();
+                return Promise.resolve(this);
             });
         }).catch((err) => {
             return Promise.reject(err);
@@ -175,7 +177,7 @@ class Schema {
      * @instance
      * @param {string} newSlug
      * @param {string} [newName] Defaults to newSlug
-     * @return {Promise}
+     * @return {Promise} Return promise of DynamicSchema instance
      */
     renameTable(newSlug, newName) {
         return connect.then((db) => {
@@ -196,7 +198,9 @@ class Schema {
         }).then(() => {
             this.tableSlug = newSlug;
             this.tableName = newName || newSlug;
-            return Promise.resolve();
+            return Promise.resolve(this);
+        }).catch((err) => {
+            return Promise.reject(err);
         });
     }
     /**
@@ -211,7 +215,7 @@ class Schema {
      * @param {boolean} [options.autoInrement] - Whether it is an
      *                  auto-incrementing index or not. If true, `options.unique`
      *                  is automatically set to true
-     * @return {Promise}
+     * @return {Promise} Return promise of DynamicSchema instance
      */
     addIndex(options) {
         const columnName = options.name;
@@ -233,13 +237,15 @@ class Schema {
             else {
                 return Promise.resolve();
             }
+        }).then(() => {
+            return Promise.resolve(this);
         }).catch((err) => {
-            throw err;
+            return Promise.reject(err);
         });
     }
-    renameIndex(columnName, newColumnName) {
-        // Maybe drop index then recreate but do consider why you need to do this
-    }
+    //renameIndex(columnName, newColumnName){
+    // Maybe drop index then recreate but do consider why you need to do this
+    //}
     /**
      * Remove an index to the table's schema
      *
@@ -247,7 +253,7 @@ class Schema {
      * @memberOf DynamicSchema
      * @instance
      * @param {string} columnName - The name of the index to remove
-     * @return {Promise}
+     * @return {Promise} Return promise of DynamicSchema instance
      */
     removeIndex(columnName) {
         return connect.then((db) => {
@@ -256,6 +262,7 @@ class Schema {
                 return Promise.resolve(db);
             });
         }).then((db) => {
+            // NOTE: this is not the correct behaviour???
             if (columnName === "_uid") {
                 return db.collection("_counters").findOneAndDelete({
                     _$id: this.tableSlug
@@ -264,6 +271,8 @@ class Schema {
             else {
                 return Promise.resolve();
             }
+        }).then(() => {
+            return Promise.resolve(this);
         }).catch((err) => {
             throw err;
         });
@@ -275,7 +284,7 @@ class Schema {
      * @memberOf DynamicSchema
      * @instance
      * @param {string} tableSlug - The name of the table schema to retrieve
-     * @return {Promise} - Return promise, resolves to this object instance
+     * @return {Promise} - Return promise of DynamicSchema instance
      */
     read(tableSlug) {
         return connect.then((db) => {
@@ -304,7 +313,7 @@ class Schema {
      * @memberOf DynamicSchema
      * @instance
      * @param {object} definition - Definition of the table columns
-     * @return {Promise}
+     * @return {Promise} Return promise of DynamicSchema instance
      */
     define(def) {
         const oldDef = this.definition;
@@ -320,9 +329,11 @@ class Schema {
             }, {
                 upsert: true
             });
+        }).then(() => {
+            return Promise.resolve();
         }).catch((err) => {
             this.definition = oldDef;
-            throw err;
+            return Promise.reject(err);
         });
     }
     /**
@@ -334,22 +345,22 @@ class Schema {
      * @param {string} name - The name of the column to add
      * @param {string} type - Type of the column to add
      * @param {string} [description] - Description of the column to add
-     * @return {Promise}
+     * @return {Promise} Return promise of DynamicSchema instance
      */
     addColumn(name, type, description = "") {
-        if (!this.definition[name]) {
-            this.definition[name] = {
-                description: description,
-                type: type
-            };
-        }
-        else {
+        if (this.definition[name]) {
             // Column name already exist
-            throw new Error("Column name already exist");
+            return Promise.reject(new Error("Column name already exist"));
         }
-        return this._writeSchema().catch((err) => {
+        this.definition[name] = {
+            description: description,
+            type: type
+        };
+        return this._writeSchema().then(() => {
+            return Promise.resolve(this);
+        }).catch((err) => {
             delete this.definition[name];
-            throw err;
+            return Promise.reject(err);
         });
     }
     /**
@@ -360,14 +371,17 @@ class Schema {
      * @instance
      * @param {object} definitions - Object of objects containing new columns
      *                               definitions
-     * @return {Promise}
+     * @return {Promise} Return promise of DynamicSchema instance
      */
     addColumns(def) {
         const oldDefinition = _.cloneDeep(this.definition);
         this.definition = _.assign(this.definition, def);
-        return this._writeSchema().catch((err) => {
+        // NOTE: what about when the column already exist?
+        return this._writeSchema().then(() => {
+            return Promise.resolve(this);
+        }).catch((err) => {
             this.definition = _.cloneDeep(oldDefinition);
-            throw err;
+            return Promise.reject(err);
         });
     }
     /**
@@ -378,7 +392,7 @@ class Schema {
      * @instance
      * @param {string} name - The name of the column to rename
      * @param {string} newName - The new name of the target column
-     * @return {Promise}
+     * @return {Promise} Return promise of DynamicSchema instance
      */
     renameColumn(name, newName) {
         this.definition[newName] = _.cloneDeep(this.definition[name]);
@@ -400,10 +414,12 @@ class Schema {
                 else {
                     return Promise.resolve();
                 }
+            }).then(() => {
+                return Promise.resolve(this);
             }).catch((err) => {
                 this.definition[name] = _.cloneDeep(this.definition[newName]);
                 delete this.definition[newName];
-                throw err;
+                return Promise.reject(err);
             });
         });
     }
@@ -415,14 +431,16 @@ class Schema {
      * @instance
      * @param {string} name - The name of the column to change type
      * @param {string} newType - The new type of the target column
-     * @return {Promise}
+     * @return {Promise} Return promise of DynamicSchema instance
      */
     changeColumnType(name, newType) {
         const oldType = this.definition[name].type;
         this.definition[name].type = newType;
-        return this._writeSchema().catch((err) => {
+        return this._writeSchema().then(() => {
+            return Promise.resolve(this);
+        }).catch((err) => {
             this.definition[name].type = oldType;
-            throw err;
+            return Promise.reject(err);
         });
     }
     /**
@@ -432,14 +450,16 @@ class Schema {
      * @memberOf DynamicSchema
      * @instance
      * @param {string} name - The name of the column to remove
-     * @return {Promise}
+     * @return {Promise} Return promise of DynamicSchema instance
      */
     removeColumn(name) {
         const deleted = _.cloneDeep(this.definition[name]);
         delete this.definition[name];
-        return this._writeSchema().catch((err) => {
+        return this._writeSchema().then(() => {
+            return Promise.resolve(this);
+        }).catch((err) => {
             this.definition[name] = deleted;
-            throw err;
+            return Promise.reject(err);
         });
     }
     // Utils --------------------------------------------------------
@@ -450,7 +470,7 @@ class Schema {
      * @memberOf DynamicSchema
      * @instance
      * @private
-     * @return {Promise}
+     * @return {Promise} Return promise of DynamicSchema instance
      */
     _writeSchema() {
         return connect.then((db) => {
@@ -459,6 +479,10 @@ class Schema {
                     properties: this.definition
                 }
             });
+        }).then(() => {
+            return Promise.resolve(this);
+        }).catch((err) => {
+            return Promise.reject(err);
         });
     }
     /**
@@ -470,7 +494,7 @@ class Schema {
      * @private
      * @param {string} collection - The slug of the collection to set
      * @param {string} columnLabel - The slug of the column set as an autoincrementing index
-     * @return {Promise}
+     * @return {Promise} Return promise of DynamicSchema instance
      */
     _setCounter(collection, columnLabel) {
         return connect.then((db) => {
@@ -482,12 +506,16 @@ class Schema {
                     [sequenceKey]: 0
                 }
             });
+        }).then(() => {
+            return Promise.resolve(this);
+        }).catch((err) => {
+            return Promise.reject(err);
         });
     }
     /**
      * Increment an autoincrementing index (MongoDB only)
      *
-     * @method _setCounter
+     * @method _incrementCounter
      * @memberOf DynamicSchema
      * @instance
      * @private
@@ -513,11 +541,9 @@ class Schema {
                     return Promise.resolve(newSequence);
                 });
             });
+        }).catch((err) => {
+            return Promise.reject(err);
         });
-    }
-    _validate() {
-        // Validate database schema with this.definition
-        // Return boolean
     }
 }
 module.exports = function (connection) {

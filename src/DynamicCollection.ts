@@ -44,7 +44,7 @@ class DynamicCollection extends Array{
 	 * @method saveAll
 	 * @memberOf DynamicCollection
 	 * @instance
-	 * @return {Promise}
+	 * @return {Promise} Return promise of this DynamicCollection instance
 	 */
 	saveAll(){
 		const promises = [];
@@ -55,7 +55,9 @@ class DynamicCollection extends Array{
 			}
 		});
 
-		return Promise.all(promises);
+		return Promise.all(promises).then(() => {
+			return Promise.resolve(this);
+		});
 	}
 }
 
