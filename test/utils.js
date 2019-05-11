@@ -4,6 +4,10 @@ let utils = function(connect){
 	this.connect = connect;
 };
 
+utils.prototype.createTestTable = function(){
+
+};
+
 utils.prototype.dropTestTable = function(){
 	return this.connect.then((db) => {
 		return db.collection(testSchema.$id).drop().then(() => {
