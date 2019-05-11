@@ -19,7 +19,7 @@ const testSchema = Object.freeze(require("./random_table.schema.json"));
 // Data to be inserted into database for testing
 // Each element in array correspond to an entry in database
 // Objects keys are just for reference, not meant to represent actual types
-const testData = [
+const testData = Object.freeze([
 	{
 		"string": "Velit tempor.",
 		"int": 42,
@@ -38,7 +38,7 @@ const testData = [
 		"float": 2.7182818285,
 		"testIndex": 2
 	}
-];
+]);
 
 let Random;
 
@@ -67,12 +67,12 @@ before(function(done){
 });
 
 // Close all database connections
-after(function(done){
-	utils.dropTestTable().then(() => {
-		Random.closeConnection();
-		connect.then((db) => {
-			db.close();
-			done();
+after(function(){
+	return utils.dropTestTable().then(() => {
+		return Random.closeConnection();
+	}).then(() => {
+		return connect.then((db) => {
+			return db.close();
 		});
 	});
 });
