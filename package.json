@@ -29,6 +29,9 @@
     "prepublish-docs": "npm run docs",
     "publish-docs": "surge --domain dynamic-record.js.org ./docs"
   },
+  "bin": {
+    "dynamic-record": "./cli/cli.js"
+  },
   "author": "Kenneth Lim <limzy.kenneth@gmail.com> (https://designerken.be/designing/)",
   "license": "BSD-2-Clause",
   "dependencies": {
@@ -36,6 +39,7 @@
     "bluebird": "^3.5.1",
     "commander": "^2.20.0",
     "dotenv": "^5.0.1",
+    "inquirer": "^6.3.1",
     "lodash": "^4.17.11",
     "moment": "^2.22.2",
     "mongodb": "^2.2.31"
