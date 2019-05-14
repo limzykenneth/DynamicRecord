@@ -41,18 +41,6 @@ class Schema {
          * @instance
          */
         this.definition = {};
-        // Async setup, should be moved to a one time setup script
-        // connect.then((db) => {
-        // 	return db.collection("_schema").indexExists("_$id").then((result) => {
-        // 		if(!result){
-        // 			return Promise.resolve(db);
-        // 		}
-        // 	});
-        // }).then((db) => {
-        // 	return db.collection("_schema").createIndex("_$id", {
-        // 		unique: true
-        // 	});
-        // });
     }
     /**
      * Create a new table with the given schema. Schema must adhere to the
@@ -87,31 +75,24 @@ class Schema {
         const columns = schema.properties;
         return connect.then((db) => {
             const promises = [];
-            // NOTE: Do we need to check for existence first?
-            promises.push(db.createCollection(tableSlug).then((col) => {
+            promises.push(db.createCollection(tableSlug, { strict: true }).then((col) => {
                 this.tableName = tableName;
                 this.tableSlug = tableSlug;
                 return Promise.resolve();
             }));
-            promises.push(db.createCollection("_counters").then((col) => {
-                return col.indexExists("_$id").then((result) => {
-                    if (result === false) {
-                        return col.createIndex("_$id", { unique: true }).then(() => {
-                            return Promise.resolve();
-                        });
-                    }
-                    else {
-                        return Promise.resolve();
-                    }
-                }).then(() => {
-                    return col.insertOne({
+            const createCounters = new Promise((resolve, reject) => {
+                db.collection("_counters", { strict: true }, (err, col) => {
+                    if (err)
+                        return reject(err);
+                    col.insertOne({
                         _$id: tableSlug,
                         sequences: {}
                     }).then(() => {
-                        return Promise.resolve();
+                        resolve();
                     });
                 });
-            }));
+            });
+            promises.push(createCounters);
             const databaseInsert = {
                 _$schema: schema.$schema,
                 _$id: schema.$id,
