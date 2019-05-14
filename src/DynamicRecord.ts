@@ -79,7 +79,7 @@ class DynamicRecord {
 			 * @memberOf DynamicRecord.Model
 			 * @instance
 			 */
-			this.data = typeof data !== "undefined" ?  data : {};
+			this.data = data || {};
 
 			if(_preserveOriginal){
 				this._original = _.cloneDeep(data);
@@ -226,12 +226,16 @@ class DynamicRecord {
 	 * @instance
 	 * @param {object} query - A key value pair that will be used to match for entry
 	 * in the database
-	 * @return {Promise} Return promise of DynamicRecord.Model instance
+	 * @return {Promise} Return promise of DynamicRecord.Model instance or null
 	 */
 	findBy(query: object){
 		return this._ready.then((col) => {
 			return col.findOne(query).then((model) => {
-				return Promise.resolve(new this.Model(model, true));
+				if(model !== null){
+					return Promise.resolve(new this.Model(model, true));
+				}else{
+					return Promise.resolve(null);
+				}
 			});
 		});
 	}
@@ -296,12 +300,16 @@ class DynamicRecord {
 	 * @method first
 	 * @memberOf DynamicRecord
 	 * @instance
-	 * @return {Promise} Return promise of DynamicRecord.Model instance
+	 * @return {Promise} Return promise of DynamicRecord.Model instance or null
 	 */
 	first(){
 		return this._ready.then((col) => {
 			return col.findOne().then((model) => {
-				return Promise.resolve(new this.Model(model, true));
+				if(model !== null){
+					return Promise.resolve(new this.Model(model, true));
+				}else{
+					return Promise.resolve(null);
+				}
 			});
 		});
 	}
