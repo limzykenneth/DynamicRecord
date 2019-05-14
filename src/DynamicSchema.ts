@@ -115,7 +115,8 @@ class Schema{
 	 * @param {object} schema.properties - The column definitions of the table
 	 * @return {Promise} Return promise of the instance containing the new table
 	 */
-	createTable(schema:TableSchema){
+	createTable(schemaInput:TableSchema){
+		const schema = _.cloneDeep(schemaInput);
 		if(!schemaValidator.validate("rootSchema", schema)){
 			return Promise.reject(schemaValidator.errors);
 		}
@@ -191,7 +192,7 @@ class Schema{
 		}).catch((err) => {
 			this.tableName = null;
 			this.tableSlug = null;
-			throw Promise.reject(err);
+			return Promise.reject(err);
 		});
 	}
 
@@ -331,7 +332,7 @@ class Schema{
 		}).then(() => {
 			return Promise.resolve(this);
 		}).catch((err) => {
-			throw err;
+			return Promise.reject(err);
 		});
 	}
 
@@ -360,7 +361,7 @@ class Schema{
 
 			return Promise.resolve(this);
 		}).catch((err) => {
-			throw err;
+			return Promise.reject(err);
 		});
 	}
 

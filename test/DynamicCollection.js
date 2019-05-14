@@ -22,11 +22,9 @@ let Random;
 // ------------------ Setups ------------------
 // Clear table and insert dummy data
 before(function(done){
-	utils.dropTestTable().then(() => {
+	utils.resetTestTables().then(() => {
 		connect.then((db) => {
-			return db.createCollection(testSchema.$id).then(() => Promise.resolve(db));
-		}).then((db) => {
-			return db.createCollection("_schema");
+			return db.createCollection(testSchema.$id).then(() => db.collection("_schema"));
 		}).then((col) => {
 			const databaseInsert = _.cloneDeep(testSchema);
 			databaseInsert._$id = databaseInsert.$id;
@@ -115,7 +113,7 @@ describe("DynamicCollection", function(){
 		});
 
 		afterEach(function(){
-			return utils.dropTestTable();
+			return utils.resetTestTables();
 		});
 
 		it("should call save function of all the models in the collection", function(){
@@ -127,9 +125,6 @@ describe("DynamicCollection", function(){
 				_.each(col.data, (el) => {
 					assert.deepInclude(res, el);
 				});
-				return Promise.resolve();
-			}).catch((err) => {
-				return Promise.reject(err);
 			});
 		});
 

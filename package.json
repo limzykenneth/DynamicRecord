@@ -30,7 +30,7 @@
     "publish-docs": "surge --domain dynamic-record.js.org ./docs"
   },
   "bin": {
-    "dynamic-record": "./cli/cli.js"
+    "dynamic-record": "./tools/cli.js"
   },
   "author": "Kenneth Lim <limzy.kenneth@gmail.com> (https://designerken.be/designing/)",
   "license": "BSD-2-Clause",

@@ -15,7 +15,6 @@ module.exports = function(response){
 			return Promise.resolve(db);
 		});
 	}).then((db) => {
-		console.log(`Initialized mongodb database ${response.database}`);
 		return db.close();
 	}).catch((err) => {
 		return Promise.reject(err);

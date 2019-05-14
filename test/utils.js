@@ -1,3 +1,6 @@
+require("dotenv").config();
+const initMongodb = require("../tools/init/mongodb.js");
+
 const testSchema = Object.freeze(require("./random_table.schema.json"));
 
 let utils = function(connect){
@@ -5,7 +8,12 @@ let utils = function(connect){
 };
 
 utils.prototype.createTestTable = function(){
-
+	return initMongodb({
+		username: process.env.mongo_user,
+		password: process.env.mongo_pass,
+		serverPath: process.env.mongo_server,
+		database: process.env.mongo_db_name
+	});
 };
 
 utils.prototype.dropTestTable = function(){
@@ -47,6 +55,12 @@ utils.prototype.dropTestTable = function(){
 				console.error(err);
 			}
 		});
+	});
+};
+
+utils.prototype.resetTestTables = function(){
+	return this.dropTestTable().then(() => {
+		return this.createTestTable();
 	});
 };
 

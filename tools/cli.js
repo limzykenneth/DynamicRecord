@@ -113,7 +113,10 @@ program.command("init")
 
 			// Initialize database
 			if(response.databaseType === databaseEnums.mongodb){
-				return initMongodb(response);
+				return initMongodb(response).then(() => {
+					console.log(`Initialized mongodb database ${response.database}`);
+					return Promise.resolve();
+				});
 			}
 
 		}).catch((err) => {
