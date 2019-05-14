@@ -150,13 +150,48 @@ describe("Model", function(){
 			});
 		});
 		it("should update the deep copy of the data into _original", function(){
-			let model;
-			return Random.findBy({"int": 10958}).then((m) => {
-				model = m;
+			return Random.findBy({"int": 10958}).then((model) => {
 				model.data.string = "New string";
 				return model.save();
-			}).then(() => {
+			}).then((model) => {
 				assert.equal(model._original.string, "New string", "string of original is as defined");
+			});
+		});
+		it("should return a rejected Promise if the new model doesn't match the schema definition", function(done){
+			let model = new Random.Model();
+			model.data.int = 100;
+			model.data.float = "Not a float";
+			model.data.string = "Surely a string";
+			model.data.testIndex = "4";
+			model.save().then(() => {
+				done("model.save() is not rejecting a mismatch between data and schema");
+			}).catch(() => {
+				return Promise.resolve();
+			}).then(() => connect).then((db) => {
+				return db.collection(testSchema.$id).findOne({"testIndex": 4});
+			}).then((m) => {
+				assert.isNull(m, "model is not saved in the database");
+				done();
+			}).catch((err) => {
+				done(err);
+			});
+		});
+		it("should return a rejected Promise if the updated data doesn't match the schema definition", function(done){
+			Random.findBy({"int": 10958}).then((model) => {
+				model.data.int = "Is a string";
+				return model.save();
+			}).then((model) => {
+				done("model.save() is not rejecting a mismatch between data and schema");
+			}).catch((err) => {
+				// done();
+				return Promise.resolve();
+			}).then(() => connect).then((db) => {
+				return db.collection(testSchema.$id).findOne({"testIndex": 2});
+			}).then((m) => {
+				assert.notEqual(m.int, "Is a string", "`m.int` is not updated in the database");
+				done();
+			}).catch((err) => {
+				done(err);
 			});
 		});
 	});

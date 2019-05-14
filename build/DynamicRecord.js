@@ -63,7 +63,7 @@ class DynamicRecord {
              * @memberOf DynamicRecord.Model
              * @instance
              */
-            this.data = data;
+            this.data = typeof data !== "undefined" ? data : {};
             if (_preserveOriginal) {
                 this._original = _.cloneDeep(data);
             }
@@ -80,16 +80,11 @@ class DynamicRecord {
          * @return {Promise} Return promise of this DynamicRecord.Model instance
          */
         Model.prototype.save = function () {
-            return schemaValidator.compileAsync({ $ref: _schema.tableSlug }).then((validate) => {
-                if (validate(this.data)) {
-                    return _ready;
-                }
-                else {
-                    return Promise.reject(new Error(validate.errors));
-                }
-            }).then((col) => {
+            return _ready.then((col) => {
                 if (this._original) {
-                    return col.updateOne(this._original, this.data, { upsert: true }).then((result) => {
+                    return validateData(this.data).then(() => {
+                        return col.updateOne(this._original, this.data, { upsert: true });
+                    }).then(() => {
                         this._original = _.cloneDeep(this.data);
                         return Promise.resolve(this);
                     });
@@ -113,6 +108,8 @@ class DynamicRecord {
                             return Promise.resolve();
                         }
                     }).then(() => {
+                        return validateData(this.data);
+                    }).then(() => {
                         // Save data into the database
                         return col.insertOne(this.data).then((result) => {
                             this._original = _.cloneDeep(this.data);
@@ -123,6 +120,16 @@ class DynamicRecord {
             }).catch((err) => {
                 return Promise.reject(err);
             });
+            function validateData(data) {
+                return schemaValidator.compileAsync({ $ref: _schema.tableSlug }).then((validate) => {
+                    if (validate(data)) {
+                        return Promise.resolve();
+                    }
+                    else {
+                        return Promise.reject(new Error(validate.errors));
+                    }
+                });
+            }
         };
         /**
          * Delete the entry this instance links to. Clear the data property

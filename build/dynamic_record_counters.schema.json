@@ -11,7 +11,11 @@
         },
         "sequences": {
             "description": "Key value pairs of the name of the auto incrementing index and its current auto increment index value",
-            "type": "object"
+            "type": "object",
+            "additionalProperties": {
+                "type": "number",
+                "description": "The current count of the auto incrementing index"
+            }
         }
     },
     "required": ["_$id", "sequences"]

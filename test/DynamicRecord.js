@@ -113,7 +113,7 @@ describe("DynamicRecord", function(){
 				assert.instanceOf(model, Random.Model, "'model' is and instance of 'Random.Model'");
 			});
 		});
-		it("should return null if an entry is not found", function(){
+		it("should return empty instance if an entry is not found", function(){
 			return Random.findBy({"string": "Not found"}).then((model) => {
 				assert.isNull(model.data, "data object is not null");
 			});
@@ -202,7 +202,7 @@ describe("DynamicRecord", function(){
 				assert.instanceOf(model, Random.Model, "'model' is and instance of 'Random.Model'");
 			});
 		});
-		it("should return null if an entry is not found", function(){
+		it("should return empty instance if an entry is not found", function(){
 			return connect.then((db) => {
 				return db.collection(testSchema.$id).deleteMany({});
 			}).then(() => {
