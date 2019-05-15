@@ -211,6 +211,15 @@ describe("DynamicRecord", function(){
 				assert.isNull(model, "'model' is null");
 			});
 		});
+		it("should return n number of values when given n as a parameter", function(){
+			return Random.first(2).then((col) => {
+				assert.instanceOf(col, DynamicCollection, "resolves to an instance of DynamicCollection");
+				assert.lengthOf(col, 2, "has a length of two");
+				assert.deepInclude(col.data, testData[0], "retrieved first entry");
+				assert.deepInclude(col.data, testData[1], "retrieved second entry");
+				assert.notDeepInclude(col.data, testData[2], "not retrieved third entry");
+			});
+		});
 	});
 });
 // --------------------------------------------

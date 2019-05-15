@@ -267,24 +267,35 @@ class DynamicRecord {
         });
     }
     /**
-     * Return the first entry in the table.
+     * Return the first entry in the table. If provided with an integer
+     * argument n, it will return the first nth entry in the database wrapped
+     * in a Promise of DynamicCollection.
      *
      * @method first
      * @memberOf DynamicRecord
      * @instance
-     * @return {Promise} Return promise of DynamicRecord.Model instance or null
+     * @param {number} [n] - The number of records to return
+     * @return {Promise} Return promise of DynamicRecord.Model instance,
+     * DynamicCollection instance, or null
      */
     // NOTE: enable return of first n records
-    first() {
+    first(n) {
         return this._ready.then((col) => {
-            return col.findOne().then((model) => {
-                if (model !== null) {
-                    return Promise.resolve(new this.Model(model, true));
-                }
-                else {
-                    return Promise.resolve(null);
-                }
-            });
+            if (typeof n === "undefined") {
+                return col.findOne().then((model) => {
+                    if (model !== null) {
+                        return Promise.resolve(new this.Model(model, true));
+                    }
+                    else {
+                        return Promise.resolve(null);
+                    }
+                });
+            }
+            else {
+                return col.find({}).limit(n).toArray().then((models) => {
+                    return Promise.resolve(new DynamicCollection(this.Model, ...models));
+                });
+            }
         });
     }
 }

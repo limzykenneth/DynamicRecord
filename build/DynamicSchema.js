@@ -368,7 +368,6 @@ class Schema {
             return Promise.reject(new Error(`Column names already exist: ${names}`));
         }
         this.definition = _.assign(this.definition, def);
-        // NOTE: what about when the column already exist?
         return this._writeSchema().then(() => {
             return Promise.resolve(this);
         }).catch((err) => {
