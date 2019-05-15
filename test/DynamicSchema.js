@@ -548,6 +548,93 @@ describe("Schema", function(){
 				}, "database entry include new column");
 			});
 		});
+		it("should return a rejected promise if the column already exist", function(done){
+			const table = new DynamicSchema();
+			table.read(testSchema.$id).then(() => {
+				return table.addColumn("string", "string", "Should already exist");
+			}).then(() => {
+				done(new Error("Promise is not rejected upon encountering duplicated column name"));
+			}).catch((err) => {
+				if(err.message === "Column name \"string\" already exist"){
+					done();
+				}else{
+					done(err);
+				}
+			});
+		});
+	});
+
+	describe("addColumns()", function(){
+		beforeEach(function(){
+			return utils.resetTestTables().then(() => {
+				return connect;
+			}).then((db) => {
+				return db.collection("_schema");
+			}).then((col) => {
+				const databaseInsert = _.cloneDeep(testSchema);
+				databaseInsert._$id = databaseInsert.$id;
+				databaseInsert._$schema = databaseInsert.$schema;
+				delete databaseInsert.$id;
+				delete databaseInsert.$schema;
+				return col.insertOne(databaseInsert);
+			});
+		});
+
+		after(function(){
+			return utils.dropTestTable();
+		});
+
+		it("should add multiple columns to the definition and database", function(){
+			const table = new DynamicSchema();
+			return table.read(testSchema.$id).then(() => {
+				return table.addColumns({
+					"test_column_1": {
+						description: "Test Column 1",
+						type: "string"
+					},
+					"test_column_2": {
+						description: "Test Column 2",
+						type: "number"
+					}
+				});
+			}).then(() => connect).then((db) => {
+				return db.collection("_schema").findOne({"_$id": table.tableSlug});
+			}).then((data) => {
+				assert.deepInclude(data.properties, {
+					"test_column_1": {
+						description: "Test Column 1",
+						type: "string"
+					},
+					"test_column_2": {
+						description: "Test Column 2",
+						type: "number"
+					}
+				}, "database entry include new columns");
+			});
+		});
+		it("should return a rejected promise if any columns already exist", function(done){
+			const table = new DynamicSchema();
+			table.read(testSchema.$id).then(() => {
+				return table.addColumns({
+					"string": {
+						description: "Test Column 1",
+						type: "string"
+					},
+					"test_column_2": {
+						description: "Test Column 2",
+						type: "number"
+					}
+				});
+			}).then(() => {
+				done(new Error("Promise is not rejected upon encountering duplicated column name"));
+			}).catch((err) => {
+				if(err.message === "Column names already exist: string"){
+					done();
+				}else{
+					done(err);
+				}
+			});
+		});
 	});
 
 	describe("removeColumn()", function(){

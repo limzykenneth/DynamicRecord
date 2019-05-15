@@ -318,7 +318,8 @@ class Schema {
         });
     }
     /**
-     * Add a single column to the table's schema definition.
+     * Add a single column to the table's schema definition. If the column name
+     * is already in use, this will return a rejected Promise.
      *
      * @method addColumn
      * @memberOf DynamicSchema
@@ -329,9 +330,10 @@ class Schema {
      * @return {Promise} Return promise of DynamicSchema instance
      */
     addColumn(name, type, description = "") {
+        // NOTE: what about index fields?
         if (this.definition[name]) {
             // Column name already exist
-            return Promise.reject(new Error("Column name already exist"));
+            return Promise.reject(new Error(`Column name "${name}" already exist`));
         }
         this.definition[name] = {
             description: description,
@@ -345,7 +347,9 @@ class Schema {
         });
     }
     /**
-     * Add multiple columns to the table's schema definition.
+     * Add multiple columns to the table's schema definition. If any of the
+     * given columns already exist, this will return a rejected Promise. None
+     * of the changes will be made.
      *
      * @method addColumns
      * @memberOf DynamicSchema
@@ -355,7 +359,14 @@ class Schema {
      * @return {Promise} Return promise of DynamicSchema instance
      */
     addColumns(def) {
+        // NOTE: what about index fields? (Unsupported with this API endpoint)
         const oldDefinition = _.cloneDeep(this.definition);
+        const destinationKeys = _.keys(this.definition);
+        const sourceKeys = _.keys(def);
+        if (_.intersection(destinationKeys, sourceKeys).length > 0) {
+            const names = _.intersection(destinationKeys, sourceKeys).join(", ");
+            return Promise.reject(new Error(`Column names already exist: ${names}`));
+        }
         this.definition = _.assign(this.definition, def);
         // NOTE: what about when the column already exist?
         return this._writeSchema().then(() => {
