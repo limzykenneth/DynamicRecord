@@ -274,6 +274,7 @@ class DynamicRecord {
      * @instance
      * @return {Promise} Return promise of DynamicRecord.Model instance or null
      */
+    // NOTE: enable return of first n records
     first() {
         return this._ready.then((col) => {
             return col.findOne().then((model) => {

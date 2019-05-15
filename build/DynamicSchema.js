@@ -244,15 +244,14 @@ class Schema {
                 return Promise.resolve(db);
             });
         }).then((db) => {
-            // NOTE: this is not the correct behaviour???
-            if (columnName === "_uid") {
-                return db.collection("_counters").findOneAndDelete({
-                    _$id: this.tableSlug
+            return db.collection("_counters").findOne({ _$id: this.tableSlug }).then((counter) => {
+                delete counter.sequences[columnName];
+                return db.collection("_counters").findOneAndUpdate({ _$id: this.tableSlug }, {
+                    $set: {
+                        sequences: counter.sequences
+                    }
                 });
-            }
-            else {
-                return Promise.resolve();
-            }
+            });
         }).then(() => {
             return Promise.resolve(this);
         }).catch((err) => {

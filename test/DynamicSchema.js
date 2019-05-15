@@ -432,12 +432,9 @@ describe("Schema", function(){
 				return table.removeIndex("autoIncrement").then(() => {
 					return connect;
 				}).then((db) => {
-					return db.collection(testSchema.$id).listIndexes().toArray();
-				}).then((res) => {
-					const index = _.find(res, function(el){
-						return el.name == "autoIncrement";
-					});
-					assert.isUndefined(index, "index does not exist in database");
+					return db.collection("_counters").findOne({"_$id": table.tableSlug});
+				}).then((m) => {
+					assert.doesNotHaveAnyKeys(m.sequences, ["autoIncrement"], "index does not exist in _counters table");
 				});
 			});
 		});
