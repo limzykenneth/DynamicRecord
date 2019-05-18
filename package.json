@@ -50,7 +50,7 @@
     "eslint": "^4.18.2",
     "jsdoc": "^3.6.1",
     "mocha": "^5.0.4",
-    "surge": "^0.20.3",
+    "surge": "^0.20.5",
     "tui-jsdoc-template": "^1.2.2",
     "typescript": "^3.1.6"
   }
