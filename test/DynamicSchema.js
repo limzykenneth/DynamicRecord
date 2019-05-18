@@ -97,6 +97,26 @@ describe("Schema", function(){
 				assert.isTrue(res);
 			});
 		});
+		it("should populate the relevant sequences in _counters collection", function(){
+			const table = new DynamicSchema();
+			return table.createTable(testSchema).then(() => {
+				return connect;
+			}).then((db) => {
+				return db.collection("_counters").findOne({_$id: testSchema.$id});
+			}).then((res) => {
+				assert.hasAnyKeys(res.sequences, ["int"], "has auto increment field `int`");
+				assert.equal(res.sequences.int, 0, "auto incrementing field is initialized to be 0");
+			});
+		});
+		it("should populate its properties according to schema provided", function(){
+			const table = new DynamicSchema();
+			return table.createTable(testSchema).then(() => {
+				assert.equal(table.tableSlug, testSchema.$id, "tableSlug is the same as $id");
+				assert.equal(table.tableName, testSchema.title, "tableName is the same as title");
+				assert.deepEqual(table.required, testSchema.required, "required is the same as required");
+				assert.deepEqual(table.definition, testSchema.properties, "definition is the same as properties");
+			});
+		});
 	});
 
 	describe("dropTable()", function(){
@@ -465,6 +485,7 @@ describe("Schema", function(){
 			return table.read(testSchema.$id).then(() => {
 				assert.equal(table.tableSlug, testSchema.$id, "object slug is equal to testSchema.$id");
 				assert.deepEqual(table.definition, testSchema.properties, "object definition is as defined");
+				assert.deepEqual(table.required, testSchema.required, "required properties is as defined");
 			});
 		});
 	});

@@ -41,6 +41,24 @@ class Schema {
          * @instance
          */
         this.definition = {};
+        /**
+         * Label of required fields of this schema. Array of strings.
+         *
+         * @name required
+         * @type array
+         * @memberOf DynamicSchema
+         * @instance
+         */
+        this.required = [];
+        /**
+         * The underlying JSON Schema definition of the schema
+         *
+         * @name jsonSchema
+         * @type object
+         * @memberOf DynamicSchema
+         * @instance
+         */
+        this.jsonSchema = {};
     }
     /**
      * Create a new table with the given schema. Schema must adhere to the
@@ -73,13 +91,12 @@ class Schema {
         const tableSlug = schema.$id;
         const tableName = schema.title || schema.$id;
         const columns = schema.properties;
+        const required = _.cloneDeep(schema.required);
         return connect.then((db) => {
             const promises = [];
-            promises.push(db.createCollection(tableSlug, { strict: true }).then((col) => {
-                this.tableName = tableName;
-                this.tableSlug = tableSlug;
-                return Promise.resolve();
-            }));
+            // Create the collection, ensuring that is doesn't already exist
+            // in the database
+            promises.push(db.createCollection(tableSlug, { strict: true }));
             const createCounters = new Promise((resolve, reject) => {
                 db.collection("_counters", { strict: true }, (err, col) => {
                     if (err)
@@ -93,20 +110,20 @@ class Schema {
                 });
             });
             promises.push(createCounters);
-            const databaseInsert = {
-                _$schema: schema.$schema,
-                _$id: schema.$id,
-                title: schema.title,
-                description: schema.description,
-                type: schema.type,
-                properties: schema.properties,
-                required: schema.required
-            };
+            const databaseInsert = schema;
+            schema._$schema = schema.$schema;
+            schema._$id = schema.$id;
+            delete schema.$schema;
+            delete schema.$id;
             promises.push(db.collection("_schema").insertOne(databaseInsert));
             this.definition = columns;
             promises.push(this._writeSchema());
             return Promise.all(promises);
         }).then(() => {
+            this.tableName = tableName;
+            this.tableSlug = tableSlug;
+            this.required = required;
+            this.jsonSchema = schema;
             // Handle index columns
             let promises = [];
             _.each(columns, (column, key) => {
@@ -124,6 +141,8 @@ class Schema {
         }).catch((err) => {
             this.tableName = null;
             this.tableSlug = null;
+            this.required = [];
+            this.jsonSchema = {};
             return Promise.reject(err);
         });
     }
@@ -275,11 +294,13 @@ class Schema {
                 this.tableName = data.title;
                 this.tableSlug = data._$id;
                 this.definition = data.properties;
-            }
-            else {
-                this.tableName = "";
-                this.tableSlug = "";
-                this.definition = {};
+                this.required = data.required;
+                const jsonSchema = _.cloneDeep(data);
+                jsonSchema.$schema = data._$schema;
+                jsonSchema.$id = data._$id;
+                delete jsonSchema._$schema;
+                delete jsonSchema._$id;
+                this.jsonSchema = jsonSchema;
             }
             return Promise.resolve(this);
         }).catch((err) => {
