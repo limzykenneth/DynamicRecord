@@ -363,7 +363,6 @@ class Schema {
      * @return {Promise} Return promise of DynamicSchema instance
      */
     addColumn(name, type, description = "") {
-        // NOTE: what about index fields?
         if (this.definition[name]) {
             // Column name already exist
             return Promise.reject(new Error(`Column name "${name}" already exist`));
@@ -392,7 +391,6 @@ class Schema {
      * @return {Promise} Return promise of DynamicSchema instance
      */
     addColumns(def) {
-        // NOTE: what about index fields? (Unsupported with this API endpoint)
         const oldDefinition = _.cloneDeep(this.definition);
         const destinationKeys = _.keys(this.definition);
         const sourceKeys = _.keys(def);
