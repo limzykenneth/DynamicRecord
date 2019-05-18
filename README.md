@@ -2,6 +2,8 @@
 
 ### A bare minimum Javascript implementation of the Active Record pattern
 
+[![Build Status](https://travis-ci.com/limzykenneth/DynamicRecord.svg?branch=master)](https://travis-ci.com/limzykenneth/DynamicRecord)
+
 Dynamic Record is a database abstraction package for node.js that is inspired by Ruby on Rails' ActiveRecord for node.js. We aim to support most major database systems including MongoDB, MySQL, PostgreSQL and many more. **For the moment there is only support for MongoDB**
 
 **Note**: Dynamic Record is currently in early Alpha and should not be considered production ready.
