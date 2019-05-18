@@ -51,6 +51,15 @@ class Schema {
          */
         this.required = [];
         /**
+         * Description of the schema. Not used for anything internally.
+         *
+         * @name description
+         * @type string
+         * @memberOf DynamicSchema
+         * @instance
+         */
+        this.description = "";
+        /**
          * The underlying JSON Schema definition of the schema
          *
          * @name jsonSchema
@@ -91,7 +100,8 @@ class Schema {
         const tableSlug = schema.$id;
         const tableName = schema.title || schema.$id;
         const columns = schema.properties;
-        const required = _.cloneDeep(schema.required);
+        const required = _.cloneDeep(schema.required) || [];
+        const description = schema.description || "";
         return connect.then((db) => {
             const promises = [];
             // Create the collection, ensuring that is doesn't already exist
@@ -123,6 +133,7 @@ class Schema {
             this.tableName = tableName;
             this.tableSlug = tableSlug;
             this.required = required;
+            this.description = description;
             this.jsonSchema = schema;
             // Handle index columns
             let promises = [];
@@ -142,6 +153,7 @@ class Schema {
             this.tableName = null;
             this.tableSlug = null;
             this.required = [];
+            this.description = "";
             this.jsonSchema = {};
             return Promise.reject(err);
         });

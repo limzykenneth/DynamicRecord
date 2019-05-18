@@ -41,16 +41,11 @@ interface TableSchema{
  * @class
  */
 class Schema{
-	// NOTE: "required" and description fields not utilized yet
-	// NOTE: Think about how to adhere to json-schema while being user friendly
-
-	// NOTE: Let's expose native JSON Schema structure (extended) while providing
-	// useful alias of our own so migrating will just be a matter of moving JSON
-	// Schema and all are defined by the schema file
 	tableName:string;
 	tableSlug:string;
 	definition:SchemaDefinitions;
 	required:Array<string>;
+	description:string;
 
 	jsonSchema:TableSchema;
 
@@ -96,6 +91,16 @@ class Schema{
 		this.required = [];
 
 		/**
+		 * Description of the schema. Not used for anything internally.
+		 *
+		 * @name description
+		 * @type string
+		 * @memberOf DynamicSchema
+		 * @instance
+		 */
+		this.description = "";
+
+		/**
 		 * The underlying JSON Schema definition of the schema
 		 *
 		 * @name jsonSchema
@@ -138,7 +143,8 @@ class Schema{
 		const tableSlug:string = schema.$id;
 		const tableName:string = schema.title || schema.$id;
 		const columns:SchemaDefinitions = schema.properties;
-		const required = _.cloneDeep(schema.required);
+		const required = _.cloneDeep(schema.required) || [];
+		const description = schema.description || "";
 
 		return connect.then((db) => {
 			const promises = [];
@@ -179,6 +185,7 @@ class Schema{
 			this.tableName = tableName;
 			this.tableSlug = tableSlug;
 			this.required = required;
+			this.description = description;
 			this.jsonSchema = schema;
 
 			// Handle index columns
@@ -203,6 +210,7 @@ class Schema{
 			this.tableName = null;
 			this.tableSlug = null;
 			this.required = [];
+			this.description = "";
 			this.jsonSchema = {};
 			return Promise.reject(err);
 		});
