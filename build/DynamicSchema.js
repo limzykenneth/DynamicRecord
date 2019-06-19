@@ -312,6 +312,7 @@ class Schema {
                 jsonSchema.$id = data._$id;
                 delete jsonSchema._$schema;
                 delete jsonSchema._$id;
+                delete jsonSchema._id;
                 this.jsonSchema = jsonSchema;
             }
             return Promise.resolve(this);

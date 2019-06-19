@@ -6,6 +6,7 @@ const _ = require("lodash");
 const DynamicCollection = require("./DynamicCollection.js");
 const DynamicSchema = require("./DynamicSchema.js");
 // Let's get mongodb working first
+// NOTE: making too many connections, each instance create one connection
 const connect = require("./mongoConnection.js")(process.env.mongo_server, process.env.mongo_db_name, process.env.mongo_user, process.env.mongo_pass);
 const schemaValidator = new (require("./schemaValidation.js"))(connect);
 class DynamicRecord {
@@ -208,6 +209,8 @@ class DynamicRecord {
      * @return {Promise} Return promise of DynamicRecord.Model instance or null
      */
     findBy(query) {
+        // NOTE: remove default fields added by database (eg. mongodb "_id" field)
+        // Possibly replace with our own id implementation
         return this._ready.then((col) => {
             return col.findOne(query).then((model) => {
                 if (model !== null) {

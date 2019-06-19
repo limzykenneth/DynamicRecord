@@ -59,6 +59,8 @@ class DynamicCollection extends Array{
 			return Promise.resolve(this);
 		});
 	}
+
+	// NOTE: implement dropAll()
 }
 
 module.exports = DynamicCollection;
