@@ -37,6 +37,23 @@ class DynamicCollection extends Array{
 	}
 
 	/**
+	 * Converts an array of objects into a DynamicCollection. If an element in
+	 * the array is not an object, it will be skipped.
+	 *
+	 * @method fromArray
+	 * @static
+	 * @return DynamicCollection
+	 * @hidden
+	 */
+	 // Not sure if this is necessary as we can just destructure array
+	static fromArray(arr, Model){
+		const result = _.reduce(arr, (acc, el, i) => {
+			acc.push(new Model(el));
+			return acc;
+		}, new DynamicCollection(Model));
+	}
+
+	/**
 	 * Save all the model instances in the DynamicCollection.
 	 *
 	 * Simply calls all the individual model's `save()` method.
@@ -60,7 +77,28 @@ class DynamicCollection extends Array{
 		});
 	}
 
-	// NOTE: implement dropAll()
+	/**
+	 * Destroy all the model instances in the DynamicCollection.
+	 *
+	 * Simply calls all the individual model's `destroy()` method.
+	 *
+	 * @method dropAll
+	 * @memberOf DynamicCollection
+	 * @instance
+	 * @return {Promise} Return promise of this DynamicCollection instance
+	 */
+	dropAll(){
+		const promises = [];
+		_.each(this, (model) => {
+			if(model.destroy){
+				promises.push(model.destroy());
+			}
+		});
+
+		return Promise.all(promises).then(() => {
+			return Promise.resolve(this);
+		});
+	}
 }
 
 module.exports = DynamicCollection;

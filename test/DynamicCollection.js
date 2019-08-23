@@ -130,5 +130,48 @@ describe("DynamicCollection", function(){
 
 		it("should set the autoincrementing index correctly");
 	});
+
+	describe("dropAll()", function(){
+		let col;
+		const testData = [
+			{
+				"string": "Velit tempor.",
+				"int": 42,
+				"float": 3.1415926536
+			},
+			{
+				"string": "Fugiat laboris cillum quis pariatur.",
+				"int": 42,
+				"float": 2.7182818285
+			},
+			{
+				"string": "Reprehenderit sint.",
+				"int": 10958,
+				"float": 2.7182818285
+			}
+		];
+		beforeEach(function(){
+			col = new DynamicCollection(Random.Model, ...testData);
+		});
+
+		afterEach(function(){
+			return utils.resetTestTables();
+		});
+
+		it("should call save function of all the models in the collection", function(){
+			return col.saveAll().then((res) => {
+				return col.dropAll();
+			}).then(() => {
+				return connect.then((db) => {
+					return db.collection(testSchema.$id).find().toArray();
+				});
+			}).then((res) => {
+				assert.lengthOf(res, 0, "collection doesn't exist in database");
+				_.each(col.data, (el) => {
+					assert.isNull(el, "models in collection are emptied out");
+				});
+			});
+		});
+	});
 });
 // --------------------------------------------
