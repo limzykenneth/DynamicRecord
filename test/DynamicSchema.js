@@ -730,18 +730,18 @@ describe("Schema", function(){
 					"int": {
 						"description": "Column of type 'integer'",
 						"type": "integer",
-						"isIndex": "true",
-						"isUnique": "true",
-						"isAutoIncrement": "true"
+						"isIndex": true,
+						"isUnique": true,
+						"isAutoIncrement": true
 					}
 				}, "object definition does not include old label");
 				assert.deepInclude(table.definition, {
 					"number": {
 						"description": "Column of type 'integer'",
 						"type": "integer",
-						"isIndex": "true",
-						"isUnique": "true",
-						"isAutoIncrement": "true"
+						"isIndex": true,
+						"isUnique": true,
+						"isAutoIncrement": true
 					}
 				}, "object definition includes new label");
 
@@ -753,18 +753,18 @@ describe("Schema", function(){
 					"int": {
 						"description": "Column of type 'integer'",
 						"type": "integer",
-						"isIndex": "true",
-						"isUnique": "true",
-						"isAutoIncrement": "true"
+						"isIndex": true,
+						"isUnique": true,
+						"isAutoIncrement": true
 					}
 				}, "database entry does not include old label");
 				assert.deepInclude(data.properties, {
 					"number": {
 						"description": "Column of type 'integer'",
 						"type": "integer",
-						"isIndex": "true",
-						"isUnique": "true",
-						"isAutoIncrement": "true"
+						"isIndex": true,
+						"isUnique": true,
+						"isAutoIncrement": true
 					}
 				}, "database entry includes new label");
 			});

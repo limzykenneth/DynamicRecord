@@ -12,9 +12,9 @@
 		"int": {
 			"description": "Column of type 'integer'",
 			"type": "integer",
-			"isIndex": "true",
-			"isUnique": "true",
-			"isAutoIncrement": "true"
+			"isIndex": true,
+			"isUnique": true,
+			"isAutoIncrement": true
 		},
 		"float": {
 			"description": "Column of type 'Number'",

@@ -81,6 +81,8 @@ class DynamicRecord {
          * @return {Promise} Return promise of this DynamicRecord.Model instance
          */
         Model.prototype.save = function () {
+            // NOTE: need some way to modify counters (?) or by pass schema check if none exist
+            // NOTE: sequential save of collection with auto incrementing index failing
             return _ready.then((col) => {
                 if (this._original) {
                     return validateData(this.data).then(() => {

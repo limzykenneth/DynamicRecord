@@ -192,6 +192,11 @@ class Schema{
 			let promises = [];
 
 			_.each(columns, (column, key) => {
+				if(column.isAutoIncrement){
+					column.isIndex = true;
+					column.isUnique = true;
+				}
+
 				if(column.isIndex){
 					promises.push(this.addIndex({
 						name: key,
