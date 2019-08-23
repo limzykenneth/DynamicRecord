@@ -98,6 +98,8 @@ class DynamicRecord {
 		 * @return {Promise} Return promise of this DynamicRecord.Model instance
 		 */
 		Model.prototype.save = function(){
+			// NOTE: need some way to modify counters (?) or by pass schema check if none exist
+			// NOTE: sequential save of collection with auto incrementing index failing
 			return _ready.then((col) => {
 				if(this._original){
 					return validateData(this.data).then(() => {
@@ -230,11 +232,12 @@ class DynamicRecord {
 	 * @return {Promise} Return promise of DynamicRecord.Model instance or null
 	 */
 	findBy(query: object){
-		// NOTE: remove default fields added by database (eg. mongodb "_id" field)
-		// Possibly replace with our own id implementation
+		// CONSIDER: Possibly implement our own unique id system
 		return this._ready.then((col) => {
 			return col.findOne(query).then((model) => {
 				if(model !== null){
+					// Delete mongodb added "_id" field
+					delete model._id;
 					return Promise.resolve(new this.Model(model, true));
 				}else{
 					return Promise.resolve(null);
@@ -264,6 +267,11 @@ class DynamicRecord {
 					models = _.sortBy(models, orderBy);
 				}
 
+				// Delete mongodb added "_id" field
+				_.each(models, (el) => {
+					delete el._id;
+				});
+
 				const results = new DynamicCollection(this.Model, ...models);
 
 				_.each(results, (result) => {
@@ -286,6 +294,11 @@ class DynamicRecord {
 	all(){
 		return this._ready.then((col) => {
 			return col.find().toArray().then((models) => {
+				// Delete mongodb added "_id" field
+				_.each(models, (el) => {
+					delete el._id;
+				});
+
 				const results = new DynamicCollection(this.Model, ...models);
 
 				_.each(results, (result) => {
@@ -309,12 +322,13 @@ class DynamicRecord {
 	 * @return {Promise} Return promise of DynamicRecord.Model instance,
 	 * DynamicCollection instance, or null
 	 */
-	// NOTE: enable return of first n records
 	first(n:number){
 		return this._ready.then((col) => {
 			if(typeof n === "undefined"){
 				return col.findOne().then((model) => {
 					if(model !== null){
+						// Delete mongodb added "_id" field
+						delete model._id;
 						return Promise.resolve(new this.Model(model, true));
 					}else{
 						return Promise.resolve(null);
@@ -322,6 +336,10 @@ class DynamicRecord {
 				});
 			}else{
 				return col.find({}).limit(n).toArray().then((models) => {
+					// Delete mongodb added "_id" field
+					_.each(models, (el) => {
+						delete el._id;
+					});
 					return Promise.resolve(new DynamicCollection(this.Model, ...models));
 				});
 			}

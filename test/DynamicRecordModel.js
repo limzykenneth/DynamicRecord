@@ -146,6 +146,7 @@ describe("Model", function(){
 			}).then((db) => {
 				return db.collection(testSchema.$id).findOne({"int": 10958});
 			}).then((m) => {
+				delete m._id;
 				assert.deepEqual(m, model.data, "returned result is equal to 'model.data'");
 			});
 		});

@@ -81,7 +81,7 @@ describe("DynamicRecord", function(){
 	beforeEach(function(){
 		// Fill with dummy data
 		return connect.then((db) => {
-			return db.collection(testSchema.$id).insertMany(testData);
+			return db.collection(testSchema.$id).insertMany(_.cloneDeep(testData));
 		});
 	});
 
@@ -161,6 +161,7 @@ describe("DynamicRecord", function(){
 	describe("all()", function(){
 		it("should retrieve all entries from the database", function(){
 			return Random.all().then((col) => {
+				console.log(col.data, testData[0]);
 				assert.deepInclude(col.data, testData[0], "collection data includes first test data");
 				assert.deepInclude(col.data, testData[1], "collection data includes second test data");
 				assert.deepInclude(col.data, testData[2], "collection data includes third test data");
