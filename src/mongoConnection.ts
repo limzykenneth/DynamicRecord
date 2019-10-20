@@ -6,7 +6,7 @@ const mongoURL = f("mongodb://%s:%s@%s/%s", process.env.mongo_user, process.env.
 const connection = MongoClient.connect(mongoURL, {poolSize: 10});
 module.exports = connection.then((client) => {
 	const db = client.db();
-	return Promise.resolve(db);
+	return Promise.resolve({db, client});
 });
 
 // module.exports = function(databaseAddress, databaseName, username, password){

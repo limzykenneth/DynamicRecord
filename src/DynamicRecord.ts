@@ -17,6 +17,7 @@ class DynamicRecord {
 	private _databaseConnection: any;
 	private _ready: any;
 	private _db: any;
+	private _client: any;
 
 	// Instance specific constructors
 	Model: any;
@@ -37,10 +38,12 @@ class DynamicRecord {
 		const _schema = this.schema = new (DynamicSchema(this._databaseConnection))();
 		const tableSlug = options.tableSlug;
 		let _db;
+		let _client;
 
 		// Initialize database connection and populate schema instance
-		const _ready = this._ready = connect.then((db) => {
-			_db = this._db = db;
+		const _ready = this._ready = connect.then((opts) => {
+			const db = _db = this._db = opts.db;
+			_client = this._client = opts.client;
 
 			// Collection must already exist in database
 			return this.schema.read(tableSlug).then((schema) => {
@@ -214,10 +217,10 @@ class DynamicRecord {
 	closeConnection(){
 		// Should only ever be called to terminate the node process
 		this._ready.then((col) => {
-			this._db.close();
+			this._client.close();
 		}).catch((err) => {
 			// BY ANY MEANS NECESSARY
-			this._db.close();
+			this._client.close();
 		});
 	}
 

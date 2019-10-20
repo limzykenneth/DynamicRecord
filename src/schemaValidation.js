@@ -13,7 +13,8 @@ ajv.addSchema(rootSchema, "rootSchema")
 	.addSchema(countersSchema, "countersSchema");
 
 function loadSchema(tableSlug){
-	return connect.then((db) => {
+	return connect.then((opts) => {
+		const db = opts.db;
 		return db.collection("_schema").findOne({"_$id": tableSlug});
 	}).then((schema) => {
 		// Restore keys starting with "$" and delete ObjectID field

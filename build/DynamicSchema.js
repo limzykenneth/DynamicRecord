@@ -102,7 +102,8 @@ class Schema {
         const columns = schema.properties;
         const required = _.cloneDeep(schema.required) || [];
         const description = schema.description || "";
-        return connect.then((db) => {
+        return connect.then((opts) => {
+            const db = opts.db;
             const promises = [];
             // Create the collection, ensuring that is doesn't already exist
             // in the database
@@ -171,7 +172,8 @@ class Schema {
      * @return {Promise} Return promise of empty DynamicSchema instance
      */
     dropTable() {
-        return connect.then((db) => {
+        return connect.then((opts) => {
+            const db = opts.db;
             return db.collection("_schema").deleteOne({ "_$id": this.tableSlug }).then((result) => {
                 return db.collection(this.tableSlug).drop();
             }).then(() => {
@@ -197,7 +199,8 @@ class Schema {
      * @return {Promise} Return promise of DynamicSchema instance
      */
     renameTable(newSlug, newName) {
-        return connect.then((db) => {
+        return connect.then((opts) => {
+            const db = opts.db;
             const promises = [];
             promises.push(db.collection("_schema").findOneAndUpdate({ "_$id": this.tableSlug }, {
                 $set: {
@@ -245,7 +248,8 @@ class Schema {
         if (typeof unique === "undefined") {
             unique = true;
         }
-        return connect.then((db) => {
+        return connect.then((opts) => {
+            const db = opts.db;
             return db.collection(this.tableSlug).createIndex(columnName, { unique: unique, name: columnName });
         }).then(() => {
             if (isAutoIncrement) {
@@ -273,7 +277,8 @@ class Schema {
      * @return {Promise} Return promise of DynamicSchema instance
      */
     removeIndex(columnName) {
-        return connect.then((db) => {
+        return connect.then((opts) => {
+            const db = opts.db;
             return db.collection(this.tableSlug).dropIndex(columnName)
                 .then(() => {
                 return Promise.resolve(db);
@@ -303,7 +308,8 @@ class Schema {
      * @return {Promise} - Return promise of DynamicSchema instance
      */
     read(tableSlug) {
-        return connect.then((db) => {
+        return connect.then((opts) => {
+            const db = opts.db;
             return db.collection("_schema").findOne({ _$id: tableSlug });
         }).then((data) => {
             if (data) {
@@ -338,7 +344,8 @@ class Schema {
         const oldDef = this.definition;
         this.definition = def;
         // Create schema in RMDB, do nothing in NoSQL
-        return connect.then((db) => {
+        return connect.then((opts) => {
+            const db = opts.db;
             return db.collection("_schema").findOneAndUpdate({
                 _$id: this.tableSlug,
             }, {
@@ -424,7 +431,8 @@ class Schema {
     renameColumn(name, newName) {
         this.definition[newName] = _.cloneDeep(this.definition[name]);
         delete this.definition[name];
-        return connect.then((db) => {
+        return connect.then((opts) => {
+            const db = opts.db;
             return this._writeSchema().then(() => {
                 return db.collection("_counters").findOne({ "_$id": this.tableSlug });
             }).then((entry) => {
@@ -500,7 +508,8 @@ class Schema {
      * @return {Promise} Return promise of DynamicSchema instance
      */
     _writeSchema() {
-        return connect.then((db) => {
+        return connect.then((opts) => {
+            const db = opts.db;
             return db.collection("_schema").findOneAndUpdate({ _$id: this.tableSlug }, {
                 $set: {
                     properties: this.definition
@@ -524,7 +533,8 @@ class Schema {
      * @return {Promise} Return promise of DynamicSchema instance
      */
     _setCounter(collection, columnLabel) {
-        return connect.then((db) => {
+        return connect.then((opts) => {
+            const db = opts.db;
             const sequenceKey = `sequences.${columnLabel}`;
             return db.collection("_counters").findOneAndUpdate({
                 _$id: collection
@@ -552,7 +562,8 @@ class Schema {
      * @return {Promise} - Promise of the next number in the sequence
      */
     _incrementCounter(collection, columnLabel) {
-        return connect.then((db) => {
+        return connect.then((opts) => {
+            const db = opts.db;
             return db.collection("_counters").findOne({
                 _$id: collection
             }).then((result) => {
