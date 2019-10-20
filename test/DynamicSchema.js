@@ -24,7 +24,8 @@ let Random;
 // Clear table and insert dummy data
 before(function(done){
 	utils.resetTestTables().then(() => {
-		connect.then((db) => {
+		connect.then((client) => {
+			const db = client.db();
 			return db.createCollection(testSchema.$id).then(() => db.collection("_schema"));
 		}).then((col) => {
 			const databaseInsert = _.cloneDeep(testSchema);
@@ -47,8 +48,8 @@ after(function(){
 	return utils.dropTestTable().then(() => {
 		return Random.closeConnection();
 	}).then(() => {
-		return connect.then((db) => {
-			return db.close();
+		return connect.then((client) => {
+			return client.close();
 		});
 	});
 });
@@ -69,7 +70,8 @@ describe("Schema", function(){
 		it("should create an empty table or collection in the database", function(){
 			const table = new DynamicSchema();
 			return table.createTable(testSchema).then((col) => {
-				return connect.then((db) => {
+				return connect.then((client) => {
+					const db = client.db();
 					return db.listCollections().toArray();
 				});
 			}).then((cols) => {
@@ -79,7 +81,7 @@ describe("Schema", function(){
 				});
 				assert.exists(result, "collection exists in database");
 
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				// Check for entry in schema
 				return db.collection("_schema").findOne({_$id: testSchema.$id});
@@ -90,7 +92,7 @@ describe("Schema", function(){
 		it("should create an empty table or collection with provided index", function(){
 			const table = new DynamicSchema();
 			return table.createTable(testSchema).then(() => {
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection(testSchema.$id).indexExists("int");
 			}).then((res) => {
@@ -100,7 +102,7 @@ describe("Schema", function(){
 		it("should populate the relevant sequences in _counters collection", function(){
 			const table = new DynamicSchema();
 			return table.createTable(testSchema).then(() => {
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection("_counters").findOne({_$id: testSchema.$id});
 			}).then((res) => {
@@ -134,7 +136,8 @@ describe("Schema", function(){
 		});
 
 		it("should remove the table's entry in the _schema table", function(){
-			return connect.then((db) => {
+			return connect.then((client) => {
+				const db = client.db();
 				return table.dropTable().then(() => {
 					return db.collection("_schema").findOne({"_$id": testSchema.$id});
 				}).then((schema) => {
@@ -143,7 +146,8 @@ describe("Schema", function(){
 			});
 		});
 		it("should drop the table itself", function(){
-			return connect.then((db) => {
+			return connect.then((client) => {
+				const db = client.db();
 				return table.dropTable().then(() => {
 					return db.listCollections({name: testSchema.$id}).toArray();
 				}).then((items) => {
@@ -152,7 +156,8 @@ describe("Schema", function(){
 			});
 		});
 		it("should remove the table's entry in the _counters table", function(){
-			return connect.then((db) => {
+			return connect.then((client) => {
+				const db = client.db();
 				return table.dropTable().then(() => {
 					return db.collection("_counters").findOne({"_$id": testSchema.$id});
 				}).then((schema) => {
@@ -185,7 +190,8 @@ describe("Schema", function(){
 		});
 
 		it("should rename the table in database and object instance", function(){
-			return connect.then((db) => {
+			return connect.then((client) => {
+				const db = client.db();
 				return table.renameTable("test_table", "Test Table").then(() => {
 					return db.listCollections({name: testSchema.$id}).toArray();
 				}).then((col) => {
@@ -200,7 +206,8 @@ describe("Schema", function(){
 			});
 		});
 		it("should default new name to new slug", function(){
-			return connect.then((db) => {
+			return connect.then((client) => {
+				const db = client.db();
 				return table.renameTable("test_table").then(() => {
 					return db.listCollections({name: testSchema.$id}).toArray();
 				}).then((col) => {
@@ -218,7 +225,8 @@ describe("Schema", function(){
 			});
 		});
 		it("should rename the entry in _schema table", function(){
-			return connect.then((db) => {
+			return connect.then((client) => {
+				const db = client.db();
 				return table.renameTable("test_table").then(() => {
 					return db.collection("_schema").findOne({"_$id": "test_table"});
 				}).then((entry) => {
@@ -232,7 +240,8 @@ describe("Schema", function(){
 			});
 		});
 		it("should rename the entry in _counters table", function(){
-			return connect.then((db) => {
+			return connect.then((client) => {
+				const db = client.db();
 				return table.renameTable("test_table").then(() => {
 					return db.collection("_counters").findOne({"_$id": "test_table"});
 				}).then((entry) => {
@@ -265,7 +274,7 @@ describe("Schema", function(){
 			return table.addIndex({
 				name: "testIndex"
 			}, true).then(() => {
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection(testSchema.$id).indexExists("testIndex");
 			}).then((res) => {
@@ -276,7 +285,7 @@ describe("Schema", function(){
 			return table.addIndex({
 				name: "testIndex"
 			}).then(() => {
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection(testSchema.$id).listIndexes().toArray();
 			}).then((res) => {
@@ -291,7 +300,7 @@ describe("Schema", function(){
 				name: "testIndex",
 				unique: false
 			}).then(() => {
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection(testSchema.$id).listIndexes().toArray();
 			}).then((res) => {
@@ -308,7 +317,7 @@ describe("Schema", function(){
 					name: "testIndex",
 					autoIncrement: true
 				}).then(() => {
-					return connect;
+					return connect.then((client) => client.db());
 				}).then((db) => {
 					return db.collection("_counters").findOne({_$id: testSchema.$id});
 				}).then((res) => {
@@ -322,7 +331,7 @@ describe("Schema", function(){
 					name: "testIndex",
 					autoIncrement: true
 				}).then(() => {
-					return connect;
+					return connect.then((client) => client.db());
 				}).then((db) => {
 					return db.collection(testSchema.$id).listIndexes().toArray();
 				}).then((res) => {
@@ -346,7 +355,7 @@ describe("Schema", function(){
 
 					return model.save();
 				}).then((col) => {
-					return connect;
+					return connect.then((client) => client.db());
 				}).then((db) => {
 					return db.collection(testSchema.$id).findOne({
 						"string": "Laborum non culpa."
@@ -362,7 +371,7 @@ describe("Schema", function(){
 
 					return model2.save();
 				}).then((col) => {
-					return connect;
+					return connect.then((client) => client.db());
 				}).then((db) => {
 					return db.collection(testSchema.$id).findOne({
 						"string": "Fugiat laboris cillum quis pariatur."
@@ -384,7 +393,7 @@ describe("Schema", function(){
 
 					return model.save();
 				}).then((col) => {
-					return connect;
+					return connect.then((client) => client.db());
 				}).then((db) => {
 					return db.collection("_counters").findOne({_$id: testSchema.$id});
 				}).then((res) => {
@@ -398,7 +407,7 @@ describe("Schema", function(){
 
 					return model2.save();
 				}).then((col) => {
-					return connect;
+					return connect.then((client) => client.db());
 				}).then((db) => {
 					return db.collection("_counters").findOne({_$id: testSchema.$id});
 				}).then((res) => {
@@ -429,7 +438,7 @@ describe("Schema", function(){
 
 		it("should remove the column from the index list", function(){
 			return table.removeIndex("testIndex").then(() => {
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection(testSchema.$id).listIndexes().toArray();
 			}).then((res) => {
@@ -450,7 +459,7 @@ describe("Schema", function(){
 
 			it("should remove relevant entry from _counters collection", function(){
 				return table.removeIndex("autoIncrement").then(() => {
-					return connect;
+					return connect.then((client) => client.db());
 				}).then((db) => {
 					return db.collection("_counters").findOne({"_$id": table.tableSlug});
 				}).then((m) => {
@@ -463,7 +472,7 @@ describe("Schema", function(){
 	describe("read()", function(){
 		beforeEach(function(){
 			return utils.resetTestTables().then(() => {
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection("_schema");
 			}).then((col) => {
@@ -507,7 +516,7 @@ describe("Schema", function(){
 			return table.createTable(emptyTestSchema).then(() => {
 				return table.define(testSchema.properties);
 			}).then(() => {
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection("_schema").findOne({_$id: testSchema.$id});
 			}).then((data) => {
@@ -525,7 +534,7 @@ describe("Schema", function(){
 	describe("addColumn()", function(){
 		beforeEach(function(){
 			return utils.resetTestTables().then(() => {
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection("_schema");
 			}).then((col) => {
@@ -557,7 +566,7 @@ describe("Schema", function(){
 					}
 				}, "object definition include new column");
 
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection("_schema").findOne({_$id: testSchema.$id});
 			}).then((data) => {
@@ -588,7 +597,7 @@ describe("Schema", function(){
 	describe("addColumns()", function(){
 		beforeEach(function(){
 			return utils.resetTestTables().then(() => {
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection("_schema");
 			}).then((col) => {
@@ -618,7 +627,9 @@ describe("Schema", function(){
 						type: "number"
 					}
 				});
-			}).then(() => connect).then((db) => {
+			}).then(() => {
+				return connect.then((client) => client.db());
+			}).then((db) => {
 				return db.collection("_schema").findOne({"_$id": table.tableSlug});
 			}).then((data) => {
 				assert.deepInclude(data.properties, {
@@ -661,7 +672,7 @@ describe("Schema", function(){
 	describe("removeColumn()", function(){
 		beforeEach(function(){
 			return utils.resetTestTables().then(() => {
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection("_schema");
 			}).then((col) => {
@@ -694,7 +705,7 @@ describe("Schema", function(){
 					}
 				}, "removed field is not in object definition");
 
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection("_schema").findOne({_$id: testSchema.$id});
 			}).then((data) => {
@@ -745,7 +756,7 @@ describe("Schema", function(){
 					}
 				}, "object definition includes new label");
 
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection("_schema").findOne({_$id: testSchema.$id});
 			}).then((data) => {
@@ -778,7 +789,7 @@ describe("Schema", function(){
 				assert.isDefined(table.definition);
 				return table.renameColumn("int", "number");
 			}).then(() => {
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection("_counters").findOne({"_$id": table.tableSlug});
 			}).then((entry) => {
@@ -819,7 +830,7 @@ describe("Schema", function(){
 					}
 				}, "object definition includes new type");
 
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection("_schema").findOne({_$id: testSchema.$id});
 			}).then((data) => {

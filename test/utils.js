@@ -17,7 +17,8 @@ utils.prototype.createTestTable = function(){
 };
 
 utils.prototype.dropTestTable = function(){
-	return this.connect.then((db) => {
+	return this.connect.then((client) => {
+		const db = client.db();
 		return db.collection(testSchema.$id).drop().then(() => {
 			return Promise.resolve(db);
 		}).catch((err) => {

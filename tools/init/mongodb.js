@@ -4,7 +4,8 @@ module.exports = function(response){
 	const mongoURL = `mongodb://${response.username}:${response.password}@${response.serverPath}/${response.database}`;
 	const connect = MongoClient.connect(mongoURL);
 
-	return connect.then((db) => {
+	return connect.then((client) => {
+		const db = client.db();
 		return db.createCollection("_schema").then((col) => {
 			return col.createIndex("_$id", {unique: true});
 		}).then(() => {
@@ -12,10 +13,10 @@ module.exports = function(response){
 		}).then((col) => {
 			return col.createIndex("_$id", {unique: true});
 		}).then(() => {
-			return Promise.resolve(db);
+			return Promise.resolve(client);
 		});
-	}).then((db) => {
-		return db.close();
+	}).then((client) => {
+		return client.close();
 	}).catch((err) => {
 		return Promise.reject(err);
 	});

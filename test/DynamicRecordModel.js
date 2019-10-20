@@ -47,7 +47,8 @@ let Random;
 // Clear table and insert dummy data
 before(function(done){
 	utils.resetTestTables().then(() => {
-		connect.then((db) => {
+		connect.then((client) => {
+			const db = client.db();
 			return db.createCollection(testSchema.$id).then(() => db.collection("_schema"));
 		}).then((col) => {
 			const databaseInsert = _.cloneDeep(testSchema);
@@ -70,8 +71,8 @@ after(function(){
 	return utils.dropTestTable().then(() => {
 		return Random.closeConnection();
 	}).then(() => {
-		return connect.then((db) => {
-			return db.close();
+		return connect.then((client) => {
+			return client.close();
 		});
 	});
 });
@@ -103,14 +104,16 @@ describe("Model", function(){
 
 	describe("save()", function(){
 		beforeEach(function(){
-			return connect.then((db) => {
+			return connect.then((client) => {
+				const db = client.db();
 				// Fill with dummy data
 				return db.collection(testSchema.$id).insertMany(testData);
 			});
 		});
 
 		afterEach(function(){
-			return connect.then((db) => {
+			return connect.then((client) => {
+				const db = client.db();
 				// Clear out dummy data
 				return db.collection(testSchema.$id).deleteMany({});
 			});
@@ -124,7 +127,7 @@ describe("Model", function(){
 				"float": 6.2831853072
 			});
 			return model.save().then(() => {
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection(testSchema.$id).findOne({
 					"string": "Laborum non culpa.",
@@ -142,7 +145,7 @@ describe("Model", function(){
 				model.data.string = "New string";
 				return model.save();
 			}).then(() => {
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection(testSchema.$id).findOne({"int": 10958});
 			}).then((m) => {
@@ -168,7 +171,9 @@ describe("Model", function(){
 				done("model.save() is not rejecting a mismatch between data and schema");
 			}).catch(() => {
 				return Promise.resolve();
-			}).then(() => connect).then((db) => {
+			}).then(() => {
+				return connect.then((client) => client.db());
+			}).then((db) => {
 				return db.collection(testSchema.$id).findOne({"testIndex": 4});
 			}).then((m) => {
 				assert.isNull(m, "model is not saved in the database");
@@ -186,7 +191,9 @@ describe("Model", function(){
 			}).catch((err) => {
 				// done();
 				return Promise.resolve();
-			}).then(() => connect).then((db) => {
+			}).then(() => {
+				return connect.then((client) => client.db());
+			}).then((db) => {
 				return db.collection(testSchema.$id).findOne({"testIndex": 2});
 			}).then((m) => {
 				assert.notEqual(m.int, "Is a string", "`m.int` is not updated in the database");
@@ -199,7 +206,8 @@ describe("Model", function(){
 
 	describe("destroy()", function(){
 		beforeEach(function(){
-			return connect.then((db) => {
+			return connect.then((client) => {
+				const db = client.db();
 				return db.collection(testSchema.$id).insertOne({
 					"string": "Delete me"
 				});
@@ -207,7 +215,8 @@ describe("Model", function(){
 		});
 
 		afterEach(function(){
-			return connect.then((db) => {
+			return connect.then((client) => {
+				const db = client.db();
 				return db.collection(testSchema.$id).deleteOne({
 					"string": "Delete me"
 				});
@@ -218,7 +227,7 @@ describe("Model", function(){
 			let testModel;
 			return Random.findBy({"string": "Delete me"}).then((model) => {
 				testModel = model;
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection(testSchema.$id).findOne({"string": "Delete me"});
 			}).then((model) => {
@@ -226,7 +235,7 @@ describe("Model", function(){
 				assert.equal(model.string, "Delete me", "string of model is defined");
 				return testModel.destroy();
 			}).then(() => {
-				return connect;
+				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection(testSchema.$id).findOne({"string": "Delete me"});
 			}).then((model) => {

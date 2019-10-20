@@ -86,7 +86,7 @@ class DynamicRecord {
             return _ready.then((col) => {
                 if (this._original) {
                     return validateData(this.data).then(() => {
-                        return col.updateOne(this._original, this.data, { upsert: true });
+                        return col.updateOne(this._original, { $set: this.data }, { upsert: true });
                     }).then(() => {
                         this._original = _.cloneDeep(this.data);
                         return Promise.resolve(this);

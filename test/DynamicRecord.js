@@ -46,7 +46,8 @@ let Random;
 // Clear table and insert dummy data
 before(function(done){
 	utils.resetTestTables().then(() => {
-		connect.then((db) => {
+		connect.then((client) => {
+			const db = client.db();
 			return db.createCollection(testSchema.$id).then(() => db.collection("_schema"));
 		}).then((col) => {
 			const databaseInsert = _.cloneDeep(testSchema);
@@ -69,8 +70,8 @@ after(function(){
 	return utils.dropTestTable().then(() => {
 		return Random.closeConnection();
 	}).then(() => {
-		return connect.then((db) => {
-			return db.close();
+		return connect.then((client) => {
+			return client.close();
 		});
 	});
 });
@@ -80,13 +81,15 @@ after(function(){
 describe("DynamicRecord", function(){
 	beforeEach(function(){
 		// Fill with dummy data
-		return connect.then((db) => {
+		return connect.then((client) => {
+			const db = client.db();
 			return db.collection(testSchema.$id).insertMany(_.cloneDeep(testData));
 		});
 	});
 
 	afterEach(function(){
-		return connect.then((db) => {
+		return connect.then((client) => {
+			const db = client.db();
 			return db.collection(testSchema.$id).deleteMany({});
 		});
 	});
@@ -174,7 +177,8 @@ describe("DynamicRecord", function(){
 			});
 		});
 		it("should return an empty DynamicCollection if database is empty", function(){
-			return connect.then((db) => {
+			return connect.then((client) => {
+				const db = client.db();
 				return db.collection(testSchema.$id).deleteMany({});
 			}).then(() => {
 				return Random.all();
@@ -204,7 +208,8 @@ describe("DynamicRecord", function(){
 			});
 		});
 		it("should return null if an entry is not found", function(){
-			return connect.then((db) => {
+			return connect.then((client) => {
+				const db = client.db();
 				return db.collection(testSchema.$id).deleteMany({});
 			}).then(() => {
 				return Random.first();
