@@ -104,32 +104,32 @@ class Schema {
         const description = schema.description || "";
         return connect.then((opts) => {
             const db = opts.db;
-            const promises = [];
             // Create the collection, ensuring that is doesn't already exist
             // in the database
-            promises.push(db.createCollection(tableSlug, { strict: true }));
-            const createCounters = new Promise((resolve, reject) => {
-                db.collection("_counters", { strict: true }, (err, col) => {
-                    if (err)
-                        return reject(err);
-                    col.insertOne({
-                        _$id: tableSlug,
-                        sequences: {}
-                    }).then(() => {
-                        resolve();
+            return db.createCollection(tableSlug, { strict: true }).then(() => {
+                return new Promise((resolve, reject) => {
+                    db.collection("_counters", { strict: true }, (err, col) => {
+                        if (err)
+                            return reject(err);
+                        col.insertOne({
+                            _$id: tableSlug,
+                            sequences: {}
+                        }).then(() => {
+                            resolve();
+                        });
                     });
                 });
+            }).then(() => {
+                const databaseInsert = schema;
+                schema._$schema = schema.$schema;
+                schema._$id = schema.$id;
+                delete schema.$schema;
+                delete schema.$id;
+                return db.collection("_schema").insertOne(databaseInsert);
+            }).then(() => {
+                this.definition = columns;
+                return this._writeSchema();
             });
-            promises.push(createCounters);
-            const databaseInsert = schema;
-            schema._$schema = schema.$schema;
-            schema._$id = schema.$id;
-            delete schema.$schema;
-            delete schema.$id;
-            promises.push(db.collection("_schema").insertOne(databaseInsert));
-            this.definition = columns;
-            promises.push(this._writeSchema());
-            return Promise.all(promises);
         }).then(() => {
             this.tableName = tableName;
             this.tableSlug = tableSlug;
@@ -155,6 +155,7 @@ class Schema {
         }).then(() => {
             return Promise.resolve(this);
         }).catch((err) => {
+            // NOTE: potentially undo stuff that's done at this point
             this.tableName = null;
             this.tableSlug = null;
             this.required = [];
