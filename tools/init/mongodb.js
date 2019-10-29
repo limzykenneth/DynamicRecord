@@ -2,7 +2,7 @@ const MongoClient = require("mongodb").MongoClient;
 
 module.exports = function(response){
 	const mongoURL = `mongodb://${response.username}:${response.password}@${response.serverPath}/${response.database}`;
-	const connect = MongoClient.connect(mongoURL);
+	const connect = MongoClient.connect(mongoURL, {useUnifiedTopology: true});
 
 	return connect.then((client) => {
 		const db = client.db();

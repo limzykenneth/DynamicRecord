@@ -5,7 +5,7 @@ const Promise = require("bluebird");
 const _ = require("lodash");
 const MongoClient = require("mongodb").MongoClient;
 const mongoURL = f("mongodb://%s:%s@%s/%s", process.env.mongo_user, process.env.mongo_pass, process.env.mongo_server, process.env.mongo_db_name);
-const connect = MongoClient.connect(mongoURL);
+const connect = MongoClient.connect(mongoURL, {useUnifiedTopology: true});
 
 // Test dependencies
 const DynamicRecord = require("../build/DynamicRecord.js");
@@ -164,7 +164,6 @@ describe("DynamicRecord", function(){
 	describe("all()", function(){
 		it("should retrieve all entries from the database", function(){
 			return Random.all().then((col) => {
-				console.log(col.data, testData[0]);
 				assert.deepInclude(col.data, testData[0], "collection data includes first test data");
 				assert.deepInclude(col.data, testData[1], "collection data includes second test data");
 				assert.deepInclude(col.data, testData[2], "collection data includes third test data");
