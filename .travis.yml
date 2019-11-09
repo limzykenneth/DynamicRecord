@@ -19,3 +19,5 @@ deploy:
   project: ./docs/
   domain: dynamic-record.js.org
   skip_cleanup: true
+  on:
+    tags: true
