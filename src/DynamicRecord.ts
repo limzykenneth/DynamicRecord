@@ -5,7 +5,6 @@ const DynamicCollection = require("./DynamicCollection.js");
 const DynamicSchema = require("./DynamicSchema.js");
 
 // Let's get mongodb working first
-// NOTE: making too many connections, each instance create one connection
 const connect = require("./mongoConnection.js");
 const schemaValidator = new (require("./schemaValidation.js"))(connect);
 
@@ -95,6 +94,11 @@ class DynamicRecord {
 		/**
 		 * Save the data in this instance to the database.
 		 *
+		 * If you have a series of models of the same schema, it is recommended
+		 * to put them in a DynamicCollection and calling `saveAll()` on it
+		 * instead of attempting to save them all in parallel. This applies to
+		 * schemas with auto incrementing counters.
+		 *
 		 * @method save
 		 * @memberOf DynamicRecord.Model
 		 * @instance
@@ -102,7 +106,6 @@ class DynamicRecord {
 		 */
 		Model.prototype.save = function(){
 			// NOTE: need some way to modify counters (?) or bypass schema check if none exist
-			// NOTE: parallel save of collection with auto incrementing index failing (write lock)
 			return _ready.then((col) => {
 				if(this._original){
 					return validateData(this.data).then(() => {

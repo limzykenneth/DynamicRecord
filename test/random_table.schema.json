@@ -25,5 +25,5 @@
 			"type": "integer"
 		}
 	},
-	"required": ["string", "int", "float"]
+	"required": ["string", "float"]
 }

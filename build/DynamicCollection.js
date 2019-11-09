@@ -60,17 +60,12 @@ class DynamicCollection extends Array {
      * @instance
      * @return {Promise} Return promise of this DynamicCollection instance
      */
-    // NOTE: parallel save of collection with auto incrementing index failing (write lock)
+    // CONSIDER: Saving in series thus slow. Can consider assigning a block of counters at once
     saveAll() {
-        const promises = [];
-        _.each(this, (model) => {
+        return Promise.each(this, (model) => {
             if (model.save) {
-                // Consider doing bulk write
-                promises.push(model.save());
+                return model.save();
             }
-        });
-        return Promise.all(promises).then(() => {
-            return Promise.resolve(this);
         });
     }
     /**

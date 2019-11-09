@@ -130,7 +130,45 @@ describe("DynamicCollection", function(){
 			});
 		});
 
-		it("should set the autoincrementing index correctly");
+		describe("autoIncrement", function(){
+			beforeEach(function(){
+				return connect.then((client) => {
+					const db = client.db();
+					return db.collection("_counters").insertOne({
+						"_$id": testSchema.$id,
+						sequences: {
+							int: 0
+						}
+					});
+				});
+			});
+
+			afterEach(function(){
+				return connect.then((client) => {
+					const db = client.db();
+					return db.collection("_counters").deleteOne({"_$id": testSchema.$id});
+				});
+			});
+
+			it("should set the autoincrementing index correctly", function(){
+				col.forEach((model) => {
+					delete model.data.int;
+				});
+				return col.saveAll().then((res) => {
+					return connect.then((client) => {
+						const db = client.db();
+						return db.collection(testSchema.$id).find().toArray();
+					});
+				}).then((res) => {
+					for(let i=0; i<res.length; i++){
+						assert.equal(res[i].int, i+1, `database entry has auto increment value ${i+1}`);
+					}
+					for(let i=0; i<col.length; i++){
+						assert.equal(col[i].data.int, i+1, `collection entry has auto increment value ${i+1}`);
+					}
+				});
+			});
+		});
 	});
 
 	describe("dropAll()", function(){
