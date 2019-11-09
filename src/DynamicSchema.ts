@@ -327,9 +327,9 @@ class Schema{
 		});
 	}
 
-	//renameIndex(columnName, newColumnName){
-		// Maybe drop index then recreate but do consider why you need to do this
-	//}
+	// renameIndex(columnName, newColumnName){
+	// 	Maybe drop index then recreate but do consider why you need to do this
+	// }
 
 	/**
 	 * Remove an index to the table's schema
@@ -453,7 +453,7 @@ class Schema{
 		this.definition[name] = {
 			description: description,
 			type: type
-		}
+		};
 
 		return this._writeSchema().then(() => {
 			return Promise.resolve(this);
@@ -670,10 +670,10 @@ class Schema{
 		});
 	}
 
-	//private _validate(){
-		// Validate database schema with this.definition
-		// Return boolean
-	//}
+	// private _validate(){
+	// 	Validate database schema with this.definition
+	// 	Return boolean
+	// }
 }
 
 module.exports = function(connection){

@@ -45,7 +45,7 @@ class DynamicCollection extends Array{
 	 * @return DynamicCollection
 	 * @hidden
 	 */
-	 // Not sure if this is necessary as we can just destructure array
+	// Not sure if this is necessary as we can just destructure array
 	static fromArray(arr, Model){
 		const result = _.reduce(arr, (acc, el, i) => {
 			acc.push(new Model(el));

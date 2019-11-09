@@ -265,9 +265,9 @@ class Schema {
             return Promise.reject(err);
         });
     }
-    //renameIndex(columnName, newColumnName){
-    // Maybe drop index then recreate but do consider why you need to do this
-    //}
+    // renameIndex(columnName, newColumnName){
+    // 	Maybe drop index then recreate but do consider why you need to do this
+    // }
     /**
      * Remove an index to the table's schema
      *

@@ -278,7 +278,7 @@ class DynamicRecord {
 				const results = new DynamicCollection(this.Model, ...models);
 
 				_.each(results, (result) => {
-					result._original = _.cloneDeep(result.data)
+					result._original = _.cloneDeep(result.data);
 				});
 
 				return Promise.resolve(results);
@@ -305,7 +305,7 @@ class DynamicRecord {
 				const results = new DynamicCollection(this.Model, ...models);
 
 				_.each(results, (result) => {
-					result._original = _.cloneDeep(result.data)
+					result._original = _.cloneDeep(result.data);
 				});
 
 				return Promise.resolve(results);
