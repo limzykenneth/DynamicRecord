@@ -9,10 +9,10 @@ let utils = function(connect){
 
 utils.prototype.createTestTable = function(){
 	return initMongodb({
-		username: process.env.mongo_user,
-		password: process.env.mongo_pass,
-		serverPath: process.env.mongo_server,
-		database: process.env.mongo_db_name
+		username: process.env.database_username,
+		password: process.env.database_password,
+		serverPath: process.env.database_host,
+		database: process.env.database_name
 	});
 };
 

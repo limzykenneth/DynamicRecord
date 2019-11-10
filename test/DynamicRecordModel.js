@@ -3,12 +3,12 @@ require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
 const MongoClient = require("mongodb").MongoClient;
-const mongoURL = `mongodb://${process.env.mongo_user}:${process.env.mongo_pass}@${process.env.mongo_server}/${process.env.mongo_db_name}`;
+const mongoURL = `mongodb://${process.env.database_username}:${process.env.database_password}@${process.env.database_host}/${process.env.database_name}`;
 const connect = MongoClient.connect(mongoURL, {useUnifiedTopology: true});
 
 // Test dependencies
-const DynamicRecord = require("../build/DynamicRecord.js");
-const DynamicCollection = require("../build/DynamicCollection.js");
+const DynamicRecord = require("../build/main.js");
+const DynamicCollection = DynamicRecord.DynamicCollection;
 const utils = new (require("./utils.js"))(connect);
 const chai = require("chai");
 const assert = chai.assert;
