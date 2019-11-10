@@ -1,10 +1,9 @@
 // For setup and clean ups
 require("dotenv").config();
-const f = require("util").format;
 const Promise = require("bluebird");
 const _ = require("lodash");
 const MongoClient = require("mongodb").MongoClient;
-const mongoURL = f("mongodb://%s:%s@%s/%s", process.env.mongo_user, process.env.mongo_pass, process.env.mongo_server, process.env.mongo_db_name);
+const mongoURL = `mongodb://${process.env.mongo_user}:${process.env.mongo_pass}@${process.env.mongo_server}/${process.env.mongo_db_name}`;
 const connect = MongoClient.connect(mongoURL, {useUnifiedTopology: true});
 
 // Test dependencies
