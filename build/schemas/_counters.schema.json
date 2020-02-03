@@ -1,0 +1,22 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "dynamic_record_counters.schema.json",
+    "title": "dynamic_record_counters",
+    "description": "Dynamic Record's NoSQL auto increment index counter schema",
+    "type": "object",
+    "properties": {
+        "_$id": {
+            "description": "The id of the schema in question, corresponds to the '_$id' field in the schema's definition",
+            "type": "string"
+        },
+        "sequences": {
+            "description": "Key value pairs of the name of the auto incrementing index and its current auto increment index value",
+            "type": "object",
+            "additionalProperties": {
+                "type": "number",
+                "description": "The current count of the auto incrementing index"
+            }
+        }
+    },
+    "required": ["_$id", "sequences"]
+}

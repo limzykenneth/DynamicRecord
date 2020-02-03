@@ -1,6 +1,6 @@
 const Ajv = require("ajv");
 const _ = require("lodash");
-const countersSchema = require("./dynamic_record_counters.schema.json");
+const countersSchema = require("./schemas/_counters.schema.json");
 
 let connect;
 
