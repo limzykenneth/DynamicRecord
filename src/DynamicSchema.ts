@@ -136,10 +136,6 @@ class Schema{
 	 */
 	createTable(schemaInput:TableSchema){
 		const schema = _.cloneDeep(schemaInput);
-		if(!schemaValidator.validate("rootSchema", schema)){
-			return Promise.reject(schemaValidator.errors);
-		}
-
 		const tableSlug:string = schema.$id;
 		const tableName:string = schema.title || schema.$id;
 		const columns:SchemaDefinitions = schema.properties;
