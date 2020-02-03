@@ -209,7 +209,6 @@ class Schema{
 			return Promise.resolve(this);
 
 		}).catch((err) => {
-			// NOTE: potentially undo stuff that's done at this point
 			this.tableName = null;
 			this.tableSlug = null;
 			this.required = [];
