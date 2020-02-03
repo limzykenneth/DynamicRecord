@@ -87,7 +87,6 @@ class DynamicRecord {
          * @return {Promise} Return promise of this DynamicRecord.Model instance
          */
         Model.prototype.save = function () {
-            // NOTE: need some way to modify counters (?) or bypass schema check if none exist
             return _ready.then((col) => {
                 if (this._original) {
                     return validateData(this.data).then(() => {
