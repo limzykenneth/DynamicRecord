@@ -6,23 +6,14 @@
 
 Dynamic Record is a database abstraction package for node.js that is inspired by Ruby on Rails' ActiveRecord for node.js. We aim to support most major database systems including MongoDB, MySQL, PostgreSQL and many more. **For the moment there is only support for MongoDB**
 
-**Note**: Dynamic Record is currently in early Alpha and should not be considered production ready.
+**Note**: Dynamic Record is currently in Beta and should not be considered production ready.
 
 ## Installation
 
-Dynamic Record is not published on NPM yet but if you wish to try it out now you can install Dynamic Recrod with `npm install git+https://github.com/limzykenneth/DynamicRecord.git`.
-
-## Initialization
-
-Before running your app with Dynamic Record included, you will need to set a few environment variables to provide Dynamic Record with your database credentials:
-```
-mongo_server=localhost:27017
-mongo_db_name=my_database
-mongo_user=database_username
-mongo_pass=database_password
-```
-
-A command line tool `dynamic-record` is included to initialize your environment to be able to run DynamicRecord on. You can run `npx dynamic-record init --help` to see what the available options are. If you want to setup a `.env` file with the appropriate entries for the environemnt variables of DynamicRecord, you can run `npx dynamic-record init` with the option `-e` and follow the step by step setup. You will need a running database server and credentials to the database to be able to use DynamicRecord.
+1. Run `npm install dynamic-record`
+2. Ensure you have your database running and you have the appropriate credentials to be used with the app. (You will need read/write permissions)
+3. Run the initialization script with `npx dynamic-record init`.
+4. Follow the steps in the wizard and everything will be setup correctly for you. Or you can run `npx dynamic-record init` by providing flags and arguments that can be found using `npx dynamic-record init --help`.
 
 ## Usage
 Although the API is more or less as how we wanted it to be, changes can still occur. Documentation of the API is available at [https://dynamic-record.js.org/](https://dynamic-record.js.org/)
@@ -37,7 +28,7 @@ Next we look at Dynamic Record in a bit more detail. Dynamic Record is split int
 
 Before diving into the individual parts, we need to explain a few concepts.
 
-First is that for each table (or collection if you are using MongoDB) in your database, you will create an instance of [`DynamicRecord`](#dynamicrecord) and it will be responsible for handling all read operations to the database. Dynamic Record uses a single pooled connection to the database for the moment.
+First is that for each table (or collection if you are using MongoDB) in your database, you will create an instance of [`DynamicRecord`](#dynamicrecord) and it will be responsible for handling all read write operations to the database. Dynamic Record uses a single pooled connection to the database for the moment.
 
 Next is the idea of models and collections. If you have used an MVC framework such as Backbone before, you will be familiar with this concept. We are borrowing quite directly from the concept in Backbone where models are wrapped data objects and collections are an array-like object that contains multiple entries of models. This corresponds to [`DynamicRecord.Model`](#dynamicrecordmodel) and [`DynamicCollection`](#dynamiccollection) respectively. These instances handle write operations to the database.
 
