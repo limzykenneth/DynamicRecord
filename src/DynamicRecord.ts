@@ -139,6 +139,23 @@ class DynamicRecord {
 							this._original = _.cloneDeep(this.data);
 							return Promise.resolve(this);
 						});
+					}).catch((err) => {
+						// Reverse database actions
+						return Promise.all([
+							// 1. Decrement autoincrement counter
+							_db.collection("_counters").findOne({_$id: tableSlug}).then((res) => {
+								const promises = [];
+								_.each(res.sequences, (el, columnLabel) => {
+									promises.push(_schema._decrementCounter(tableSlug, columnLabel))
+								});
+
+								return Promise.all(promises);
+							})
+						]).then(() => {
+							return Promise.reject(err);
+						}).catch((e) => {
+							return Promise.reject(e);
+						});
 					});
 				}
 			}).catch((err) => {

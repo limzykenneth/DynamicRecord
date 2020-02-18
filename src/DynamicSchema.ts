@@ -679,6 +679,30 @@ class Schema{
 		});
 	}
 
+	private _decrementCounter(collection:string, columnLabel:string){
+		return connect.then((opts) => {
+			const db = opts.db;
+			return db.collection("_counters").findOne({
+				_$id: collection
+			}).then((result) => {
+				const newSequence = result.sequences[columnLabel] - 1;
+				const sequenceKey = `sequences.${columnLabel}`;
+
+				return db.collection("_counters").findOneAndUpdate({
+					_$id: collection
+				}, {
+					$set: {
+						[sequenceKey]: newSequence
+					}
+				}).then(() => {
+					return Promise.resolve(newSequence);
+				});
+			});
+		}).catch((err) => {
+			return Promise.reject(err);
+		});
+	}
+
 	// private _validate(){
 	// 	Validate database schema with this.definition
 	// 	Return boolean

@@ -593,6 +593,28 @@ class Schema {
             return Promise.reject(err);
         });
     }
+    _decrementCounter(collection, columnLabel) {
+        return connect.then((opts) => {
+            const db = opts.db;
+            return db.collection("_counters").findOne({
+                _$id: collection
+            }).then((result) => {
+                const newSequence = result.sequences[columnLabel] - 1;
+                const sequenceKey = `sequences.${columnLabel}`;
+                return db.collection("_counters").findOneAndUpdate({
+                    _$id: collection
+                }, {
+                    $set: {
+                        [sequenceKey]: newSequence
+                    }
+                }).then(() => {
+                    return Promise.resolve(newSequence);
+                });
+            });
+        }).catch((err) => {
+            return Promise.reject(err);
+        });
+    }
 }
 module.exports = function (connection) {
     connect = connection;
