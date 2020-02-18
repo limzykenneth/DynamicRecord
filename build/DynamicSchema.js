@@ -99,8 +99,9 @@ class Schema {
         const columns = schema.properties;
         const required = _.cloneDeep(schema.required) || [];
         const description = schema.description || "";
+        let db;
         return connect.then((opts) => {
-            const db = opts.db;
+            db = opts.db;
             // Create the collection, ensuring that is doesn't already exist
             // in the database
             return db.createCollection(tableSlug, { strict: true }).then(() => {
@@ -157,7 +158,19 @@ class Schema {
             this.required = [];
             this.description = "";
             this.jsonSchema = {};
-            return Promise.reject(err);
+            // Reverse database actions
+            return Promise.all([
+                // 1. Remove collection from database
+                db.collection(tableSlug).drop(),
+                // 2. Remove entry from _schema collection
+                db.collection("_schema").deleteOne({ "_$id": tableSlug }),
+                // 3. Remove entry from _counters collection
+                db.collection("_schema").deleteOne({ "_$id": tableSlug })
+            ]).then(() => {
+                return Promise.reject(err);
+            }).catch((e) => {
+                return Promise.reject(e);
+            });
         });
     }
     /**
