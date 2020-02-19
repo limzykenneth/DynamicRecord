@@ -1,5 +1,3 @@
-require("dotenv").config();
-import Promise = require("bluebird");
 import _ = require("lodash");
 
 let connect;

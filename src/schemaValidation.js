@@ -10,24 +10,22 @@ const ajv = new Ajv({
 
 ajv.addSchema(countersSchema, "countersSchema");
 
-function loadSchema(tableSlug){
-	return connect.then((opts) => {
-		const db = opts.db;
-		return db.collection("_schema").findOne({"_$id": tableSlug});
-	}).then((schema) => {
-		// Restore keys starting with "$" and delete ObjectID field
-		const reg = /^_(\$.+?)$/;
-		delete schema._id;
-		_.each(schema, (el, key) => {
-			if(reg.test(key)){
-				schema[key.replace(reg, "$1")] = el;
-				delete schema[key];
-			}
-		});
+async function loadSchema(tableSlug){
+	const {db} = await connect;
+	const schema = await db.collection("_schema").findOne({"_$id": tableSlug});
 
-		// Resovle to the restored JSON schema
-		return Promise.resolve(schema);
+	// Restore keys starting with "$" and delete ObjectID field
+	const reg = /^_(\$.+?)$/;
+	delete schema._id;
+	_.each(schema, (el, key) => {
+		if(reg.test(key)){
+			schema[key.replace(reg, "$1")] = el;
+			delete schema[key];
+		}
 	});
+
+	// Resovle to the restored JSON schema
+	return schema;
 }
 
 module.exports = function(connection){

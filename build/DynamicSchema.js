@@ -1,7 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-require("dotenv").config();
-const Promise = require("bluebird");
 const _ = require("lodash");
 let connect;
 const schemaValidator = new (require("./schemaValidation.js"))(connect);

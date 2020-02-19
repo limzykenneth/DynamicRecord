@@ -1,5 +1,3 @@
-require("dotenv").config();
-import Promise = require("bluebird");
 import _ = require("lodash");
 const DynamicCollection = require("./DynamicCollection.js");
 const DynamicSchema = require("./DynamicSchema.js");
@@ -104,18 +102,16 @@ class DynamicRecord {
 		 * @instance
 		 * @return {Promise} Return promise of this DynamicRecord.Model instance
 		 */
-		Model.prototype.save = function(){
-			return _ready.then((col) => {
+		Model.prototype.save = async function(){
+			return _ready.then(async (col) => {
 				if(this._original){
-					return validateData(this.data).then(() => {
-						return col.updateOne(this._original, {$set: this.data}, {upsert: true});
-					}).then(() => {
-						this._original = _.cloneDeep(this.data);
-						return Promise.resolve(this);
-					});
+					await validateData(this.data);
+					await col.updateOne(this._original, {$set: this.data}, {upsert: true});
+					this._original = _.cloneDeep(this.data);
+					return this;
 				}else{
 					// Check if collection contains index that needs auto incrementing
-					return _db.collection("_counters").findOne({_$id: tableSlug}).then((res) => {
+					return _db.collection("_counters").findOne({_$id: tableSlug}).then(async (res) => {
 						const promises = [];
 						if(res !== null){
 							// Auto incrementing index exist
@@ -126,19 +122,14 @@ class DynamicRecord {
 								}));
 							});
 
-							return Promise.all(promises);
-						}else{
-							// No auto incrementing index
-							return Promise.resolve();
+							await Promise.all(promises);
 						}
-					}).then(() => {
-						return validateData(this.data);
-					}).then(() => {
+						await validateData(this.data);
+
 						// Save data into the database
-						return col.insertOne(this.data).then((result) => {
-							this._original = _.cloneDeep(this.data);
-							return Promise.resolve(this);
-						});
+						await col.insertOne(this.data);
+						this._original = _.cloneDeep(this.data);
+						return this;
 					}).catch((err) => {
 						// Reverse database actions
 						return Promise.all([
@@ -146,7 +137,7 @@ class DynamicRecord {
 							_db.collection("_counters").findOne({_$id: tableSlug}).then((res) => {
 								const promises = [];
 								_.each(res.sequences, (el, columnLabel) => {
-									promises.push(_schema._decrementCounter(tableSlug, columnLabel))
+									promises.push(_schema._decrementCounter(tableSlug, columnLabel));
 								});
 
 								return Promise.all(promises);
@@ -162,14 +153,13 @@ class DynamicRecord {
 				return Promise.reject(err);
 			});
 
-			function validateData(data){
-				return schemaValidator.compileAsync({$ref: _schema.tableSlug}).then((validate) => {
-					if(validate(data)){
-						return Promise.resolve();
-					}else{
-						return Promise.reject(new Error(validate.errors));
-					}
-				});
+			async function validateData(data){
+				const validate = await schemaValidator.compileAsync({$ref: _schema.tableSlug});
+				if(validate(data)){
+					return Promise.resolve();
+				}else{
+					return Promise.reject(new Error(validate.errors));
+				}
 			}
 		};
 
@@ -182,18 +172,17 @@ class DynamicRecord {
 		 * @instance
 		 * @return {Promise} Return promise of this DynamicRecord.Model instance
 		 */
-		Model.prototype.destroy = function(){
-			return _ready.then((col) => {
-				if(this._original){
-					return col.deleteOne(this._original).then((result) => {
-						this._original = null;
-						this.data = null;
-						return Promise.resolve(this);
-					});
-				}else{
-					throw new Error("Model not saved in database yet.");
-				}
-			});
+		Model.prototype.destroy = async function(){
+			const col = await _ready;
+
+			if(this._original){
+				await col.deleteOne(this._original);
+				this._original = null;
+				this.data = null;
+				return this;
+			}else{
+				throw new Error("Model not saved in database yet.");
+			}
 		};
 
 		/**
@@ -233,14 +222,15 @@ class DynamicRecord {
 	 * @memberOf DynamicRecord
 	 * @instance
 	 */
-	closeConnection(){
+	async closeConnection(){
 		// Should only ever be called to terminate the node process
-		this._ready.then((col) => {
+		try{
+			await this._ready;
 			this._client.close();
-		}).catch((err) => {
+		} catch(e) {
 			// BY ANY MEANS NECESSARY
 			this._client.close();
-		});
+		}
 	}
 
 	/**
@@ -253,19 +243,18 @@ class DynamicRecord {
 	 * in the database
 	 * @return {Promise} Return promise of DynamicRecord.Model instance or null
 	 */
-	findBy(query: object){
+	async findBy(query: object){
 		// CONSIDER: Possibly implement our own unique id system
-		return this._ready.then((col) => {
-			return col.findOne(query).then((model) => {
-				if(model !== null){
-					// Delete mongodb added "_id" field
-					delete model._id;
-					return Promise.resolve(new this.Model(model, true));
-				}else{
-					return Promise.resolve(null);
-				}
-			});
-		});
+		const col = await this._ready;
+		const model = await col.findOne(query);
+
+		if(model !== null){
+			// Delete mongodb added "_id" field
+			delete model._id;
+			return new this.Model(model, true);
+		}else{
+			return null;
+		}
 	}
 
 	/**
@@ -282,27 +271,26 @@ class DynamicRecord {
 	 * @param {string|function} orderBy - The key to sort by or a sorting function
 	 * @return {Promise} Return promise of DynamicCollection instance
 	 */
-	where(query: object, orderBy: string | Function){
-		return this._ready.then((col) => {
-			return col.find(query).toArray().then((models) => {
-				if(orderBy){
-					models = _.sortBy(models, orderBy);
-				}
+	async where(query: object, orderBy: string | Function){
+		const col = await this._ready;
+		let models = await col.find(query).toArray();
 
-				// Delete mongodb added "_id" field
-				_.each(models, (el) => {
-					delete el._id;
-				});
+		if(orderBy){
+			models = _.sortBy(models, orderBy);
+		}
 
-				const results = new DynamicCollection(this.Model, ...models);
-
-				_.each(results, (result) => {
-					result._original = _.cloneDeep(result.data);
-				});
-
-				return Promise.resolve(results);
-			});
+		// Delete mongodb added "_id" field
+		_.each(models, (el) => {
+			delete el._id;
 		});
+
+		const results = new DynamicCollection(this.Model, ...models);
+
+		_.each(results, (result) => {
+			result._original = _.cloneDeep(result.data);
+		});
+
+		return results;
 	}
 
 	/**
@@ -313,23 +301,21 @@ class DynamicRecord {
 	 * @instance
 	 * @return {Promise} Return promise of DynamicCollection instance
 	 */
-	all(){
-		return this._ready.then((col) => {
-			return col.find().toArray().then((models) => {
-				// Delete mongodb added "_id" field
-				_.each(models, (el) => {
-					delete el._id;
-				});
-
-				const results = new DynamicCollection(this.Model, ...models);
-
-				_.each(results, (result) => {
-					result._original = _.cloneDeep(result.data);
-				});
-
-				return Promise.resolve(results);
-			});
+	async all(){
+		const col = await this._ready;
+		let models = await col.find().toArray();
+		// Delete mongodb added "_id" field
+		_.each(models, (el) => {
+			delete el._id;
 		});
+
+		const results = new DynamicCollection(this.Model, ...models);
+
+		_.each(results, (result) => {
+			result._original = _.cloneDeep(result.data);
+		});
+
+		return results;
 	}
 
 	/**
@@ -344,28 +330,25 @@ class DynamicRecord {
 	 * @return {Promise} Return promise of DynamicRecord.Model instance,
 	 * DynamicCollection instance, or null
 	 */
-	first(n:number){
-		return this._ready.then((col) => {
-			if(typeof n === "undefined"){
-				return col.findOne().then((model) => {
-					if(model !== null){
-						// Delete mongodb added "_id" field
-						delete model._id;
-						return Promise.resolve(new this.Model(model, true));
-					}else{
-						return Promise.resolve(null);
-					}
-				});
+	async first(n?:number){
+		const col = await this._ready;
+		if(typeof n === "undefined"){
+			const model = await col.findOne();
+			if(model !== null){
+				// Delete mongodb added "_id" field
+				delete model._id;
+				return new this.Model(model, true);
 			}else{
-				return col.find({}).limit(n).toArray().then((models) => {
-					// Delete mongodb added "_id" field
-					_.each(models, (el) => {
-						delete el._id;
-					});
-					return Promise.resolve(new DynamicCollection(this.Model, ...models));
-				});
+				return null;
 			}
-		});
+		}else{
+			const models = await col.find({}).limit(n).toArray();
+			// Delete mongodb added "_id" field
+			_.each(models, (el) => {
+				delete el._id;
+			});
+			return new DynamicCollection(this.Model, ...models);
+		}
 	}
 }
 
