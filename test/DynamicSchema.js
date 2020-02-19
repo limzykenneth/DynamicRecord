@@ -379,6 +379,33 @@ describe("Schema", function(){
 					assert.equal(m.testIndex, 2, "auto increment index is set to 2");
 				});
 			});
+			it("should update an entry with auto inrementing counter without changing its value", function(){
+				return table.addIndex({
+					name: "testIndex",
+					autoIncrement: true
+				}).then(() => {
+					const model = new Random.Model({
+						"string": "Laborum non culpa.",
+						"int": 27,
+						"float": 6.2831853072
+					});
+
+					return model.save();
+				}).then((model) => {
+					model.data.int = 100;
+
+					return model.save();
+				}).then((model) => {
+					assert.equal(model.data.testIndex, 1, "auto incrementing index is set to 1");
+					assert.equal(model._original.testIndex, 1, "auto incrementing index is set to 1");
+
+					return connect.then((client) => client.db());
+				}).then((db) => {
+					return db.collection(testSchema.$id).findOne({int: 100});
+				}).then((m) => {
+					assert.equal(m.testIndex, 1, "auto incrementing index is set to 1");
+				});
+			});
 			it("should increment entry in the _counters collection", function(){
 				return table.addIndex({
 					name: "testIndex",
