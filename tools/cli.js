@@ -7,12 +7,11 @@ const inquirer = require("inquirer");
 const _ = require("lodash");
 
 const pjson = require("../package.json");
-const initMongodb = require("./init/mongodb.js");
-const constants = require("./_constants.js");
 
 // CLI Tools
 const init = require("./init.js");
 const exp = require("./export.js");
+const imp = require("./import.js");
 
 const response = {};
 const questions = [];
@@ -26,14 +25,12 @@ init(program);
 // Export tool
 exp(program);
 
+// Import tool
+imp(program);
+
 program.command("migrate")
 	.action(function(cmd){
 		console.log("Migration implementation pending");
-	});
-
-program.command("import")
-	.action(function(cmd){
-		console.log("Import implementation pending");
 	});
 
 program.parse(process.argv);
