@@ -1,7 +1,26 @@
 require("dotenv").config();
+const _ = require("lodash");
 const initMongodb = require("../tools/init/mongodb.js");
 
 const testSchema = Object.freeze(require("./random_table.schema.json"));
+
+const databaseURIRegex = /^(?<schema>.+?):\/\/(?:(?<username>.+?)(?::(?<password>.+))?@)?(?<host>.+?)(?::(?<port>\d+?))?(?:\/(?<database>.+?))?(?:\?(?<options>.+?))?$/;
+const regexResult = _.clone(process.env.database_host.match(databaseURIRegex).groups);
+if(!regexResult.username){
+	regexResult.username = process.env.database_username;
+}
+if(!regexResult.password){
+	regexResult.password = process.env.database_password;
+}
+if(!regexResult.port){
+	regexResult.port = "27017";
+}
+if(!regexResult.database){
+	regexResult.database = process.env.database_name;
+}
+if(!regexResult.options){
+	regexResult.options = "";
+}
 
 let utils = function(connect){
 	this.connect = connect;
@@ -9,10 +28,10 @@ let utils = function(connect){
 
 utils.prototype.createTestTable = function(){
 	return initMongodb({
-		username: process.env.database_username,
-		password: process.env.database_password,
-		serverPath: process.env.database_host,
-		database: process.env.database_name
+		username: regexResult.username,
+		password: regexResult.password,
+		serverPath: `${regexResult.host}:${regexResult.port}`,
+		database: regexResult.database
 	});
 };
 
@@ -65,4 +84,7 @@ utils.prototype.resetTestTables = function(){
 	});
 };
 
-module.exports = utils;
+module.exports = {
+	utils,
+	url: `${regexResult.schema}://${regexResult.username}:${regexResult.password}@${regexResult.host}:${regexResult.port}/${regexResult.database}?${regexResult.options}`
+};

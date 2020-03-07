@@ -1,8 +1,11 @@
 require("dotenv").config();
 
+const databaseURIRegex = /^(?<schema>.+?):\/\/(?:(?<username>.+?)(?::(?<password>.+))?@)?(?<host>.+?)(?::(?<port>\d+?))?(?:\/(?<database>.+?))?(?:\?(?<options>.+?))?$/;
+const regexResult = process.env.database_host.match(databaseURIRegex);
+
 let DynamicRecord;
 
-switch(process.env.database_provider){
+switch(regexResult.groups.schema){
 	case "mongodb":
 		DynamicRecord = require("./DynamicRecord.js");
 		break;

@@ -5,7 +5,7 @@ const databaseEnums = Object.freeze({
 
 // Regex used to detect database type
 // const databaseRegex = /^(.+?):\/\/(.+?)(?::(\d+?)?)?$/i;
-const databaseRegex = /^(.+?):\/\/(.+?)$/i;
+const databaseRegex = /^(?<schema>.+?):\/\/(?:(?<username>.+?)(?::(?<password>.+))?@)?(?<host>.+?)(?::(?<port>\d+?))?(?:\/(?<database>.+?))?(?:\?(?<options>.+?))?$/;
 
 module.exports = {
 	databaseEnums,

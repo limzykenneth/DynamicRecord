@@ -1,8 +1,28 @@
 require("dotenv").config();
 const MongoClient = require("mongodb").MongoClient;
+import _ = require("lodash");
 
-const mongoURL = `mongodb://${process.env.database_username}:${process.env.database_password}@${process.env.database_host}/${process.env.database_name}`;
-const client = new MongoClient(mongoURL, {
+const databaseURIRegex = /^(?<schema>.+?):\/\/(?:(?<username>.+?)(?::(?<password>.+))?@)?(?<host>.+?)(?::(?<port>\d+?))?(?:\/(?<database>.+?))?(?:\?(?<options>.+?))?$/;
+const regexResult = _.clone(process.env.database_host.match(databaseURIRegex).groups);
+if(!regexResult.username){
+	regexResult.username = process.env.database_username;
+}
+if(!regexResult.password){
+	regexResult.password = process.env.database_password;
+}
+if(!regexResult.port){
+	regexResult.port = "27017";
+}
+if(!regexResult.database){
+	regexResult.database = process.env.database_name;
+}
+if(!regexResult.options){
+	regexResult.options = "";
+}
+
+
+const url = `${regexResult.schema}://${regexResult.username}:${regexResult.password}@${regexResult.host}:${regexResult.port}/${regexResult.database}?${regexResult.options}`;
+const client = new MongoClient(url, {
 	poolSize: 10,
 	useUnifiedTopology: true
 });

@@ -96,7 +96,6 @@ function imp(program){
 				_.assign(response, answer);
 
 				// Identify the database type
-				// NOTE: cannot handle those that is set in env yet
 				const regexResult = constants.databaseRegex.exec(response.server);
 				if(regexResult === null){
 					throw new Error(`Invalid database server URL: ${response.server}`);
