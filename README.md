@@ -14,6 +14,7 @@ Dynamic Record is a database abstraction package for node.js that is inspired by
 2. Ensure you have your database running and you have the appropriate credentials to be used with the app. (You will need read/write permissions)
 3. Run the initialization script with `npx dynamic-record init`.
 4. Follow the steps in the wizard and everything will be setup correctly for you. Or you can run `npx dynamic-record init` by providing flags and arguments that can be found using `npx dynamic-record init --help`.
+5. Environment variable `database_host` needs to be set in the format of `[schema]://[username]:[password]@[host]:[port]/[database]` (eg. `mongodb://username:password@localhost:27017/my_blog`) when running DynamicRecord. You can pass a `-e` flag to `npx dynamic-record init` to automatically write this setting to a `.env` file which will be read by DynamicRecord.
 
 ## Usage
 Although the API is more or less as how we wanted it to be, changes can still occur. Documentation of the API is available at [https://dynamic-record.js.org/](https://dynamic-record.js.org/)
