@@ -22,16 +22,15 @@ if(!regexResult.options){
 	regexResult.options = "";
 }
 
+const url = `${regexResult.schema}://${regexResult.username}:${regexResult.password}@${regexResult.host}:${regexResult.port}/${regexResult.database}?${regexResult.options}`
+
 let utils = function(connect){
 	this.connect = connect;
 };
 
 utils.prototype.createTestTable = function(){
 	return initMongodb({
-		username: regexResult.username,
-		password: regexResult.password,
-		serverPath: `${regexResult.host}:${regexResult.port}`,
-		database: regexResult.database
+		url
 	});
 };
 
@@ -86,5 +85,5 @@ utils.prototype.resetTestTables = function(){
 
 module.exports = {
 	utils,
-	url: `${regexResult.schema}://${regexResult.username}:${regexResult.password}@${regexResult.host}:${regexResult.port}/${regexResult.database}?${regexResult.options}`
+	url
 };

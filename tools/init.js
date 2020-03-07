@@ -14,6 +14,7 @@ function init(program){
 		.option("-u, --username <username>", "Username of the database server's user, user must have read write access to the database it will be accessing")
 		.option("-p, --password <password>", "Password of the database server's user")
 		.option("-d, --database <database name>", "Name of the database to use")
+		.option("--preview", "Dry run tasks without writing anything to file or database")
 		.option("-e, --env", "Create .env file", false)
 		.action(function(cmd){
 			if(typeof cmd.server === "undefined"){
@@ -78,33 +79,35 @@ function init(program){
 				_.assign(response, answer);
 
 				// Identify the database type
-				const regexResult = constants.databaseRegex.exec(response.server);
+				const regexResult = response.server.match(constants.databaseRegex);
 				if(regexResult === null){
 					throw new Error(`Invalid database server URL: ${response.server}`);
 				}else{
-					response.databaseType = constants.databaseEnums[regexResult[1]];
-					response.serverPath = regexResult[2];
-					if(typeof response.databaseType === "undefined"){
-						return Promise.reject(new Error(`Database type "${regexResult[1]}" is not supported.`));
-					}
+					response.url = `${regexResult.groups.schema}://${regexResult.groups.username || response.username}:${regexResult.groups.password || response.password}@${regexResult.groups.host}:${regexResult.groups.port || "27017"}/${regexResult.groups.database || response.database}`;
+					response.databaseType = constants.databaseEnums[regexResult.groups.schema];
 				}
 
 				// Create .env file if needed
 				if(response.env){
 					if(response.databaseType === constants.databaseEnums.mongodb){
-						const data = `mongo_server=${response.serverPath}\nmongo_db_name=${response.database}\nmongo_user=${response.username}\nmongo_pass=${response.password}`;
-						fs.writeFile("./.env", data).then(() => {
-							console.log("Written .env file");
-						});
+						const data = `database_host=${response.url}`;
+						console.log("Writing to .env:\n" + data);
+						if(!cmd.preview){
+							fs.writeFile("./.env", data).then(() => {
+								console.log("Written .env file");
+							});
+						}
 					}
 				}
 
 				// Initialize database
 				if(response.databaseType === constants.databaseEnums.mongodb){
-					return initMongodb(response).then(() => {
-						console.log(`Initialized mongodb database ${response.database}`);
-						return Promise.resolve();
-					});
+					if(!cmd.preview){
+						return initMongodb(response).then(() => {
+							console.log(`Initialized mongodb database ${response.database}`);
+							return Promise.resolve();
+						});
+					}
 				}
 
 			}).catch((err) => {
