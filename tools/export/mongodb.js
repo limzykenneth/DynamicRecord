@@ -3,8 +3,7 @@ const fs = require("fs").promises;
 const _ = require("lodash");
 
 module.exports = async function(response){
-	const mongoURL = `mongodb://${response.username}:${response.password}@${response.serverPath}/${response.database}`;
-	const connect = MongoClient.connect(mongoURL, {useUnifiedTopology: true});
+	const connect = MongoClient.connect(response.url, {useUnifiedTopology: true});
 	const client = await connect;
 	const db = client.db();
 

@@ -18,6 +18,7 @@ function imp(program){
 		.option("-p, --password <password>", "Password of the database server's user")
 		.option("-d, --database <database name>", "Name of the database to use")
 		.option("-i, --input <file>", "Input file containing exported data")
+		.option("--preview", "Dry run tasks without writing anything to file or database", false)
 		.action(function(cmd){
 			if(typeof cmd.server !== "undefined"){
 				response.server = cmd.server;
@@ -43,9 +44,7 @@ function imp(program){
 					type: "input",
 					name: "username",
 					message: "Username",
-					validate: function(value){
-						return value.trim().length > 0 ? true : "Username cannot be blank";
-					}
+					default: ""
 				});
 			}
 
@@ -71,9 +70,7 @@ function imp(program){
 					type: "input",
 					name: "database",
 					message: "Database",
-					validate: function(value){
-						return value.trim().length > 0 ? true : "Database name cannot be blank";
-					}
+					default: ""
 				});
 			}
 
@@ -96,19 +93,25 @@ function imp(program){
 				_.assign(response, answer);
 
 				// Identify the database type
-				const regexResult = constants.databaseRegex.exec(response.server);
+				const regexResult = response.server.match(constants.databaseRegex);
+				const schema = regexResult.groups.schema;
+				const username = regexResult.groups.username || response.username;
+				const password = regexResult.groups.password || response.password;
+				const host = regexResult.groups.host;
+				const port = regexResult.groups.port || "27017";
+				const database = regexResult.groups.database || response.database;
+
 				if(regexResult === null){
 					throw new Error(`Invalid database server URL: ${response.server}`);
+				}else if(username.length > 0 && password.length > 0 && database.length > 0){
+					response.url = `${schema}://${username}:${password}@${regexResult.groups.host}:${port}/${database}`;
+					response.databaseType = constants.databaseEnums[regexResult.groups.schema];
 				}else{
-					response.databaseType = constants.databaseEnums[regexResult[1]];
-					response.serverPath = regexResult[2];
-					if(typeof response.databaseType === "undefined"){
-						return Promise.reject(new Error(`Database type "${regexResult[1]}" is not supported.`));
-					}
+					throw new Error(`Invalid database server URL: ${schema}://${username}:${password}@${regexResult.groups.host}:${port}/${database}`);
 				}
 
 				// Import the database
-				if(response.databaseType === constants.databaseEnums.mongodb){
+				if(!cmd.preview && response.databaseType === constants.databaseEnums.mongodb){
 					importMongodb(response);
 				}
 			}).catch((err) => {

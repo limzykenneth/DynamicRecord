@@ -14,8 +14,8 @@ function init(program){
 		.option("-u, --username <username>", "Username of the database server's user, user must have read write access to the database it will be accessing")
 		.option("-p, --password <password>", "Password of the database server's user")
 		.option("-d, --database <database name>", "Name of the database to use")
-		.option("--preview", "Dry run tasks without writing anything to file or database")
 		.option("-e, --env", "Create .env file", false)
+		.option("--preview", "Dry run tasks without writing anything to file or database", false)
 		.action(function(cmd){
 			if(typeof cmd.server === "undefined"){
 				questions.push({
@@ -35,9 +35,7 @@ function init(program){
 					type: "input",
 					name: "username",
 					message: "Username",
-					validate: function(value){
-						return value.length > 0 ? true : "Username cannot be blank";
-					}
+					default: ""
 				});
 			}else{
 				response.username = cmd.username;
@@ -59,9 +57,7 @@ function init(program){
 					type: "input",
 					name: "database",
 					message: "Database",
-					validate: function(value){
-						return value.length > 0 ? true : "Database name cannot be blank";
-					}
+					default: ""
 				});
 			}else{
 				response.database = cmd.database;
@@ -80,18 +76,28 @@ function init(program){
 
 				// Identify the database type
 				const regexResult = response.server.match(constants.databaseRegex);
+				const schema = regexResult.groups.schema;
+				const username = regexResult.groups.username || response.username;
+				const password = regexResult.groups.password || response.password;
+				const host = regexResult.groups.host;
+				const port = regexResult.groups.port || "27017";
+				const database = regexResult.groups.database || response.database;
+
 				if(regexResult === null){
 					throw new Error(`Invalid database server URL: ${response.server}`);
-				}else{
+				}else if(username.length > 0 && password.length > 0 && database.length > 0){
 					response.url = `${regexResult.groups.schema}://${regexResult.groups.username || response.username}:${regexResult.groups.password || response.password}@${regexResult.groups.host}:${regexResult.groups.port || "27017"}/${regexResult.groups.database || response.database}`;
 					response.databaseType = constants.databaseEnums[regexResult.groups.schema];
+				}else{
+					throw new Error(`Invalid database server URL: ${schema}://${username}:${password}@${regexResult.groups.host}:${port}/${database}`);
 				}
 
 				// Create .env file if needed
 				if(response.env){
 					if(response.databaseType === constants.databaseEnums.mongodb){
 						const data = `database_host=${response.url}`;
-						console.log("Writing to .env:\n" + data);
+						console.log("Writing to .env ... ");
+
 						if(!cmd.preview){
 							fs.writeFile("./.env", data).then(() => {
 								console.log("Written .env file");
