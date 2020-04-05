@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const _ = require("lodash");
 const Promise = require("bluebird");
 class DynamicCollection extends Array {
     /**
@@ -18,7 +17,7 @@ class DynamicCollection extends Array {
     constructor(Model, ...data) {
         super();
         const models = [];
-        _.each(data, (d) => {
+        data.forEach((d) => {
             this.push(new Model(d));
         });
     }
@@ -29,7 +28,7 @@ class DynamicCollection extends Array {
      */
     get data() {
         const result = [];
-        _.each(this, (el, i) => {
+        this.forEach((el, i) => {
             result.push(el.data);
         });
         return result;
@@ -45,7 +44,7 @@ class DynamicCollection extends Array {
      */
     // Not sure if this is necessary as we can just destructure array
     static fromArray(arr, Model) {
-        const result = _.reduce(arr, (acc, el, i) => {
+        const result = arr.reduce((acc, el) => {
             acc.push(new Model(el));
             return acc;
         }, new DynamicCollection(Model));
@@ -80,7 +79,7 @@ class DynamicCollection extends Array {
      */
     dropAll() {
         const promises = [];
-        _.each(this, (model) => {
+        this.forEach((model) => {
             if (model.destroy) {
                 promises.push(model.destroy());
             }

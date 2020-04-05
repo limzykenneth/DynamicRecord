@@ -272,11 +272,11 @@ class DynamicRecord {
                 models = _.sortBy(models, orderBy);
             }
             // Delete mongodb added "_id" field
-            _.each(models, (el) => {
+            models.forEach((el) => {
                 delete el._id;
             });
             const results = new DynamicCollection(this.Model, ...models);
-            _.each(results, (result) => {
+            results.forEach((result) => {
                 result._original = _.cloneDeep(result.data);
             });
             return results;
@@ -295,11 +295,11 @@ class DynamicRecord {
             const col = yield this._ready;
             let models = yield col.find().toArray();
             // Delete mongodb added "_id" field
-            _.each(models, (el) => {
+            models.forEach((el) => {
                 delete el._id;
             });
             const results = new DynamicCollection(this.Model, ...models);
-            _.each(results, (result) => {
+            results.forEach((result) => {
                 result._original = _.cloneDeep(result.data);
             });
             return results;
@@ -334,7 +334,7 @@ class DynamicRecord {
             else {
                 const models = yield col.find({}).limit(n).toArray();
                 // Delete mongodb added "_id" field
-                _.each(models, (el) => {
+                models.forEach((el) => {
                     delete el._id;
                 });
                 return new DynamicCollection(this.Model, ...models);
