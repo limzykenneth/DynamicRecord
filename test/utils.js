@@ -22,7 +22,7 @@ if(!regexResult.options){
 	regexResult.options = "";
 }
 
-const url = `${regexResult.schema}://${regexResult.username}:${regexResult.password}@${regexResult.host}:${regexResult.port}/${regexResult.database}?${regexResult.options}`
+const url = `${regexResult.schema}://${regexResult.username}:${regexResult.password}@${regexResult.host}:${regexResult.port}/${regexResult.database}?${regexResult.options}`;
 
 let utils = function(connect){
 	this.connect = connect;

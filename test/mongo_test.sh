@@ -7,4 +7,4 @@ mkdir -p ./test/test_db
 # mongodb is installed locally, start the daemon with the test_db folder
 mongod --auth --dbpath ./test/test_db
 
-# mongo --eval 'use admin; db.createUser({user:"root", pwd:"root", roles:[{role: "userAdminAnyDatabase", db: "admin"}]}); use active_record; db.createUser({user: "test_user", pwd:"test_user", roles:[{role: "readWrite", db:"active_record"}]})'
+# mongo --eval 'use admin; db.createUser({user:"root", pwd:"root", roles:[{role: "userAdminAnyDatabase", db: "admin"}]}); use dynamic_record; db.createUser({user: "test_user", pwd:"test_user", roles:[{role: "readWrite", db:"dynamic_record"}]})'

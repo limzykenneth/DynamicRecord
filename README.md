@@ -123,5 +123,24 @@ myCollection.saveAll().then(() => {
 });
 ```
 
+## Development
+
+1. Clone the repo locally
+2. Run `npm install`
+3. To build the library, run `npm run build`
+4. To run the test:
+	1. Make sure you have a database server running and a database already setup with the right user permission.
+	2. You can use the CLI tool manually with `node tools/cli.js init` to set up the environment as documented [above](#installation), or you can write the following to a `.env` file manually (changing value where appropriate)
+
+	```
+	database_host=mongodb://localhost:27017
+	database_name=dynamic_record
+	database_username=test_user
+	database_password=test_user
+	```
+
+5. Run `npm test`
+6. To build the documentation, run `npm run docs` (test must be setup)
+
 ## License
 [BSD 2-Clause](https://github.com/limzykenneth/DynamicRecord/blob/master/LICENSE)

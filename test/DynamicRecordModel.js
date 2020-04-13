@@ -78,9 +78,9 @@ after(function(){
 // --------------------------------------------
 
 // ----------------- Tests --------------------
-//-------------------------------------------------------------------//
-// Model describes an individual entry in an active record instance  //
-//-------------------------------------------------------------------//
+//--------------------------------------------------------------------//
+// Model describes an individual entry in an dynamic record instance  //
+//--------------------------------------------------------------------//
 describe("Model", function(){
 	describe("Constructor", function(){
 		it("should set the data object according to the object passed in", function(){

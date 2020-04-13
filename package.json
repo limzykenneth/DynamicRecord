@@ -21,7 +21,7 @@
   "main": "build/DynamicRecord.js",
   "scripts": {
     "pretest": "npm run build",
-    "test": "mocha",
+    "test": "eslint src/ test/ tools/ && mocha",
     "database": "sh test/mongo_test.sh",
     "build": "tsc --resolveJsonModule",
     "predocs": "npm test && rm -rf docs/",
