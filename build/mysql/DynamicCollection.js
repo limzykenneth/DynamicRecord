@@ -1,5 +1,14 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-class DynamicCollection extends Array {
+class MySQLCollection extends Collection {
+    constructor(Model, ...data) {
+        super(Model, ...data);
+    }
+    // Not sure if this is necessary as we can just destructure array
+    static fromArray(arr, Model) {
+        const result = arr.reduce((acc, el) => {
+            acc.push(new Model(el));
+            return acc;
+        }, new MySQLCollection(Model));
+        return result;
+    }
 }
-module.exports = DynamicCollection;
+module.exports = MySQLCollection;

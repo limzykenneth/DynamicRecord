@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv").config();
 const MongoClient = require("mongodb").MongoClient;
-const _ = require("lodash");
 const databaseURIRegex = /^(?<schema>.+?):\/\/(?:(?<username>.+?)(?::(?<password>.+))?@)?(?<host>.+?)(?::(?<port>\d+?))?(?:\/(?<database>.+?))?(?:\?(?<options>.+?))?$/;
 const regexResult = _.clone(process.env.database_host.match(databaseURIRegex).groups);
 if (!regexResult.username) {

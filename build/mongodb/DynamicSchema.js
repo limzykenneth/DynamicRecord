@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const _ = require("lodash");
 let connect;
 const schemaValidator = new (require("./schemaValidation.js"))(connect);
 // Let's get mongodb working first
