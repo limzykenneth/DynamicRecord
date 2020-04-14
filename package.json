@@ -22,7 +22,7 @@
   "scripts": {
     "lint": "eslint src/ test/ tools/",
     "pretest": "npm run build",
-    "test": "npm run lint && mocha test/mongodb",
+    "test": "npm run lint && mocha",
     "database": "sh test/mongo_test.sh",
     "build": "tsc --resolveJsonModule",
     "predocs": "npm test && rm -rf docs/",
