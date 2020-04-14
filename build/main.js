@@ -6,6 +6,9 @@ switch (regexResult.groups.schema) {
     case "mongodb":
         DynamicRecord = require("./DynamicRecord.js");
         break;
+    case "mysql":
+        DynamicRecord = null;
+        break;
     default:
         throw new Error("Environment not set up correctly");
 }

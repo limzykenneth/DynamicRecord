@@ -1,10 +1,12 @@
 require("dotenv").config();
 const _ = require("lodash");
 const initMongodb = require("../tools/init/mongodb.js");
+const initMySQL = require("../tools/init/mysql.js");
+const constants = require("../tools/_constants.js");
 
 const testSchema = Object.freeze(require("./random_table.schema.json"));
 
-const databaseURIRegex = /^(?<schema>.+?):\/\/(?:(?<username>.+?)(?::(?<password>.+))?@)?(?<host>.+?)(?::(?<port>\d+?))?(?:\/(?<database>.+?))?(?:\?(?<options>.+?))?$/;
+const databaseURIRegex = constants.databaseRegex;
 const regexResult = _.clone(process.env.database_host.match(databaseURIRegex).groups);
 if(!regexResult.username){
 	regexResult.username = process.env.database_username;
@@ -29,9 +31,17 @@ let utils = function(connect){
 };
 
 utils.prototype.createTestTable = function(){
-	return initMongodb({
-		url
-	});
+	const databaseType = constants.databaseEnums[regexResult.schema];
+
+	if(databaseType === constants.databaseEnums.mongodb){
+		return initMongodb({
+			url
+		});
+	}else if(databaseType === constants.databaseEnums.mongodb){
+		return initMySQL({
+			url
+		});
+	}
 };
 
 utils.prototype.dropTestTable = function(){
