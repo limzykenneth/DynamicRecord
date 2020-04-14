@@ -49,7 +49,7 @@ utils.prototype.createTestTable = async function(){
 utils.prototype.dropTestTable = async function(){
 	if(this.databaseType === constants.databaseEnums.mongodb){
 		await mongodbUtils.dropTestTable(this.connect);
-	}else if(this.databaseType === constants.databaseEnums.mongodb){
+	}else if(this.databaseType === constants.databaseEnums.mysql){
 		await mysqlUtils.dropTestTable(this.connect);
 	}
 };

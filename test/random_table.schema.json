@@ -1,6 +1,6 @@
 {
 	"$schema": "http://json-schema.org/draft-07/schema#",
-	"$id": "random_table.schema.json",
+	"$id": "random_table",
 	"title": "Random Table",
 	"description": "Dynamic Record's test schema",
 	"type": "object",
