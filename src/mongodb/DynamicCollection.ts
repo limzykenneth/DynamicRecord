@@ -40,6 +40,7 @@ class DynamicCollection extends Array{
 	 * the array is not an object, it will be skipped.
 	 *
 	 * @method fromArray
+	 * @memberOf DynamicCollection
 	 * @static
 	 * @return DynamicCollection
 	 * @hidden

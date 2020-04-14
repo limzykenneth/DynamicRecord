@@ -26,7 +26,7 @@
     "database": "sh test/mongo_test.sh",
     "build": "tsc --resolveJsonModule",
     "predocs": "npm test && rm -rf docs/",
-    "docs": "jsdoc -c ./jsdoc.conf.json build/",
+    "docs": "jsdoc -c ./jsdoc.conf.json build/mongodb/",
     "prepublish-docs": "npm run docs",
     "publish-docs": "surge --domain dynamic-record.js.org ./docs",
     "release": "np"
