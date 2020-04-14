@@ -93,7 +93,7 @@ describe("Schema", function(){
 			return table.createTable(testSchema).then(() => {
 				return connect.then((client) => client.db());
 			}).then((db) => {
-				return db.collection(testSchema.$id).indexExists("int");
+				return db.collection(testSchema.$id).indexExists("wholeNumber");
 			}).then((res) => {
 				assert.isTrue(res);
 			});
@@ -105,8 +105,8 @@ describe("Schema", function(){
 			}).then((db) => {
 				return db.collection("_counters").findOne({_$id: testSchema.$id});
 			}).then((res) => {
-				assert.hasAnyKeys(res.sequences, ["int"], "has auto increment field `int`");
-				assert.equal(res.sequences.int, 0, "auto incrementing field is initialized to be 0");
+				assert.hasAnyKeys(res.sequences, ["wholeNumber"], "has auto increment field `wholeNumber`");
+				assert.equal(res.sequences.wholeNumber, 0, "auto incrementing field is initialized to be 0");
 			});
 		});
 		it("should populate its properties according to schema provided", function(){
@@ -348,8 +348,8 @@ describe("Schema", function(){
 				}).then(() => {
 					const model = new Random.Model({
 						"string": "Laborum non culpa.",
-						"int": 27,
-						"float": 6.2831853072
+						"wholeNumber": 27,
+						"floatingPoint": 6.2831853072
 					});
 
 					return model.save();
@@ -364,8 +364,8 @@ describe("Schema", function(){
 
 					const model2 = new Random.Model({
 						"string": "Fugiat laboris cillum quis pariatur.",
-						"int": 42,
-						"float": 2.7182818285
+						"wholeNumber": 42,
+						"floatingPoint": 2.7182818285
 					});
 
 					return model2.save();
@@ -386,13 +386,13 @@ describe("Schema", function(){
 				}).then(() => {
 					const model = new Random.Model({
 						"string": "Laborum non culpa.",
-						"int": 27,
-						"float": 6.2831853072
+						"wholeNumber": 27,
+						"floatingPoint": 6.2831853072
 					});
 
 					return model.save();
 				}).then((model) => {
-					model.data.int = 100;
+					model.data.wholeNumber = 100;
 
 					return model.save();
 				}).then((model) => {
@@ -401,7 +401,7 @@ describe("Schema", function(){
 
 					return connect.then((client) => client.db());
 				}).then((db) => {
-					return db.collection(testSchema.$id).findOne({int: 100});
+					return db.collection(testSchema.$id).findOne({wholeNumber: 100});
 				}).then((m) => {
 					assert.equal(m.testIndex, 1, "auto incrementing index is set to 1");
 				});
@@ -413,8 +413,8 @@ describe("Schema", function(){
 				}).then(() => {
 					const model = new Random.Model({
 						"string": "Laborum non culpa.",
-						"int": 27,
-						"float": 6.2831853072
+						"wholeNumber": 27,
+						"floatingPoint": 6.2831853072
 					});
 
 					return model.save();
@@ -427,8 +427,8 @@ describe("Schema", function(){
 
 					const model2 = new Random.Model({
 						"string": "Fugiat laboris cillum quis pariatur.",
-						"int": 42,
-						"float": 2.7182818285
+						"wholeNumber": 42,
+						"floatingPoint": 2.7182818285
 					});
 
 					return model2.save();
@@ -722,10 +722,10 @@ describe("Schema", function(){
 				assert.isDefined(table.tableSlug);
 				assert.isDefined(table.definition);
 
-				return table.removeColumn("float");
+				return table.removeColumn("floatingPoint");
 			}).then(() => {
 				assert.notDeepInclude(table.definition, {
-					"float": {
+					"floatingPoint": {
 						"description": "Column of type 'Number'",
 						"type": "number"
 					}
@@ -736,7 +736,7 @@ describe("Schema", function(){
 				return db.collection("_schema").findOne({_$id: testSchema.$id});
 			}).then((data) => {
 				assert.notDeepInclude(data.properties, {
-					"float": {
+					"floatingPoint": {
 						"description": "Column of type 'Number'",
 						"type": "number"
 					}
@@ -761,10 +761,10 @@ describe("Schema", function(){
 				assert.isDefined(table.tableSlug);
 				assert.isDefined(table.definition);
 
-				return table.renameColumn("int", "number");
+				return table.renameColumn("wholeNumber", "number");
 			}).then(() => {
 				assert.notDeepInclude(table.definition, {
-					"int": {
+					"wholeNumber": {
 						"description": "Column of type 'integer'",
 						"type": "integer",
 						"isIndex": true,
@@ -787,7 +787,7 @@ describe("Schema", function(){
 				return db.collection("_schema").findOne({_$id: testSchema.$id});
 			}).then((data) => {
 				assert.notDeepInclude(data.properties, {
-					"int": {
+					"wholeNumber": {
 						"description": "Column of type 'integer'",
 						"type": "integer",
 						"isIndex": true,
@@ -813,14 +813,14 @@ describe("Schema", function(){
 			return table.createTable(testSchema).then(() => {
 				assert.isDefined(table.tableSlug);
 				assert.isDefined(table.definition);
-				return table.renameColumn("int", "number");
+				return table.renameColumn("wholeNumber", "number");
 			}).then(() => {
 				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection("_counters").findOne({"_$id": table.tableSlug});
 			}).then((entry) => {
 				assert.hasAnyKeys(entry.sequences, "number", "sequences has key 'number'");
-				assert.doesNotHaveAnyKeys(entry.sequences, "int", "sequences doesn't have key 'int'");
+				assert.doesNotHaveAnyKeys(entry.sequences, "wholeNumber", "sequences doesn't have key 'wholeNumber'");
 			});
 		});
 	});
@@ -841,16 +841,16 @@ describe("Schema", function(){
 				assert.isDefined(table.tableSlug);
 				assert.isDefined(table.definition);
 
-				return table.changeColumnType("float", "integer");
+				return table.changeColumnType("floatingPoint", "integer");
 			}).then(() => {
 				assert.notDeepInclude(table.definition, {
-					"float": {
+					"floatingPoint": {
 						"description": "Column of type 'Number'",
 						"type": "number"
 					}
 				}, "object definition does not include old type");
 				assert.deepInclude(table.definition, {
-					"float": {
+					"floatingPoint": {
 						"description": "Column of type 'Number'",
 						"type": "integer"
 					}
@@ -861,13 +861,13 @@ describe("Schema", function(){
 				return db.collection("_schema").findOne({_$id: testSchema.$id});
 			}).then((data) => {
 				assert.notDeepInclude(data.properties, {
-					"float": {
+					"floatingPoint": {
 						"description": "Column of type 'Number'",
 						"type": "number"
 					}
 				}, "database entry does not include old type");
 				assert.deepInclude(data.properties, {
-					"float": {
+					"floatingPoint": {
 						"description": "Column of type 'Number'",
 						"type": "integer"
 					}

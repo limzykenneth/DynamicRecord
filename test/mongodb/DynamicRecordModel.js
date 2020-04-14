@@ -22,20 +22,20 @@ const testSchema = Object.freeze(require("../random_table.schema.json"));
 const testData = Object.freeze([
 	{
 		"string": "Velit tempor.",
-		"int": 42,
-		"float": 3.1415926536,
+		"wholeNumber": 42,
+		"floatingPoint": 3.1415926536,
 		"testIndex": 0
 	},
 	{
 		"string": "Fugiat laboris cillum quis pariatur.",
-		"int": 42,
-		"float": 2.7182818285,
+		"wholeNumber": 42,
+		"floatingPoint": 2.7182818285,
 		"testIndex": 1
 	},
 	{
 		"string": "Reprehenderit sint.",
-		"int": 10958,
-		"float": 2.7182818285,
+		"wholeNumber": 10958,
+		"floatingPoint": 2.7182818285,
 		"testIndex": 2
 	}
 ]);
@@ -122,16 +122,16 @@ describe("Model", function(){
 		it("should insert the corresponding entry in the database if not exist", function(){
 			let model = new Random.Model({
 				"string": "Laborum non culpa.",
-				"int": 27,
-				"float": 6.2831853072
+				"wholeNumber": 27,
+				"floatingPoint": 6.2831853072
 			});
 			return model.save().then(() => {
 				return connect.then((client) => client.db());
 			}).then((db) => {
 				return db.collection(testSchema.$id).findOne({
 					"string": "Laborum non culpa.",
-					"int": 27,
-					"float": 6.2831853072
+					"wholeNumber": 27,
+					"floatingPoint": 6.2831853072
 				});
 			}).then((m) => {
 				assert.isNotNull(m, "returned result is not null");
@@ -139,21 +139,21 @@ describe("Model", function(){
 		});
 		it("should update the corresponding entry in the database if exist", function(){
 			let model;
-			return Random.findBy({"int": 10958}).then((m) => {
+			return Random.findBy({"wholeNumber": 10958}).then((m) => {
 				model = m;
 				model.data.string = "New string";
 				return model.save();
 			}).then(() => {
 				return connect.then((client) => client.db());
 			}).then((db) => {
-				return db.collection(testSchema.$id).findOne({"int": 10958});
+				return db.collection(testSchema.$id).findOne({"wholeNumber": 10958});
 			}).then((m) => {
 				delete m._id;
 				assert.deepEqual(m, model.data, "returned result is equal to 'model.data'");
 			});
 		});
 		it("should update the deep copy of the data into _original", function(){
-			return Random.findBy({"int": 10958}).then((model) => {
+			return Random.findBy({"wholeNumber": 10958}).then((model) => {
 				model.data.string = "New string";
 				return model.save();
 			}).then((model) => {
@@ -162,8 +162,8 @@ describe("Model", function(){
 		});
 		it("should return a rejected Promise if the new model doesn't match the schema definition", function(done){
 			let model = new Random.Model();
-			model.data.int = 100;
-			model.data.float = "Not a float";
+			model.data.wholeNumber = 100;
+			model.data.floatingPoint = "Not a float";
 			model.data.string = "Surely a string";
 			model.data.testIndex = "4";
 			model.save().then(() => {
@@ -182,8 +182,8 @@ describe("Model", function(){
 			});
 		});
 		it("should return a rejected Promise if the updated data doesn't match the schema definition", function(done){
-			Random.findBy({"int": 10958}).then((model) => {
-				model.data.int = "Is a string";
+			Random.findBy({"wholeNumber": 10958}).then((model) => {
+				model.data.wholeNumber = "Is a string";
 				return model.save();
 			}).then((model) => {
 				done("model.save() is not rejecting a mismatch between data and schema");
@@ -195,7 +195,7 @@ describe("Model", function(){
 			}).then((db) => {
 				return db.collection(testSchema.$id).findOne({"testIndex": 2});
 			}).then((m) => {
-				assert.notEqual(m.int, "Is a string", "`m.int` is not updated in the database");
+				assert.notEqual(m.wholeNumber, "Is a string", "`m.wholeNumber` is not updated in the database");
 				done();
 			}).catch((err) => {
 				done(err);

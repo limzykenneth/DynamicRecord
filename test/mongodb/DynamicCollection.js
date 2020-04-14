@@ -94,18 +94,18 @@ describe("DynamicCollection", function(){
 		const testData = [
 			{
 				"string": "Velit tempor.",
-				"int": 42,
-				"float": 3.1415926536
+				"wholeNumber": 42,
+				"floatingPoint": 3.1415926536
 			},
 			{
 				"string": "Fugiat laboris cillum quis pariatur.",
-				"int": 42,
-				"float": 2.7182818285
+				"wholeNumber": 42,
+				"floatingPoint": 2.7182818285
 			},
 			{
 				"string": "Reprehenderit sint.",
-				"int": 10958,
-				"float": 2.7182818285
+				"wholeNumber": 10958,
+				"floatingPoint": 2.7182818285
 			}
 		];
 		beforeEach(function(){
@@ -136,7 +136,7 @@ describe("DynamicCollection", function(){
 					return db.collection("_counters").insertOne({
 						"_$id": testSchema.$id,
 						sequences: {
-							int: 0
+							wholeNumber: 0
 						}
 					});
 				});
@@ -151,7 +151,7 @@ describe("DynamicCollection", function(){
 
 			it("should set the autoincrementing index correctly", function(){
 				col.forEach((model) => {
-					delete model.data.int;
+					delete model.data.wholeNumber;
 				});
 				return col.saveAll().then((res) => {
 					return connect.then((client) => {
@@ -160,10 +160,10 @@ describe("DynamicCollection", function(){
 					});
 				}).then((res) => {
 					for(let i=0; i<res.length; i++){
-						assert.equal(res[i].int, i+1, `database entry has auto increment value ${i+1}`);
+						assert.equal(res[i].wholeNumber, i+1, `database entry has auto increment value ${i+1}`);
 					}
 					for(let i=0; i<col.length; i++){
-						assert.equal(col[i].data.int, i+1, `collection entry has auto increment value ${i+1}`);
+						assert.equal(col[i].data.wholeNumber, i+1, `collection entry has auto increment value ${i+1}`);
 					}
 				});
 			});
@@ -175,18 +175,18 @@ describe("DynamicCollection", function(){
 		const testData = [
 			{
 				"string": "Velit tempor.",
-				"int": 42,
-				"float": 3.1415926536
+				"wholeNumber": 42,
+				"floatingPoint": 3.1415926536
 			},
 			{
 				"string": "Fugiat laboris cillum quis pariatur.",
-				"int": 42,
-				"float": 2.7182818285
+				"wholeNumber": 42,
+				"floatingPoint": 2.7182818285
 			},
 			{
 				"string": "Reprehenderit sint.",
-				"int": 10958,
-				"float": 2.7182818285
+				"wholeNumber": 10958,
+				"floatingPoint": 2.7182818285
 			}
 		];
 		beforeEach(function(){

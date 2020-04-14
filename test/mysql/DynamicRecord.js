@@ -21,20 +21,20 @@
 // const testData = Object.freeze([
 // 	{
 // 		"string": "Velit tempor.",
-// 		"int": 42,
-// 		"float": 3.1415926536,
+// 		"wholeNumber": 42,
+// 		"floatingPoint": 3.1415926536,
 // 		"testIndex": 0
 // 	},
 // 	{
 // 		"string": "Fugiat laboris cillum quis pariatur.",
-// 		"int": 42,
-// 		"float": 2.7182818285,
+// 		"wholeNumber": 42,
+// 		"floatingPoint": 2.7182818285,
 // 		"testIndex": 1
 // 	},
 // 	{
 // 		"string": "Reprehenderit sint.",
-// 		"int": 10958,
-// 		"float": 2.7182818285,
+// 		"wholeNumber": 10958,
+// 		"floatingPoint": 2.7182818285,
 // 		"testIndex": 2
 // 	}
 // ]);

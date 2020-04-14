@@ -21,20 +21,20 @@ const testSchema = Object.freeze(require("../random_table.schema.json"));
 const testData = Object.freeze([
 	{
 		"string": "Velit tempor.",
-		"int": 42,
-		"float": 3.1415926536,
+		"wholeNumber": 42,
+		"floatingPoint": 3.1415926536,
 		"testIndex": 0
 	},
 	{
 		"string": "Fugiat laboris cillum quis pariatur.",
-		"int": 42,
-		"float": 2.7182818285,
+		"wholeNumber": 42,
+		"floatingPoint": 2.7182818285,
 		"testIndex": 1
 	},
 	{
 		"string": "Reprehenderit sint.",
-		"int": 10958,
-		"float": 2.7182818285,
+		"wholeNumber": 10958,
+		"floatingPoint": 2.7182818285,
 		"testIndex": 2
 	}
 ]);
@@ -130,14 +130,14 @@ describe("DynamicRecord", function(){
 
 	describe("where()", function(){
 		it("should retrieve all entries from the database matching the query", function(){
-			return Random.where({"int": testData[0].int}).then((col) => {
+			return Random.where({"wholeNumber": testData[0].wholeNumber}).then((col) => {
 				assert.deepInclude(col.data, testData[0], "collection data includes first test data");
 				assert.deepInclude(col.data, testData[1], "collection data includes second test data");
 				assert.notDeepInclude(col.data, testData[2], "collection data does not include third data");
 			});
 		});
 		it("should return an array descendent of type DynamicCollection", function(){
-			return Random.where({"float": testData[1].float}).then((col) => {
+			return Random.where({"floatingPoint": testData[1].floatingPoint}).then((col) => {
 				assert.instanceOf(col, Array, "collection is an instance of Array");
 				assert.instanceOf(col, DynamicCollection, "collection is an instance of DynamicCollection");
 			});
