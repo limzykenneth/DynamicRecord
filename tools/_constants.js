@@ -1,6 +1,7 @@
 // An enums of all supported database type
 const databaseEnums = Object.freeze({
-	mongodb: Symbol("mongodb")
+	mongodb: Symbol("mongodb"),
+	mysql: Symbol("mysql")
 });
 
 // Regex used to detect database type

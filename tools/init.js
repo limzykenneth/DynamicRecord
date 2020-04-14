@@ -4,6 +4,7 @@ const _ = require("lodash");
 
 const constants = require("./_constants.js");
 const initMongodb = require("./init/mongodb.js");
+const initMySQL = require("./init/mysql.js");
 
 function init(program){
 	const response = {};
@@ -111,6 +112,13 @@ function init(program){
 					if(!cmd.preview){
 						return initMongodb(response).then(() => {
 							console.log(`Initialized mongodb database ${response.database}`);
+							return Promise.resolve();
+						});
+					}
+				}else if(response.databaseType === constants.databaseEnums.mysql){
+					if(!cmd.preview){
+						return initMySQL(response).then(() => {
+							console.log(`Initialized mysql database ${response.database}`);
 							return Promise.resolve();
 						});
 					}
