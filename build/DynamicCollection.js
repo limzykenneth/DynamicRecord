@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const Promise = require("bluebird");
 class DynamicCollection extends Array {
     /**
      * Creates a new DynamicCollection instance.
@@ -30,6 +33,18 @@ class DynamicCollection extends Array {
         });
         return result;
     }
+    /**
+     * Converts an array of objects into a DynamicCollection. If an element in
+     * the array is not an object, it will be skipped.
+     *
+     * @method fromArray
+     * @memberOf DynamicCollection
+     * @static
+     * @return DynamicCollection
+     * @hidden
+     */
+    // ABSTRACT STATIC METHOD
+    static fromArray(arr, Model) { }
     /**
      * Save all the model instances in the DynamicCollection.
      *
@@ -70,4 +85,4 @@ class DynamicCollection extends Array {
         });
     }
 }
-module.exports = DynamicCollection;
+exports.default = DynamicCollection;

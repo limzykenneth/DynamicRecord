@@ -1,6 +1,6 @@
-import Promise = require("bluebird");
+import * as Promise from "bluebird";
 
-abstract class DynamicCollection extends Array{
+export default abstract class DynamicCollection extends Array{
 	/**
 	 * Creates a new DynamicCollection instance.
 	 *
@@ -45,7 +45,8 @@ abstract class DynamicCollection extends Array{
 	 * @return DynamicCollection
 	 * @hidden
 	 */
-	abstract fromArray(arr: Array<any>, Model);
+	// ABSTRACT STATIC METHOD
+	static fromArray(arr: Array<any>, Model){}
 
 	/**
 	 * Save all the model instances in the DynamicCollection.
@@ -58,7 +59,7 @@ abstract class DynamicCollection extends Array{
 	 * @return {Promise} Return promise of this DynamicCollection instance
 	 */
 	// CONSIDER: Saving in series thus slow. Can consider assigning a block of counters at once
-	saveAll(): Promise{
+	saveAll(){
 		return Promise.each(this, (model) => {
 			if(model.save){
 				return model.save();
@@ -76,7 +77,7 @@ abstract class DynamicCollection extends Array{
 	 * @instance
 	 * @return {Promise} Return promise of this DynamicCollection instance
 	 */
-	dropAll(): Promise{
+	dropAll(){
 		const promises = [];
 		this.forEach((model) => {
 			if(model.destroy){
@@ -89,5 +90,3 @@ abstract class DynamicCollection extends Array{
 		});
 	}
 }
-
-module.exports = DynamicCollection;

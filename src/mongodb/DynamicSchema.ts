@@ -1,4 +1,4 @@
-import _ = require("lodash");
+import * as _ from "lodash";
 
 let connect;
 const schemaValidator = new (require("./schemaValidation.js"))(connect);
@@ -23,12 +23,14 @@ interface IndexOptions{
 
 interface TableSchema{
 	$schema?:string;
+	_$schema?:string;
 	$id?:string;
+	_$id?:string;
 	title?:string;
 	description?:string
 	type?:string;
 	properties?:SchemaDefinitions
-	required?:Array<Definition>
+	required?:Array<string>
 }
 
 // Let's get mongodb working first

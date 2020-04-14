@@ -1,5 +1,7 @@
-const Collection = require("../DynamicCollection");
-class MongoDBCollection extends Collection {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const DynamicCollection_1 = require("../DynamicCollection");
+class DynamicCollection extends DynamicCollection_1.default {
     constructor(Model, ...data) {
         super(Model, ...data);
     }
@@ -8,8 +10,8 @@ class MongoDBCollection extends Collection {
         const result = arr.reduce((acc, el) => {
             acc.push(new Model(el));
             return acc;
-        }, new MongoDBCollection(Model));
+        }, new DynamicCollection(Model));
         return result;
     }
 }
-module.exports = MongoDBCollection;
+module.exports = DynamicCollection;

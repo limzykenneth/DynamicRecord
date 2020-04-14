@@ -1,4 +1,4 @@
-import _ = require("lodash");
+import * as _ from "lodash";
 const DynamicCollection = require("./DynamicCollection.js");
 
 class DynamicRecord {

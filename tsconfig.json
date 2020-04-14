@@ -3,7 +3,7 @@
         "outDir": "./build",
         "allowJs": true,
         "target": "es6",
-        "module": "es2015"
+        "module": "commonjs"
     },
     "include": [
         "./src/**/*"

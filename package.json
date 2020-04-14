@@ -24,7 +24,7 @@
     "pretest": "npm run build",
     "test": "npm run lint && mocha",
     "database": "sh test/mongo_test.sh",
-    "build": "tsc --resolveJsonModule",
+    "build": "tsc",
     "predocs": "npm test && rm -rf docs/",
     "docs": "jsdoc -c ./jsdoc.conf.json build/",
     "prepublish-docs": "npm run docs",
@@ -47,6 +47,8 @@
     "mysql2": "^2.1.0"
   },
   "devDependencies": {
+    "@types/bluebird": "^3.5.30",
+    "@types/lodash": "^4.14.149",
     "@types/node": "^12.12.26",
     "@typescript-eslint/eslint-plugin": "^2.6.1",
     "@typescript-eslint/parser": "^2.6.1",
