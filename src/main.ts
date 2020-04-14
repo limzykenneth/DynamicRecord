@@ -11,7 +11,7 @@ switch(regexResult.groups.schema){
 		break;
 
 	case "mysql":
-		DynamicRecord = null;
+		DynamicRecord = require("./DynamicRecord.js");
 		break;
 
 	default:
