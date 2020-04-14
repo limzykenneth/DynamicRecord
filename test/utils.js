@@ -1,10 +1,13 @@
 require("dotenv").config();
 const _ = require("lodash");
-const initMongodb = require("../tools/init/mongodb.js");
-const initMySQL = require("../tools/init/mysql.js");
-const constants = require("../tools/_constants.js");
 
-const testSchema = Object.freeze(require("./random_table.schema.json"));
+const initMongodb = require("../tools/init/mongodb.js");
+const mongodbUtils = require("./mongodb/utils");
+
+const initMySQL = require("../tools/init/mysql.js");
+const mysqlUtils = require("./mysql/utils");
+
+const constants = require("../tools/_constants.js");
 
 const databaseURIRegex = constants.databaseRegex;
 const regexResult = _.clone(process.env.database_host.match(databaseURIRegex).groups);
@@ -27,70 +30,33 @@ if(!regexResult.options){
 const url = `${regexResult.schema}://${regexResult.username}:${regexResult.password}@${regexResult.host}:${regexResult.port}/${regexResult.database}?${regexResult.options}`;
 
 let utils = function(connect){
+	this.databaseType = constants.databaseEnums[regexResult.schema];
 	this.connect = connect;
 };
 
-utils.prototype.createTestTable = function(){
-	const databaseType = constants.databaseEnums[regexResult.schema];
-
-	if(databaseType === constants.databaseEnums.mongodb){
-		return initMongodb({
+utils.prototype.createTestTable = async function(){
+	if(this.databaseType === constants.databaseEnums.mongodb){
+		await initMongodb({
 			url
 		});
-	}else if(databaseType === constants.databaseEnums.mongodb){
-		return initMySQL({
+	}else if(this.databaseType === constants.databaseEnums.mongodb){
+		await initMySQL({
 			url
 		});
 	}
 };
 
-utils.prototype.dropTestTable = function(){
-	return this.connect.then((client) => {
-		const db = client.db();
-		return db.collection(testSchema.$id).drop().then(() => {
-			return Promise.resolve(db);
-		}).catch((err) => {
-			if(err.message == "ns not found"){
-				return Promise.resolve(db);
-			}else{
-				console.error(err);
-			}
-		});
-	}).then((db) => {
-		return db.collection("_counters").drop().then(() => {
-			return Promise.resolve(db);
-		}).catch((err) => {
-			if(err.message == "ns not found"){
-				return Promise.resolve(db);
-			}else{
-				console.error(err);
-			}
-		});
-	}).then((db) => {
-		return db.collection("_schema").drop().then(() => {
-			return Promise.resolve(db);
-		}).catch((err) => {
-			if(err.message == "ns not found"){
-				return Promise.resolve(db);
-			}else{
-				console.error(err);
-			}
-		});
-	}).then((db) => {
-		return db.collection("test_table").drop().catch((err) => {
-			if(err.message == "ns not found"){
-				return Promise.resolve(db);
-			}else{
-				console.error(err);
-			}
-		});
-	});
+utils.prototype.dropTestTable = async function(){
+	if(this.databaseType === constants.databaseEnums.mongodb){
+		await mongodbUtils.dropTestTable(this.connect);
+	}else if(this.databaseType === constants.databaseEnums.mongodb){
+		await mysqlUtils.dropTestTable(this.connect);
+	}
 };
 
-utils.prototype.resetTestTables = function(){
-	return this.dropTestTable().then(() => {
-		return this.createTestTable();
-	});
+utils.prototype.resetTestTables = async function(){
+	await this.dropTestTable();
+	await this.createTestTable();
 };
 
 module.exports = {

@@ -3,18 +3,18 @@ require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
 const MongoClient = require("mongodb").MongoClient;
-const url = require("./utils.js").url;
+const url = require("../utils.js").url;
 const connect = MongoClient.connect(url, {useUnifiedTopology: true});
 
 // Test dependencies
-const DynamicRecord = require("../build/main.js");
+const DynamicRecord = require("../../build/main.js");
 const DynamicCollection = DynamicRecord.DynamicCollection;
-const utils = new (require("./utils.js").utils)(connect);
+const utils = new (require("../utils.js").utils)(connect);
 const chai = require("chai");
 const assert = chai.assert;
 
 // Schema definition
-const testSchema = Object.freeze(require("./random_table.schema.json"));
+const testSchema = Object.freeze(require("../random_table.schema.json"));
 
 // Data to be inserted into database for testing
 // Each element in array correspond to an entry in database
