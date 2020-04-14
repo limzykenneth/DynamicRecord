@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 const Ajv = require("ajv");
 const _ = require("lodash");
-const countersSchema = require("./schemas/_counters.schema.json");
+const countersSchema = require("../schemas/_counters.schema.json");
 let connect;
 const ajv = new Ajv({
     loadSchema: loadSchema

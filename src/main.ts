@@ -7,11 +7,11 @@ let DynamicRecord;
 
 switch(regexResult.groups.schema){
 	case "mongodb":
-		DynamicRecord = require("./DynamicRecord.js");
+		DynamicRecord = require("./mongodb/DynamicRecord.js");
 		break;
 
 	case "mysql":
-		DynamicRecord = require("./DynamicRecord.js");
+		// DynamicRecord = require("./DynamicRecord.js");
 		break;
 
 	default:
