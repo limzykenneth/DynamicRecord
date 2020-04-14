@@ -1,6 +1,6 @@
-import * as _ from "lodash";
 require("dotenv").config();
-const MongoClient = require("mongodb").MongoClient;
+import * as _ from "lodash";
+import {MongoClient} from "mongodb";
 
 const databaseURIRegex = /^(?<schema>.+?):\/\/(?:(?<username>.+?)(?::(?<password>.+))?@)?(?<host>.+?)(?::(?<port>\d+?))?(?:\/(?<database>.+?))?(?:\?(?<options>.+?))?$/;
 const regexResult = _.clone(process.env.database_host.match(databaseURIRegex).groups);
@@ -27,7 +27,8 @@ const client = new MongoClient(url, {
 	useUnifiedTopology: true
 });
 const connection = client.connect();
-module.exports = connection.then((client) => {
+
+export default connection.then((client) => {
 	const db = client.db();
 	return Promise.resolve({db, client});
 });

@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-const DynamicCollection = require("./DynamicCollection.js");
+import DynamicCollection from "./DynamicCollection";
 
 class DynamicRecord {
 	// Static constructors for their own separate use

@@ -14,4 +14,4 @@ class DynamicCollection extends DynamicCollection_1.default {
         return result;
     }
 }
-module.exports = DynamicCollection;
+exports.default = DynamicCollection;

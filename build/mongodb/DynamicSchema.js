@@ -614,7 +614,9 @@ class Schema {
         });
     }
 }
-module.exports = function (connection) {
+function default_1(connection) {
     connect = connection;
     return Schema;
-};
+}
+exports.default = default_1;
+;

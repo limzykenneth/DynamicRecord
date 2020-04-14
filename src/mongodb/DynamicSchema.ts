@@ -655,7 +655,7 @@ class Schema{
 	 * to increment
 	 * @return {Promise} - Promise of the next number in the sequence
 	 */
-	private _incrementCounter(collection:string, columnLabel:string){
+	_incrementCounter(collection:string, columnLabel:string){
 		return connect.then((opts) => {
 			const db = opts.db;
 			return db.collection("_counters").findOne({
@@ -679,7 +679,7 @@ class Schema{
 		});
 	}
 
-	private _decrementCounter(collection:string, columnLabel:string){
+	_decrementCounter(collection:string, columnLabel:string){
 		return connect.then((opts) => {
 			const db = opts.db;
 			return db.collection("_counters").findOne({
@@ -709,7 +709,7 @@ class Schema{
 	// }
 }
 
-module.exports = function(connection){
+export default function(connection){
 	connect = connection;
 	return Schema;
 };

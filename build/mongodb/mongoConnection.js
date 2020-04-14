@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const _ = require("lodash");
 require("dotenv").config();
-const MongoClient = require("mongodb").MongoClient;
+const _ = require("lodash");
+const mongodb_1 = require("mongodb");
 const databaseURIRegex = /^(?<schema>.+?):\/\/(?:(?<username>.+?)(?::(?<password>.+))?@)?(?<host>.+?)(?::(?<port>\d+?))?(?:\/(?<database>.+?))?(?:\?(?<options>.+?))?$/;
 const regexResult = _.clone(process.env.database_host.match(databaseURIRegex).groups);
 if (!regexResult.username) {
@@ -21,12 +21,12 @@ if (!regexResult.options) {
     regexResult.options = "";
 }
 const url = `${regexResult.schema}://${regexResult.username}:${regexResult.password}@${regexResult.host}:${regexResult.port}/${regexResult.database}?${regexResult.options}`;
-const client = new MongoClient(url, {
+const client = new mongodb_1.MongoClient(url, {
     poolSize: 10,
     useUnifiedTopology: true
 });
 const connection = client.connect();
-module.exports = connection.then((client) => {
+exports.default = connection.then((client) => {
     const db = client.db();
     return Promise.resolve({ db, client });
 });

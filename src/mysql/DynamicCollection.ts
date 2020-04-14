@@ -1,6 +1,6 @@
 import Collection from "../DynamicCollection";
 
-class DynamicCollection extends Collection{
+export default class DynamicCollection extends Collection{
 	constructor(Model, ...data){
 		super(Model, ...data);
 	}
@@ -15,5 +15,3 @@ class DynamicCollection extends Collection{
 		return result;
 	}
 }
-
-module.exports = DynamicCollection;

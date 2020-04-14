@@ -1,9 +1,9 @@
 import * as _ from "lodash";
-const DynamicCollection = require("./DynamicCollection.js");
-const DynamicSchema = require("./DynamicSchema.js");
+import DynamicCollection from "./DynamicCollection";
+import DynamicSchema from "./DynamicSchema";
 
 // Let's get mongodb working first
-const connect = require("./mongoConnection.js");
+import connect from "./mongoConnection";
 const schemaValidator = new (require("./schemaValidation.js"))(connect);
 
 class DynamicRecord {

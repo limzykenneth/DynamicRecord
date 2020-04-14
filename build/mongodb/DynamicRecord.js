@@ -10,11 +10,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const _ = require("lodash");
-const DynamicCollection = require("./DynamicCollection.js");
-const DynamicSchema = require("./DynamicSchema.js");
+const DynamicCollection_1 = require("./DynamicCollection");
+const DynamicSchema_1 = require("./DynamicSchema");
 // Let's get mongodb working first
-const connect = require("./mongoConnection.js");
-const schemaValidator = new (require("./schemaValidation.js"))(connect);
+// const connect = require("./mongoConnection.js");
+const mongoConnection_1 = require("./mongoConnection");
+const schemaValidator = new (require("./schemaValidation.js"))(mongoConnection_1.default);
 class DynamicRecord {
     /**
      * Creates a new DynamicRecord instance.
@@ -26,13 +27,13 @@ class DynamicRecord {
      * and not containing any whitespace
      */
     constructor(options) {
-        this._databaseConnection = connect;
-        const _schema = this.schema = new (DynamicSchema(this._databaseConnection))();
+        this._databaseConnection = mongoConnection_1.default;
+        const _schema = this.schema = new (DynamicSchema_1.default(this._databaseConnection))();
         const tableSlug = options.tableSlug;
         let _db;
         let _client;
         // Initialize database connection and populate schema instance
-        const _ready = this._ready = connect.then((opts) => {
+        const _ready = this._ready = mongoConnection_1.default.then((opts) => {
             const db = _db = this._db = opts.db;
             _client = this._client = opts.client;
             // Collection must already exist in database
@@ -275,7 +276,7 @@ class DynamicRecord {
             models.forEach((el) => {
                 delete el._id;
             });
-            const results = new DynamicCollection(this.Model, ...models);
+            const results = new DynamicCollection_1.default(this.Model, ...models);
             results.forEach((result) => {
                 result._original = _.cloneDeep(result.data);
             });
@@ -298,7 +299,7 @@ class DynamicRecord {
             models.forEach((el) => {
                 delete el._id;
             });
-            const results = new DynamicCollection(this.Model, ...models);
+            const results = new DynamicCollection_1.default(this.Model, ...models);
             results.forEach((result) => {
                 result._original = _.cloneDeep(result.data);
             });
@@ -337,12 +338,12 @@ class DynamicRecord {
                 models.forEach((el) => {
                     delete el._id;
                 });
-                return new DynamicCollection(this.Model, ...models);
+                return new DynamicCollection_1.default(this.Model, ...models);
             }
         });
     }
 }
 // Static constructors for their own separate use
-DynamicRecord.DynamicSchema = DynamicSchema(connect);
-DynamicRecord.DynamicCollection = DynamicCollection;
+DynamicRecord.DynamicSchema = DynamicSchema_1.default(mongoConnection_1.default);
+DynamicRecord.DynamicCollection = DynamicCollection_1.default;
 module.exports = DynamicRecord;
