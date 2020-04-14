@@ -39,7 +39,7 @@ utils.prototype.createTestTable = async function(){
 		await initMongodb({
 			url
 		});
-	}else if(this.databaseType === constants.databaseEnums.mongodb){
+	}else if(this.databaseType === constants.databaseEnums.mysql){
 		await initMySQL({
 			url
 		});
