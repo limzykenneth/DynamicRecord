@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const _ = require("lodash");
+const DynamicRecord_1 = require("../DynamicRecord");
 const DynamicCollection_1 = require("./DynamicCollection");
 const DynamicSchema_1 = require("./DynamicSchema");
 // Let's get mongodb working first
@@ -48,160 +49,101 @@ class DynamicRecord {
                 }
             });
         });
-        /**
-         * Create a new DynamicRecord.Model instance.
-         *
-         * @name DynamicRecord.Model
-         * @memberOf DynamicRecord
-         * @instance
-         * @constructor
-         * @param {object} data - Object containing data for this instance of
-         * DynamicRecord.Model
-         */
-        const Model = this.Model = function (data, _preserveOriginal) {
-            /**
-             * The data contained in this instance. It is not kept in sync with
-             * the database automatically.
-             *
-             * You should be directly modifying this object. When done and you
-             * wish to save the data to the database, call `save()` on the
-             * parent object instance.
-             *
-             * @name data
-             * @type object
-             * @memberOf DynamicRecord.Model
-             * @instance
-             */
-            this.data = data || {};
-            if (_preserveOriginal) {
-                this._original = _.cloneDeep(data);
+        const Model = this.Model = class Model extends DynamicRecord_1.Model {
+            constructor(data, _preserveOriginal) {
+                super(data, _preserveOriginal);
             }
-            else {
-                this._original = null;
+            save() {
+                return __awaiter(this, void 0, void 0, function* () {
+                    return _ready.then((col) => __awaiter(this, void 0, void 0, function* () {
+                        if (this._original) {
+                            yield validateData(this.data);
+                            yield col.updateOne(this._original, { $set: this.data }, { upsert: true });
+                            this._original = _.cloneDeep(this.data);
+                            return this;
+                        }
+                        else {
+                            // Check if collection contains index that needs auto incrementing
+                            return _db.collection("_counters").findOne({ _$id: tableSlug }).then((res) => __awaiter(this, void 0, void 0, function* () {
+                                const promises = [];
+                                if (res !== null) {
+                                    // Auto incrementing index exist
+                                    _.each(res.sequences, (el, columnLabel) => {
+                                        promises.push(_schema._incrementCounter(tableSlug, columnLabel).then((newSequence) => {
+                                            this.data[columnLabel] = newSequence;
+                                            return Promise.resolve(newSequence);
+                                        }));
+                                    });
+                                    yield Promise.all(promises);
+                                }
+                                yield validateData(this.data);
+                                // Save data into the database
+                                yield col.insertOne(this.data);
+                                this._original = _.cloneDeep(this.data);
+                                return this;
+                            })).catch((err) => {
+                                // Reverse database actions
+                                return Promise.all([
+                                    // 1. Decrement autoincrement counter
+                                    _db.collection("_counters").findOne({ _$id: tableSlug }).then((res) => {
+                                        const promises = [];
+                                        _.each(res.sequences, (el, columnLabel) => {
+                                            promises.push(_schema._decrementCounter(tableSlug, columnLabel));
+                                        });
+                                        return Promise.all(promises);
+                                    })
+                                ]).then(() => {
+                                    return Promise.reject(err);
+                                }).catch((e) => {
+                                    return Promise.reject(e);
+                                });
+                            });
+                        }
+                    })).catch((err) => {
+                        return Promise.reject(err);
+                    });
+                    function validateData(data) {
+                        return __awaiter(this, void 0, void 0, function* () {
+                            const validate = yield schemaValidator.compileAsync({ $ref: _schema.tableSlug });
+                            if (validate(data)) {
+                                return Promise.resolve();
+                            }
+                            else {
+                                return Promise.reject(new Error(validate.errors));
+                            }
+                        });
+                    }
+                });
             }
-        };
-        /**
-         * Save the data in this instance to the database.
-         *
-         * If you have a series of models of the same schema, it is recommended
-         * to put them in a DynamicCollection and calling `saveAll()` on it
-         * instead of attempting to save them all in parallel. This applies to
-         * schemas with auto incrementing counters.
-         *
-         * @method save
-         * @memberOf DynamicRecord.Model
-         * @instance
-         * @return {Promise} Return promise of this DynamicRecord.Model instance
-         */
-        Model.prototype.save = function () {
-            return __awaiter(this, void 0, void 0, function* () {
-                return _ready.then((col) => __awaiter(this, void 0, void 0, function* () {
+            destroy() {
+                return __awaiter(this, void 0, void 0, function* () {
+                    const col = yield _ready;
                     if (this._original) {
-                        yield validateData(this.data);
-                        yield col.updateOne(this._original, { $set: this.data }, { upsert: true });
-                        this._original = _.cloneDeep(this.data);
+                        yield col.deleteOne(this._original);
+                        this._original = null;
+                        this.data = null;
                         return this;
                     }
                     else {
-                        // Check if collection contains index that needs auto incrementing
-                        return _db.collection("_counters").findOne({ _$id: tableSlug }).then((res) => __awaiter(this, void 0, void 0, function* () {
-                            const promises = [];
-                            if (res !== null) {
-                                // Auto incrementing index exist
-                                _.each(res.sequences, (el, columnLabel) => {
-                                    promises.push(_schema._incrementCounter(tableSlug, columnLabel).then((newSequence) => {
-                                        this.data[columnLabel] = newSequence;
-                                        return Promise.resolve(newSequence);
-                                    }));
-                                });
-                                yield Promise.all(promises);
-                            }
-                            yield validateData(this.data);
-                            // Save data into the database
-                            yield col.insertOne(this.data);
-                            this._original = _.cloneDeep(this.data);
-                            return this;
-                        })).catch((err) => {
-                            // Reverse database actions
-                            return Promise.all([
-                                // 1. Decrement autoincrement counter
-                                _db.collection("_counters").findOne({ _$id: tableSlug }).then((res) => {
-                                    const promises = [];
-                                    _.each(res.sequences, (el, columnLabel) => {
-                                        promises.push(_schema._decrementCounter(tableSlug, columnLabel));
-                                    });
-                                    return Promise.all(promises);
-                                })
-                            ]).then(() => {
-                                return Promise.reject(err);
-                            }).catch((e) => {
-                                return Promise.reject(e);
-                            });
-                        });
+                        throw new Error("Model not saved in database yet.");
                     }
-                })).catch((err) => {
-                    return Promise.reject(err);
                 });
-                function validateData(data) {
-                    return __awaiter(this, void 0, void 0, function* () {
-                        const validate = yield schemaValidator.compileAsync({ $ref: _schema.tableSlug });
-                        if (validate(data)) {
-                            return Promise.resolve();
-                        }
-                        else {
-                            return Promise.reject(new Error(validate.errors));
-                        }
+            }
+            validate(schema) {
+                let result = false;
+                _.each(this.data, (el, key) => {
+                    const field = _.find(schema, (column) => {
+                        return column.label == key;
                     });
-                }
-            });
-        };
-        /**
-         * Delete the entry this instance links to. Clear the data property
-         * of this instance as well.
-         *
-         * @method destroy
-         * @memberOf DynamicRecord.Model
-         * @instance
-         * @return {Promise} Return promise of this DynamicRecord.Model instance
-         */
-        Model.prototype.destroy = function () {
-            return __awaiter(this, void 0, void 0, function* () {
-                const col = yield _ready;
-                if (this._original) {
-                    yield col.deleteOne(this._original);
-                    this._original = null;
-                    this.data = null;
-                    return this;
-                }
-                else {
-                    throw new Error("Model not saved in database yet.");
-                }
-            });
-        };
-        /**
-         * Validate the data in this instance conform to its schema.
-         *
-         * **Implementation not settled**
-         *
-         * @method validate
-         * @memberOf DynamicRecord.Model
-         * @instance
-         * @return {boolean}
-         */
-        Model.prototype.validate = function (schema) {
-            let result = false;
-            _.each(this.data, (el, key) => {
-                const field = _.find(schema, (column) => {
-                    return column.label == key;
+                    if (field.type == "string") {
+                        result = _.isString(el);
+                    }
+                    else if (field.type == "int") {
+                        result = Number.isInteger(el);
+                    }
                 });
-                if (field.type == "string") {
-                    result = _.isString(el);
-                }
-                else if (field.type == "int") {
-                    result = Number.isInteger(el);
-                }
-            });
-            return result;
+                return result;
+            }
         };
     }
     /**
