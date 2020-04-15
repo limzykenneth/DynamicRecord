@@ -1,4 +1,4 @@
-import * as Promise from "bluebird";
+import * as Bluebird from "bluebird";
 
 export default abstract class DynamicCollection extends Array{
 	/**
@@ -59,12 +59,13 @@ export default abstract class DynamicCollection extends Array{
 	 * @return {Promise} Return promise of this DynamicCollection instance
 	 */
 	// CONSIDER: Saving in series thus slow. Can consider assigning a block of counters at once
-	saveAll(){
-		return Promise.each(this, (model) => {
+	async saveAll(): Promise<DynamicCollection>{
+		await Bluebird.each(this, (model) => {
 			if(model.save){
 				return model.save();
 			}
 		});
+		return this;
 	}
 
 	/**
@@ -77,7 +78,7 @@ export default abstract class DynamicCollection extends Array{
 	 * @instance
 	 * @return {Promise} Return promise of this DynamicCollection instance
 	 */
-	dropAll(){
+	async dropAll(): Promise<DynamicCollection>{
 		const promises = [];
 		this.forEach((model) => {
 			if(model.destroy){
@@ -85,8 +86,7 @@ export default abstract class DynamicCollection extends Array{
 			}
 		});
 
-		return Promise.all(promises).then(() => {
-			return Promise.resolve(this);
-		});
+		await Promise.all(promises)
+		return this;
 	}
 }
