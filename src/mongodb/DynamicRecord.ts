@@ -47,7 +47,7 @@ class DynamicRecord extends DRBase {
 				super(data, _preserveOriginal);
 			}
 
-			async save(){
+			async save(): Promise<Model>{
 				const col = await _ready;
 				if(this._original){
 					await validateData(this.data);
@@ -106,7 +106,7 @@ class DynamicRecord extends DRBase {
 				}
 			}
 
-			async destroy(){
+			async destroy(): Promise<Model>{
 				const col = await _ready;
 
 				if(this._original){
@@ -119,7 +119,7 @@ class DynamicRecord extends DRBase {
 				}
 			}
 
-			validate(schema){
+			validate(schema): boolean{
 				let result = false;
 
 				_.each(this.data, (el, key) => {
@@ -139,7 +139,7 @@ class DynamicRecord extends DRBase {
 		};
 	}
 
-	async closeConnection(){
+	async closeConnection(): Promise<any>{
 		// Should only ever be called to terminate the node process
 		try{
 			await this._ready;
@@ -150,7 +150,7 @@ class DynamicRecord extends DRBase {
 		}
 	}
 
-	async findBy(query: object){
+	async findBy(query: object): Promise<ModelBase>{
 		// CONSIDER: Possibly implement our own unique id system
 		const col = await this._ready;
 		const model = await col.findOne(query);
@@ -164,7 +164,7 @@ class DynamicRecord extends DRBase {
 		}
 	}
 
-	async where(query: object, orderBy: string | Function){
+	async where(query: object, orderBy: string | Function): Promise<DynamicCollection>{
 		const col = await this._ready;
 		let models = await col.find(query).toArray();
 
@@ -186,7 +186,7 @@ class DynamicRecord extends DRBase {
 		return results;
 	}
 
-	async all(){
+	async all(): Promise<DynamicCollection>{
 		const col = await this._ready;
 		let models = await col.find().toArray();
 		// Delete mongodb added "_id" field
@@ -203,7 +203,7 @@ class DynamicRecord extends DRBase {
 		return results;
 	}
 
-	async first(n?:number){
+	async first(n?:number): Promise<ModelBase|DynamicCollection>{
 		const col = await this._ready;
 		if(typeof n === "undefined"){
 			const model = await col.findOne();

@@ -79,7 +79,7 @@ export abstract class DynamicRecord {
 	 * @return {Promise} Return promise of DynamicRecord.Model instance,
 	 * DynamicCollection instance, or null
 	 */
-	abstract first(n?:number): Promise<Model>;
+	abstract first(n?:number): Promise<Model|DynamicCollection>;
 }
 
 export abstract class Model {

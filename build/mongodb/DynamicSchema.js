@@ -81,7 +81,7 @@ class DynamicSchema extends DynamicSchema_1.DynamicSchema {
                 // 2. Remove entry from _schema collection
                 db.collection("_schema").deleteOne({ "_$id": tableSlug }),
                 // 3. Remove entry from _counters collection
-                db.collection("_schema").deleteOne({ "_$id": tableSlug })
+                db.collection("_counters").deleteOne({ "_$id": tableSlug })
             ]).then(() => {
                 return Promise.reject(err);
             }).catch((e) => {

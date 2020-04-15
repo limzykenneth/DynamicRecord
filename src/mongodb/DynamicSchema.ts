@@ -9,7 +9,7 @@ class DynamicSchema extends Schema{
 		super();
 	}
 
-	createTable(schemaInput:TableSchema){
+	createTable(schemaInput:TableSchema): Promise<DynamicSchema>{
 		const schema = _.cloneDeep(schemaInput);
 		const tableSlug:string = schema.$id;
 		const tableName:string = schema.title || schema.$id;
@@ -94,7 +94,7 @@ class DynamicSchema extends Schema{
 				// 2. Remove entry from _schema collection
 				db.collection("_schema").deleteOne({"_$id": tableSlug}),
 				// 3. Remove entry from _counters collection
-				db.collection("_schema").deleteOne({"_$id": tableSlug})
+				db.collection("_counters").deleteOne({"_$id": tableSlug})
 			]).then(() => {
 				return Promise.reject(err);
 			}).catch((e) => {
@@ -103,7 +103,7 @@ class DynamicSchema extends Schema{
 		});
 	}
 
-	dropTable(){
+	dropTable(): Promise<DynamicSchema>{
 		return connect.then((opts) => {
 			const db = opts.db;
 			return db.collection("_schema").deleteOne({"_$id": this.tableSlug}).then((result) => {
@@ -121,7 +121,7 @@ class DynamicSchema extends Schema{
 		});
 	}
 
-	renameTable(newSlug:string, newName:string){
+	renameTable(newSlug:string, newName:string): Promise<DynamicSchema>{
 		return connect.then((opts) => {
 			const db = opts.db;
 			const promises = [];
@@ -149,7 +149,7 @@ class DynamicSchema extends Schema{
 		});
 	}
 
-	addIndex(options:IndexOptions){
+	addIndex(options:IndexOptions): Promise<DynamicSchema>{
 		const columnName:string = options.name;
 		const isAutoIncrement:boolean = options.autoIncrement;
 		let unique:boolean = options.unique;
@@ -178,7 +178,7 @@ class DynamicSchema extends Schema{
 		});
 	}
 
-	removeIndex(columnName:string){
+	removeIndex(columnName:string): Promise<DynamicSchema>{
 		return connect.then((opts) => {
 			const db = opts.db;
 			return db.collection(this.tableSlug).dropIndex(columnName)
@@ -201,7 +201,7 @@ class DynamicSchema extends Schema{
 		});
 	}
 
-	read(tableSlug:string){
+	read(tableSlug:string): Promise<DynamicSchema>{
 		return connect.then((opts) => {
 			const db = opts.db;
 			return db.collection("_schema").findOne({_$id: tableSlug});
@@ -227,7 +227,7 @@ class DynamicSchema extends Schema{
 		});
 	}
 
-	define(def:SchemaDefinitions){
+	define(def:SchemaDefinitions): Promise<DynamicSchema>{
 		const oldDef:SchemaDefinitions = this.definition;
 		this.definition = def;
 
@@ -251,7 +251,7 @@ class DynamicSchema extends Schema{
 		});
 	}
 
-	renameColumn(name:string, newName:string){
+	renameColumn(name:string, newName:string): Promise<DynamicSchema>{
 		this.definition[newName] = _.cloneDeep(this.definition[name]);
 		delete this.definition[name];
 
@@ -285,7 +285,7 @@ class DynamicSchema extends Schema{
 	}
 
 	// Utils --------------------------------------------------------
-	_writeSchema(){
+	_writeSchema(): Promise<DynamicSchema>{
 		return connect.then((opts) => {
 			const db = opts.db;
 			return db.collection("_schema").findOneAndUpdate({_$id: this.tableSlug}, {
@@ -300,7 +300,7 @@ class DynamicSchema extends Schema{
 		});
 	}
 
-	private _setCounter(collection:string, columnLabel:string){
+	private _setCounter(collection:string, columnLabel:string): Promise<DynamicSchema>{
 		return connect.then((opts) => {
 			const db = opts.db;
 			const sequenceKey = `sequences.${columnLabel}`;
@@ -319,7 +319,7 @@ class DynamicSchema extends Schema{
 		});
 	}
 
-	_incrementCounter(collection:string, columnLabel:string){
+	_incrementCounter(collection:string, columnLabel:string): Promise<number>{
 		return connect.then((opts) => {
 			const db = opts.db;
 			return db.collection("_counters").findOne({
@@ -343,7 +343,7 @@ class DynamicSchema extends Schema{
 		});
 	}
 
-	_decrementCounter(collection:string, columnLabel:string){
+	_decrementCounter(collection:string, columnLabel:string): Promise<number>{
 		return connect.then((opts) => {
 			const db = opts.db;
 			return db.collection("_counters").findOne({
