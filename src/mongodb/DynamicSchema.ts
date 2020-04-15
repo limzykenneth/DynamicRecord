@@ -1,139 +1,14 @@
 import * as _ from "lodash";
+import {TableSchema, SchemaDefinitions, IndexOptions, DynamicSchema as Schema} from "../DynamicSchema";
 
 let connect;
 const schemaValidator = new (require("./schemaValidation.js"))(connect);
 
-interface Definition{
-	description:string;
-	type:string;
-	isIndex?:boolean;
-	isAutoIncrement?:boolean;
-	isUnique?:boolean;
-}
-
-interface SchemaDefinitions{
-	[key:string]:Definition
-}
-
-interface IndexOptions{
-	name:string;
-	autoIncrement?:boolean;
-	unique?:boolean;
-}
-
-interface TableSchema{
-	$schema?:string;
-	_$schema?:string;
-	$id?:string;
-	_$id?:string;
-	title?:string;
-	description?:string
-	type?:string;
-	properties?:SchemaDefinitions
-	required?:Array<string>
-}
-
-// Let's get mongodb working first
-/**
- * Create an new DynamicSchema instance
- *
- * @name DynamicSchema
- * @class
- */
-class Schema{
-	tableName:string;
-	tableSlug:string;
-	definition:SchemaDefinitions;
-	required:Array<string>;
-	description:string;
-
-	jsonSchema:TableSchema;
-
+class DynamicSchema extends Schema{
 	constructor(){
-		/**
-		 * The name of the table.
-		 *
-		 * @name tableName
-		 * @type string
-		 * @memberOf DynamicSchema
-		 * @instance
-		 */
-		this.tableName = null;
-
-		/**
-		 * The slug of the table.
-		 *
-		 * @name tableSlug
-		 * @type string
-		 * @memberOf DynamicSchema
-		 * @instance
-		 */
-		this.tableSlug = null;
-
-		/**
-		 * The table's column definitions.
-		 *
-		 * @name definition
-		 * @type object
-		 * @memberOf DynamicSchema
-		 * @instance
-		 */
-		this.definition = {};
-
-		/**
-		 * Label of required fields of this schema. Array of strings.
-		 *
-		 * @name required
-		 * @type array
-		 * @memberOf DynamicSchema
-		 * @instance
-		 */
-		this.required = [];
-
-		/**
-		 * Description of the schema. Not used for anything internally.
-		 *
-		 * @name description
-		 * @type string
-		 * @memberOf DynamicSchema
-		 * @instance
-		 */
-		this.description = "";
-
-		/**
-		 * The underlying JSON Schema definition of the schema
-		 *
-		 * @name jsonSchema
-		 * @type object
-		 * @memberOf DynamicSchema
-		 * @instance
-		 */
-		this.jsonSchema = {};
+		super();
 	}
 
-	/**
-	 * Create a new table with the given schema. Schema must adhere to the
-	 * JSON Schema definition set out in
-	 * [https://json-schema.org/](https://json-schema.org/)
-	 *
-	 * Each property corresponds to each column in the database. A few
-	 * custom attributes to each property can be included for use by
-	 * DynamicSchema to generate columns for special behaviour.
-	 *
-	 * These properties are:
-	 * - `isIndex`: Whether the column is an index field
-	 * - `isUnique`: Whether the column is an unique field
-	 * - `isAutoIncrement`: Whether the column is an auto-incrementing integer
-	 *
-	 * @method createTable
-	 * @memberOf DynamicSchema
-	 * @instance
-	 * @param {object} schema
-	 * @param {string} schema.$id - ID of the table, must be unique
-	 * @param {string} [schema.title] - Defaults to `schema.$id`
-	 * @param {object} schema.properties - The column definitions of the table
-	 * @return {Promise} Return promise of the instance containing the new table
-	 */
 	createTable(schemaInput:TableSchema){
 		const schema = _.cloneDeep(schemaInput);
 		const tableSlug:string = schema.$id;
@@ -228,15 +103,6 @@ class Schema{
 		});
 	}
 
-
-	/**
-	 * Drop the table from the database.
-	 *
-	 * @method dropTable
-	 * @memberOf DynamicSchema
-	 * @instance
-	 * @return {Promise} Return promise of empty DynamicSchema instance
-	 */
 	dropTable(){
 		return connect.then((opts) => {
 			const db = opts.db;
@@ -255,16 +121,6 @@ class Schema{
 		});
 	}
 
-	/**
-	 * Rename the table.
-	 *
-	 * @method renameTable
-	 * @memberOf DynamicSchema
-	 * @instance
-	 * @param {string} newSlug
-	 * @param {string} [newName] Defaults to newSlug
-	 * @return {Promise} Return promise of DynamicSchema instance
-	 */
 	renameTable(newSlug:string, newName:string){
 		return connect.then((opts) => {
 			const db = opts.db;
@@ -293,20 +149,6 @@ class Schema{
 		});
 	}
 
-	/**
-	 * Add an index to the table's schema.
-	 *
-	 * @method addIndex
-	 * @memberOf DynamicSchema
-	 * @instance
-	 * @param {object} options
-	 * @param {string} options.name - The name of the column to be used as index
-	 * @param {boolean} [options.unique] - Whether the index is unique or not
-	 * @param {boolean} [options.autoInrement] - Whether it is an
-	 *                  auto-incrementing index or not. If true, `options.unique`
-	 *                  is automatically set to true
-	 * @return {Promise} Return promise of DynamicSchema instance
-	 */
 	addIndex(options:IndexOptions){
 		const columnName:string = options.name;
 		const isAutoIncrement:boolean = options.autoIncrement;
@@ -336,19 +178,6 @@ class Schema{
 		});
 	}
 
-	// renameIndex(columnName, newColumnName){
-	// 	Maybe drop index then recreate but do consider why you need to do this
-	// }
-
-	/**
-	 * Remove an index to the table's schema
-	 *
-	 * @method removeIndex
-	 * @memberOf DynamicSchema
-	 * @instance
-	 * @param {string} columnName - The name of the index to remove
-	 * @return {Promise} Return promise of DynamicSchema instance
-	 */
 	removeIndex(columnName:string){
 		return connect.then((opts) => {
 			const db = opts.db;
@@ -372,15 +201,6 @@ class Schema{
 		});
 	}
 
-	/**
-	 * Read the schema definition from the database.
-	 *
-	 * @method read
-	 * @memberOf DynamicSchema
-	 * @instance
-	 * @param {string} tableSlug - The name of the table schema to retrieve
-	 * @return {Promise} - Return promise of DynamicSchema instance
-	 */
 	read(tableSlug:string){
 		return connect.then((opts) => {
 			const db = opts.db;
@@ -407,16 +227,6 @@ class Schema{
 		});
 	}
 
-	/**
-	 * Define the table's columns. Passed object must adhere to `properties`
-	 * attribute of [JSON Schema](https://json-schema.org/)'s definition.
-	 *
-	 * @method define
-	 * @memberOf DynamicSchema
-	 * @instance
-	 * @param {object} definition - Definition of the table columns
-	 * @return {Promise} Return promise of DynamicSchema instance
-	 */
 	define(def:SchemaDefinitions){
 		const oldDef:SchemaDefinitions = this.definition;
 		this.definition = def;
@@ -441,77 +251,6 @@ class Schema{
 		});
 	}
 
-	/**
-	 * Add a single column to the table's schema definition. If the column name
-	 * is already in use, this will return a rejected Promise.
-	 *
-	 * @method addColumn
-	 * @memberOf DynamicSchema
-	 * @instance
-	 * @param {string} name - The name of the column to add
-	 * @param {string} type - Type of the column to add
-	 * @param {string} [description] - Description of the column to add
-	 * @return {Promise} Return promise of DynamicSchema instance
-	 */
-	addColumn(name:string, type:string, description:string = ""){
-		if(this.definition[name]){
-			// Column name already exist
-			return Promise.reject(new Error(`Column name "${name}" already exist`));
-		}
-
-		this.definition[name] = {
-			description: description,
-			type: type
-		};
-
-		return this._writeSchema().then(() => {
-			return Promise.resolve(this);
-		}).catch((err) => {
-			delete this.definition[name];
-			return Promise.reject(err);
-		});
-	}
-
-	/**
-	 * Add multiple columns to the table's schema definition. If any of the
-	 * given columns already exist, this will return a rejected Promise. None
-	 * of the changes will be made.
-	 *
-	 * @method addColumns
-	 * @memberOf DynamicSchema
-	 * @instance
-	 * @param {object} definitions - Object of objects containing new columns
-	 *                               definitions
-	 * @return {Promise} Return promise of DynamicSchema instance
-	 */
-	addColumns(def:SchemaDefinitions){
-		const oldDefinition:SchemaDefinitions = _.cloneDeep(this.definition);
-		const destinationKeys = _.keys(this.definition);
-		const sourceKeys = _.keys(def);
-		if(_.intersection(destinationKeys, sourceKeys).length > 0){
-			const names = _.intersection(destinationKeys, sourceKeys).join(", ");
-			return Promise.reject(new Error(`Column names already exist: ${names}`));
-		}
-		this.definition = _.assign(this.definition, def);
-
-		return this._writeSchema().then(() => {
-			return Promise.resolve(this);
-		}).catch((err) => {
-			this.definition = _.cloneDeep(oldDefinition);
-			return Promise.reject(err);
-		});
-	}
-
-	/**
-	 * Rename a single column in the table's schema definition.
-	 *
-	 * @method renameColumn
-	 * @memberOf DynamicSchema
-	 * @instance
-	 * @param {string} name - The name of the column to rename
-	 * @param {string} newName - The new name of the target column
-	 * @return {Promise} Return promise of DynamicSchema instance
-	 */
 	renameColumn(name:string, newName:string){
 		this.definition[newName] = _.cloneDeep(this.definition[name]);
 		delete this.definition[name];
@@ -545,60 +284,8 @@ class Schema{
 		});
 	}
 
-	/**
-	 * Change the type of a single column in the table's schema definition.
-	 *
-	 * @method changeColumnType
-	 * @memberOf DynamicSchema
-	 * @instance
-	 * @param {string} name - The name of the column to change type
-	 * @param {string} newType - The new type of the target column
-	 * @return {Promise} Return promise of DynamicSchema instance
-	 */
-	changeColumnType(name:string, newType:string){
-		const oldType:string = this.definition[name].type;
-		this.definition[name].type = newType;
-
-		return this._writeSchema().then(() => {
-			return Promise.resolve(this);
-		}).catch((err) => {
-			this.definition[name].type = oldType;
-			return Promise.reject(err);
-		});
-	}
-
-	/**
-	 * Remove a single column from the table's schema definition.
-	 *
-	 * @method removeColumn
-	 * @memberOf DynamicSchema
-	 * @instance
-	 * @param {string} name - The name of the column to remove
-	 * @return {Promise} Return promise of DynamicSchema instance
-	 */
-	removeColumn(name:string){
-		const deleted:Definition = _.cloneDeep(this.definition[name]);
-		delete this.definition[name];
-
-		return this._writeSchema().then(() => {
-			return Promise.resolve(this);
-		}).catch((err) => {
-			this.definition[name] = deleted;
-			return Promise.reject(err);
-		});
-	}
-
 	// Utils --------------------------------------------------------
-	/**
-	 * Update the new schema structure into the database
-	 *
-	 * @method _writeSchema
-	 * @memberOf DynamicSchema
-	 * @instance
-	 * @private
-	 * @return {Promise} Return promise of DynamicSchema instance
-	 */
-	private _writeSchema(){
+	_writeSchema(){
 		return connect.then((opts) => {
 			const db = opts.db;
 			return db.collection("_schema").findOneAndUpdate({_$id: this.tableSlug}, {
@@ -613,17 +300,6 @@ class Schema{
 		});
 	}
 
-	/**
-	 * Set an autoincrementing field to the _counters table (MongoDB only)
-	 *
-	 * @method _setCounter
-	 * @memberOf DynamicSchema
-	 * @instance
-	 * @private
-	 * @param {string} collection - The slug of the collection to set
-	 * @param {string} columnLabel - The slug of the column set as an autoincrementing index
-	 * @return {Promise} Return promise of DynamicSchema instance
-	 */
 	private _setCounter(collection:string, columnLabel:string){
 		return connect.then((opts) => {
 			const db = opts.db;
@@ -643,18 +319,6 @@ class Schema{
 		});
 	}
 
-	/**
-	 * Increment an autoincrementing index (MongoDB only)
-	 *
-	 * @method _incrementCounter
-	 * @memberOf DynamicSchema
-	 * @instance
-	 * @private
-	 * @param {string} collection - The slug of the collection to target
-	 * @param {string} columnLabel - The slug of the autoincrementing column
-	 * to increment
-	 * @return {Promise} - Promise of the next number in the sequence
-	 */
 	_incrementCounter(collection:string, columnLabel:string){
 		return connect.then((opts) => {
 			const db = opts.db;
@@ -702,14 +366,9 @@ class Schema{
 			return Promise.reject(err);
 		});
 	}
-
-	// private _validate(){
-	// 	Validate database schema with this.definition
-	// 	Return boolean
-	// }
 }
 
 export default function(connection){
 	connect = connection;
-	return Schema;
+	return DynamicSchema;
 }
