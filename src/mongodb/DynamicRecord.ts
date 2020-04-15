@@ -63,36 +63,37 @@ class DynamicRecord {
 			}
 
 			async save(){
-				return _ready.then(async (col) => {
-					if(this._original){
+				const col = await _ready;
+				if(this._original){
+					await validateData(this.data);
+					await col.updateOne(this._original, {$set: this.data}, {upsert: true});
+					this._original = _.cloneDeep(this.data);
+					return this;
+				}else{
+					// Check if collection contains index that needs auto incrementing
+					return _db.collection("_counters").findOne({_$id: tableSlug}).then(async (res) => {
+						const promises = [];
+						if(res !== null){
+							// Auto incrementing index exist
+							_.each(res.sequences, (el, columnLabel) => {
+								promises.push(_schema._incrementCounter(tableSlug, columnLabel).then((newSequence) => {
+									this.data[columnLabel] = newSequence;
+									return Promise.resolve(newSequence);
+								}));
+							});
+
+							await Promise.all(promises);
+						}
 						await validateData(this.data);
-						await col.updateOne(this._original, {$set: this.data}, {upsert: true});
+
+						// Save data into the database
+						await col.insertOne(this.data);
 						this._original = _.cloneDeep(this.data);
 						return this;
-					}else{
-						// Check if collection contains index that needs auto incrementing
-						return _db.collection("_counters").findOne({_$id: tableSlug}).then(async (res) => {
-							const promises = [];
-							if(res !== null){
-								// Auto incrementing index exist
-								_.each(res.sequences, (el, columnLabel) => {
-									promises.push(_schema._incrementCounter(tableSlug, columnLabel).then((newSequence) => {
-										this.data[columnLabel] = newSequence;
-										return Promise.resolve(newSequence);
-									}));
-								});
-
-								await Promise.all(promises);
-							}
-							await validateData(this.data);
-
-							// Save data into the database
-							await col.insertOne(this.data);
-							this._original = _.cloneDeep(this.data);
-							return this;
-						}).catch((err) => {
-							// Reverse database actions
-							return Promise.all([
+					}).catch(async (err) => {
+						// Reverse database actions
+						try{
+							await Promise.all([
 								// 1. Decrement autoincrement counter
 								_db.collection("_counters").findOne({_$id: tableSlug}).then((res) => {
 									const promises = [];
@@ -102,16 +103,13 @@ class DynamicRecord {
 
 									return Promise.all(promises);
 								})
-							]).then(() => {
-								return Promise.reject(err);
-							}).catch((e) => {
-								return Promise.reject(e);
-							});
-						});
-					}
-				}).catch((err) => {
-					return Promise.reject(err);
-				});
+							]);
+							return Promise.reject(err);
+						} catch(e) {
+							return Promise.reject(e);
+						}
+					});
+				}
 
 				async function validateData(data){
 					const validate = await schemaValidator.compileAsync({$ref: _schema.tableSlug});

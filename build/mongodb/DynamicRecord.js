@@ -55,35 +55,36 @@ class DynamicRecord {
             }
             save() {
                 return __awaiter(this, void 0, void 0, function* () {
-                    return _ready.then((col) => __awaiter(this, void 0, void 0, function* () {
-                        if (this._original) {
+                    const col = yield _ready;
+                    if (this._original) {
+                        yield validateData(this.data);
+                        yield col.updateOne(this._original, { $set: this.data }, { upsert: true });
+                        this._original = _.cloneDeep(this.data);
+                        return this;
+                    }
+                    else {
+                        // Check if collection contains index that needs auto incrementing
+                        return _db.collection("_counters").findOne({ _$id: tableSlug }).then((res) => __awaiter(this, void 0, void 0, function* () {
+                            const promises = [];
+                            if (res !== null) {
+                                // Auto incrementing index exist
+                                _.each(res.sequences, (el, columnLabel) => {
+                                    promises.push(_schema._incrementCounter(tableSlug, columnLabel).then((newSequence) => {
+                                        this.data[columnLabel] = newSequence;
+                                        return Promise.resolve(newSequence);
+                                    }));
+                                });
+                                yield Promise.all(promises);
+                            }
                             yield validateData(this.data);
-                            yield col.updateOne(this._original, { $set: this.data }, { upsert: true });
+                            // Save data into the database
+                            yield col.insertOne(this.data);
                             this._original = _.cloneDeep(this.data);
                             return this;
-                        }
-                        else {
-                            // Check if collection contains index that needs auto incrementing
-                            return _db.collection("_counters").findOne({ _$id: tableSlug }).then((res) => __awaiter(this, void 0, void 0, function* () {
-                                const promises = [];
-                                if (res !== null) {
-                                    // Auto incrementing index exist
-                                    _.each(res.sequences, (el, columnLabel) => {
-                                        promises.push(_schema._incrementCounter(tableSlug, columnLabel).then((newSequence) => {
-                                            this.data[columnLabel] = newSequence;
-                                            return Promise.resolve(newSequence);
-                                        }));
-                                    });
-                                    yield Promise.all(promises);
-                                }
-                                yield validateData(this.data);
-                                // Save data into the database
-                                yield col.insertOne(this.data);
-                                this._original = _.cloneDeep(this.data);
-                                return this;
-                            })).catch((err) => {
-                                // Reverse database actions
-                                return Promise.all([
+                        })).catch((err) => __awaiter(this, void 0, void 0, function* () {
+                            // Reverse database actions
+                            try {
+                                yield Promise.all([
                                     // 1. Decrement autoincrement counter
                                     _db.collection("_counters").findOne({ _$id: tableSlug }).then((res) => {
                                         const promises = [];
@@ -92,16 +93,14 @@ class DynamicRecord {
                                         });
                                         return Promise.all(promises);
                                     })
-                                ]).then(() => {
-                                    return Promise.reject(err);
-                                }).catch((e) => {
-                                    return Promise.reject(e);
-                                });
-                            });
-                        }
-                    })).catch((err) => {
-                        return Promise.reject(err);
-                    });
+                                ]);
+                                return Promise.reject(err);
+                            }
+                            catch (e) {
+                                return Promise.reject(e);
+                            }
+                        }));
+                    }
                     function validateData(data) {
                         return __awaiter(this, void 0, void 0, function* () {
                             const validate = yield schemaValidator.compileAsync({ $ref: _schema.tableSlug });
