@@ -10,13 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const _ = require("lodash");
-/**
- * Create an new DynamicSchema instance
- *
- * @name DynamicSchema
- * @class
- */
 class DynamicSchema {
+    /**
+     * Create an new DynamicSchema instance
+     *
+     * @name DynamicSchema
+     * @class
+     */
     constructor() {
         /**
          * The name of the table.

@@ -30,12 +30,6 @@ export interface TableSchema{
 	required?:Array<string>
 }
 
-/**
- * Create an new DynamicSchema instance
- *
- * @name DynamicSchema
- * @class
- */
 export abstract class DynamicSchema{
 	tableName:string;
 	tableSlug:string;
@@ -45,6 +39,12 @@ export abstract class DynamicSchema{
 
 	jsonSchema:TableSchema;
 
+	/**
+	 * Create an new DynamicSchema instance
+	 *
+	 * @name DynamicSchema
+	 * @class
+	 */
 	constructor(){
 		/**
 		 * The name of the table.

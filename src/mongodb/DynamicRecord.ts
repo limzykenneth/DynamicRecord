@@ -3,7 +3,7 @@ import DynamicCollection from "./DynamicCollection";
 import DynamicSchema from "./DynamicSchema";
 
 // Let's get mongodb working first
-import connect from "./mongoConnection";
+import connect from "./connection";
 const schemaValidator = new (require("./schemaValidation.js"))(connect);
 
 class DynamicRecord {
