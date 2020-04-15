@@ -1,5 +1,3 @@
-require("dotenv").config();
-
 const databaseURIRegex = /^(?<schema>.+?):\/\/(?:(?<username>.+?)(?::(?<password>.+))?@)?(?<host>.+?)(?::(?<port>\d+?))?(?:\/(?<database>.+?))?(?:\?(?<options>.+?))?$/;
 const regexResult = process.env.database_host.match(databaseURIRegex);
 

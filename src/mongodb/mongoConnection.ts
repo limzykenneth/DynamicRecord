@@ -1,4 +1,3 @@
-require("dotenv").config();
 import * as _ from "lodash";
 import {MongoClient} from "mongodb";
 

@@ -13,7 +13,6 @@ const _ = require("lodash");
 const DynamicCollection_1 = require("./DynamicCollection");
 const DynamicSchema_1 = require("./DynamicSchema");
 // Let's get mongodb working first
-// const connect = require("./mongoConnection.js");
 const mongoConnection_1 = require("./mongoConnection");
 const schemaValidator = new (require("./schemaValidation.js"))(mongoConnection_1.default);
 class DynamicRecord {
