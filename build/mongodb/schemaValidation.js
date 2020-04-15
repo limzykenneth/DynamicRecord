@@ -11,12 +11,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const _ = require("lodash");
 const Ajv = require("ajv");
-const countersSchema = require("../schemas/_counters.schema.json");
+const _counters_schema_json_1 = require("../schemas/_counters.schema.json");
+// const countersSchema = require("../schemas/_counters.schema.json");
 let connect;
 const ajv = new Ajv({
     loadSchema: loadSchema
 });
-ajv.addSchema(countersSchema, "countersSchema");
+ajv.addSchema(_counters_schema_json_1.default, "countersSchema");
 function loadSchema(tableSlug) {
     return __awaiter(this, void 0, void 0, function* () {
         const { db } = yield connect;
