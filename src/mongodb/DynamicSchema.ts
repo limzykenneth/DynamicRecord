@@ -712,4 +712,4 @@ class Schema{
 export default function(connection){
 	connect = connection;
 	return Schema;
-};
+}

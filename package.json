@@ -20,7 +20,7 @@
   "repository": "https://github.com/limzykenneth/DynamicRecord.git",
   "main": "build/DynamicRecord.js",
   "scripts": {
-    "lint": "eslint src/ test/ tools/",
+    "lint": "eslint src/**/*.ts test/**/*.js tools/**/*.js",
     "pretest": "npm run build",
     "test": "npm run lint && mocha",
     "database": "sh test/mongo_test.sh",

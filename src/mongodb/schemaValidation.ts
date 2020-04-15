@@ -1,5 +1,5 @@
+import * as _ from "lodash";
 const Ajv = require("ajv");
-const _ = require("lodash");
 const countersSchema = require("../schemas/_counters.schema.json");
 
 let connect;
