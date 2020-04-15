@@ -1,11 +1,7 @@
 import * as _ from "lodash";
+import DynamicCollection from "./DynamicCollection";
 
 export abstract class DynamicRecord {
-	private _databaseConnection: any;
-	private _ready: any;
-	private _db: any;
-	private _client: any;
-
 	// Instance specific constructors
 	Model: any;
 	// Instance specific Schema object
@@ -20,7 +16,70 @@ export abstract class DynamicRecord {
 	 * @param {string} options.tableSlug - The slug of the table. Must be lowercase only
 	 * and not containing any whitespace
 	 */
-	constructor(options){}
+	constructor(){}
+
+	/**
+	 * Close the connection to the database server. Only used to terminate
+	 * the running node instance.
+	 *
+	 * @method closeConnection
+	 * @memberOf DynamicRecord
+	 * @instance
+	 */
+	// Should only ever be called to terminate the node process
+	abstract closeConnection(): Promise<any>;
+
+	/**
+	 * Find the latest entry in the table that match the query.
+	 *
+	 * @method findBy
+	 * @memberOf DynamicRecord
+	 * @instance
+	 * @param {object} query - A key value pair that will be used to match for entry
+	 * in the database
+	 * @return {Promise} Return promise of DynamicRecord.Model instance or null
+	 */
+	abstract findBy(query: object): Promise<Model>;
+
+	/**
+	 * Find all the entries in the table that match the query.
+	 *
+	 * You can sort the returned data by providing a string key to sort the
+	 * data by or a sorting function to manually sort the data. By default
+	 * they are sorted in the order they are in in the database.
+	 *
+	 * @method where
+	 * @memberOf DynamicRecord
+	 * @instance
+	 * @param {object} query - A key value pair that will be used to match for entries
+	 * @param {string|function} orderBy - The key to sort by or a sorting function
+	 * @return {Promise} Return promise of DynamicCollection instance
+	 */
+	abstract where(query: object, orderBy: string | Function): Promise<DynamicCollection>;
+
+	/**
+	 * Return all entries from the table.
+	 *
+	 * @method all
+	 * @memberOf DynamicRecord
+	 * @instance
+	 * @return {Promise} Return promise of DynamicCollection instance
+	 */
+	abstract all(): Promise<DynamicCollection>;
+
+	/**
+	 * Return the first entry in the table. If provided with an integer
+	 * argument n, it will return the first nth entry in the database wrapped
+	 * in a Promise of DynamicCollection.
+	 *
+	 * @method first
+	 * @memberOf DynamicRecord
+	 * @instance
+	 * @param {number} [n] - The number of records to return
+	 * @return {Promise} Return promise of DynamicRecord.Model instance,
+	 * DynamicCollection instance, or null
+	 */
+	abstract first(n?:number): Promise<Model>;
 }
 
 export abstract class Model {

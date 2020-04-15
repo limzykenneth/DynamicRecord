@@ -13,20 +13,11 @@ const _ = require("lodash");
 const DynamicRecord_1 = require("../DynamicRecord");
 const DynamicCollection_1 = require("./DynamicCollection");
 const DynamicSchema_1 = require("./DynamicSchema");
-// Let's get mongodb working first
 const connection_1 = require("./connection");
 const schemaValidator = new (require("./schemaValidation.js"))(connection_1.default);
-class DynamicRecord {
-    /**
-     * Creates a new DynamicRecord instance.
-     *
-     * @name DynamicRecord
-     * @class
-     * @param {object} options
-     * @param {string} options.tableSlug - The slug of the table. Must be lowercase only
-     * and not containing any whitespace
-     */
+class DynamicRecord extends DynamicRecord_1.DynamicRecord {
     constructor(options) {
+        super();
         this._databaseConnection = connection_1.default;
         const _schema = this.schema = new (DynamicSchema_1.default(this._databaseConnection))();
         const tableSlug = options.tableSlug;
@@ -145,14 +136,6 @@ class DynamicRecord {
             }
         };
     }
-    /**
-     * Close the connection to the database server. Only used to terminate
-     * the running node instance.
-     *
-     * @method closeConnection
-     * @memberOf DynamicRecord
-     * @instance
-     */
     closeConnection() {
         return __awaiter(this, void 0, void 0, function* () {
             // Should only ever be called to terminate the node process
@@ -166,16 +149,6 @@ class DynamicRecord {
             }
         });
     }
-    /**
-     * Find the latest entry in the table that match the query.
-     *
-     * @method findBy
-     * @memberOf DynamicRecord
-     * @instance
-     * @param {object} query - A key value pair that will be used to match for entry
-     * in the database
-     * @return {Promise} Return promise of DynamicRecord.Model instance or null
-     */
     findBy(query) {
         return __awaiter(this, void 0, void 0, function* () {
             // CONSIDER: Possibly implement our own unique id system
@@ -191,20 +164,6 @@ class DynamicRecord {
             }
         });
     }
-    /**
-     * Find all the entries in the table that match the query.
-     *
-     * You can sort the returned data by providing a string key to sort the
-     * data by or a sorting function to manually sort the data. By default
-     * they are sorted in the order they are in in the database.
-     *
-     * @method where
-     * @memberOf DynamicRecord
-     * @instance
-     * @param {object} query - A key value pair that will be used to match for entries
-     * @param {string|function} orderBy - The key to sort by or a sorting function
-     * @return {Promise} Return promise of DynamicCollection instance
-     */
     where(query, orderBy) {
         return __awaiter(this, void 0, void 0, function* () {
             const col = yield this._ready;
@@ -223,14 +182,6 @@ class DynamicRecord {
             return results;
         });
     }
-    /**
-     * Return all entries from the table.
-     *
-     * @method all
-     * @memberOf DynamicRecord
-     * @instance
-     * @return {Promise} Return promise of DynamicCollection instance
-     */
     all() {
         return __awaiter(this, void 0, void 0, function* () {
             const col = yield this._ready;
@@ -246,18 +197,6 @@ class DynamicRecord {
             return results;
         });
     }
-    /**
-     * Return the first entry in the table. If provided with an integer
-     * argument n, it will return the first nth entry in the database wrapped
-     * in a Promise of DynamicCollection.
-     *
-     * @method first
-     * @memberOf DynamicRecord
-     * @instance
-     * @param {number} [n] - The number of records to return
-     * @return {Promise} Return promise of DynamicRecord.Model instance,
-     * DynamicCollection instance, or null
-     */
     first(n) {
         return __awaiter(this, void 0, void 0, function* () {
             const col = yield this._ready;

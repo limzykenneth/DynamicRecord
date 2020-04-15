@@ -1,13 +1,11 @@
 import * as _ from "lodash";
-import {Model as ModelBase} from "../DynamicRecord";
+import {Model as ModelBase, DynamicRecord as DRBase} from "../DynamicRecord";
 import DynamicCollection from "./DynamicCollection";
 import DynamicSchema from "./DynamicSchema";
-
-// Let's get mongodb working first
 import connect from "./connection";
 const schemaValidator = new (require("./schemaValidation.js"))(connect);
 
-class DynamicRecord {
+class DynamicRecord extends DRBase {
 	// Static constructors for their own separate use
 	static DynamicSchema = DynamicSchema(connect);
 	static DynamicCollection = DynamicCollection;
@@ -17,21 +15,8 @@ class DynamicRecord {
 	private _db: any;
 	private _client: any;
 
-	// Instance specific constructors
-	Model: any;
-	// Instance specific Schema object
-	schema: any;
-
-	/**
-	 * Creates a new DynamicRecord instance.
-	 *
-	 * @name DynamicRecord
-	 * @class
-	 * @param {object} options
-	 * @param {string} options.tableSlug - The slug of the table. Must be lowercase only
-	 * and not containing any whitespace
-	 */
 	constructor(options){
+		super();
 		this._databaseConnection = connect;
 		const _schema = this.schema = new (DynamicSchema(this._databaseConnection))();
 		const tableSlug = options.tableSlug;
@@ -154,14 +139,6 @@ class DynamicRecord {
 		};
 	}
 
-	/**
-	 * Close the connection to the database server. Only used to terminate
-	 * the running node instance.
-	 *
-	 * @method closeConnection
-	 * @memberOf DynamicRecord
-	 * @instance
-	 */
 	async closeConnection(){
 		// Should only ever be called to terminate the node process
 		try{
@@ -173,16 +150,6 @@ class DynamicRecord {
 		}
 	}
 
-	/**
-	 * Find the latest entry in the table that match the query.
-	 *
-	 * @method findBy
-	 * @memberOf DynamicRecord
-	 * @instance
-	 * @param {object} query - A key value pair that will be used to match for entry
-	 * in the database
-	 * @return {Promise} Return promise of DynamicRecord.Model instance or null
-	 */
 	async findBy(query: object){
 		// CONSIDER: Possibly implement our own unique id system
 		const col = await this._ready;
@@ -197,20 +164,6 @@ class DynamicRecord {
 		}
 	}
 
-	/**
-	 * Find all the entries in the table that match the query.
-	 *
-	 * You can sort the returned data by providing a string key to sort the
-	 * data by or a sorting function to manually sort the data. By default
-	 * they are sorted in the order they are in in the database.
-	 *
-	 * @method where
-	 * @memberOf DynamicRecord
-	 * @instance
-	 * @param {object} query - A key value pair that will be used to match for entries
-	 * @param {string|function} orderBy - The key to sort by or a sorting function
-	 * @return {Promise} Return promise of DynamicCollection instance
-	 */
 	async where(query: object, orderBy: string | Function){
 		const col = await this._ready;
 		let models = await col.find(query).toArray();
@@ -233,14 +186,6 @@ class DynamicRecord {
 		return results;
 	}
 
-	/**
-	 * Return all entries from the table.
-	 *
-	 * @method all
-	 * @memberOf DynamicRecord
-	 * @instance
-	 * @return {Promise} Return promise of DynamicCollection instance
-	 */
 	async all(){
 		const col = await this._ready;
 		let models = await col.find().toArray();
@@ -258,18 +203,6 @@ class DynamicRecord {
 		return results;
 	}
 
-	/**
-	 * Return the first entry in the table. If provided with an integer
-	 * argument n, it will return the first nth entry in the database wrapped
-	 * in a Promise of DynamicCollection.
-	 *
-	 * @method first
-	 * @memberOf DynamicRecord
-	 * @instance
-	 * @param {number} [n] - The number of records to return
-	 * @return {Promise} Return promise of DynamicRecord.Model instance,
-	 * DynamicCollection instance, or null
-	 */
 	async first(n?:number){
 		const col = await this._ready;
 		if(typeof n === "undefined"){

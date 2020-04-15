@@ -11,7 +11,7 @@ class DynamicRecord {
      * @param {string} options.tableSlug - The slug of the table. Must be lowercase only
      * and not containing any whitespace
      */
-    constructor(options) { }
+    constructor() { }
 }
 exports.DynamicRecord = DynamicRecord;
 class Model {
