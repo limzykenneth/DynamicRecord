@@ -1,20 +1,25 @@
-// For setup and clean ups
+// Test dependencies
 require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
-const mysql = require("mysql2/promise");
-const url = require("../utils.js").url;
-const connect = mysql.createConnection(url);
-
-// Test dependencies
-const DynamicRecord = require("../../build/main.js");
-const DynamicCollection = DynamicRecord.DynamicCollection;
-const utils = new (require("../utils.js").utils)(connect);
+const utility = require("../utils.js");
+const url = utility.url;
 const chai = require("chai");
 const assert = chai.assert;
+const DynamicRecord = require("../../build/main.js");
+const DynamicCollection = DynamicRecord.DynamicCollection;
+const DynamicSchema = DynamicRecord.DynamicSchema;
+
+// Database specific dependencies
+const mysql = require("mysql2/promise");
+const connect = mysql.createConnection(url);
+
+// Setup helpers
+const utils = new utility.utils(connect);
 
 // Schema definition
 const testSchema = Object.freeze(require("../random_table.schema.json"));
+const testData = utility.testData;
 
 let Random;
 
@@ -23,9 +28,7 @@ let Random;
 before(async function(){
 	await utils.resetTestTables();
 	const connection = await connect;
-	// for(const property in testSchema.properties){
 
-	// }
 	const fields = [];
 	const indexes = [];
 	_.each(testSchema.properties, (property, key) => {
@@ -60,9 +63,9 @@ before(async function(){
 });
 
 after(async function(){
+	await Random.closeConnection();
 	await utils.dropTestTable();
-	const connection = await connect;
-	await connection.destroy();
+	await utils.cleanUpSuite();
 });
 // --------------------------------------------
 

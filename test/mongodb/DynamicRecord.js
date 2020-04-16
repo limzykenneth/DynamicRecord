@@ -1,78 +1,44 @@
-// For setup and clean ups
+// Test dependencies
 require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
-const MongoClient = require("mongodb").MongoClient;
-const url = require("../utils.js").url;
-const connect = MongoClient.connect(url, {useUnifiedTopology: true});
-
-// Test dependencies
-const DynamicRecord = require("../../build/main.js");
-const DynamicCollection = DynamicRecord.DynamicCollection;
-const utils = new (require("../utils.js").utils)(connect);
+const utility = require("../utils.js");
+const url = utility.url;
 const chai = require("chai");
 const assert = chai.assert;
+const DynamicRecord = require("../../build/main.js");
+const DynamicCollection = DynamicRecord.DynamicCollection;
+const DynamicSchema = DynamicRecord.DynamicSchema;
+
+// Database specific dependencies
+const MongoClient = require("mongodb").MongoClient;
+const connect = MongoClient.connect(url, {useUnifiedTopology: true});
+
+// Setup helpers
+const utils = new utility.utils(connect);
 
 // Schema definition
 const testSchema = Object.freeze(require("../random_table.schema.json"));
-// Data to be inserted into database for testing
-// Each element in array correspond to an entry in database
-// Objects keys are just for reference, not meant to represent actual types
-const testData = Object.freeze([
-	{
-		"string": "Velit tempor.",
-		"wholeNumber": 42,
-		"floatingPoint": 3.1415926536,
-		"testIndex": 0
-	},
-	{
-		"string": "Fugiat laboris cillum quis pariatur.",
-		"wholeNumber": 42,
-		"floatingPoint": 2.7182818285,
-		"testIndex": 1
-	},
-	{
-		"string": "Reprehenderit sint.",
-		"wholeNumber": 10958,
-		"floatingPoint": 2.7182818285,
-		"testIndex": 2
-	}
-]);
+const testData = utility.testData;
 
 let Random;
 
 // ------------------ Setups ------------------
 // Clear table and insert dummy data
-before(function(done){
-	utils.resetTestTables().then(() => {
-		connect.then((client) => {
-			const db = client.db();
-			return db.createCollection(testSchema.$id).then(() => db.collection("_schema"));
-		}).then((col) => {
-			const databaseInsert = _.cloneDeep(testSchema);
-			databaseInsert._$id = databaseInsert.$id;
-			databaseInsert._$schema = databaseInsert.$schema;
-			delete databaseInsert.$id;
-			delete databaseInsert.$schema;
-			return col.insertOne(databaseInsert);
-		}).then(() => {
-			Random = new DynamicRecord({
-				tableSlug: testSchema.$id
-			});
-			done();
-		});
+before(async function(){
+	await utils.resetTestTables();
+	await utils.setupSuite();
+
+	Random = new DynamicRecord({
+		tableSlug: testSchema.$id
 	});
 });
 
 // Close all database connections
-after(function(){
-	return utils.dropTestTable().then(() => {
-		return Random.closeConnection();
-	}).then(() => {
-		return connect.then((client) => {
-			return client.close();
-		});
-	});
+after(async function(){
+	await Random.closeConnection();
+	await utils.dropTestTable();
+	await utils.cleanUpSuite();
 });
 // --------------------------------------------
 

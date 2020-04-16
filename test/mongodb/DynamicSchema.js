@@ -1,56 +1,44 @@
-// For setup and clean ups
+// Test dependencies
 require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
-const MongoClient = require("mongodb").MongoClient;
-const url = require("../utils.js").url;
-const connect = MongoClient.connect(url, {useUnifiedTopology: true});
-
-// Test dependencies
+const utility = require("../utils.js");
+const url = utility.url;
+const chai = require("chai");
+const assert = chai.assert;
 const DynamicRecord = require("../../build/main.js");
 const DynamicCollection = DynamicRecord.DynamicCollection;
 const DynamicSchema = DynamicRecord.DynamicSchema;
-const utils = new (require("../utils.js").utils)(connect);
-const chai = require("chai");
-const assert = chai.assert;
+
+// Database specific dependencies
+const MongoClient = require("mongodb").MongoClient;
+const connect = MongoClient.connect(url, {useUnifiedTopology: true});
+
+// Setup helpers
+const utils = new utility.utils(connect);
 
 // Schema definition
 const testSchema = Object.freeze(require("../random_table.schema.json"));
+const testData = utility.testData;
 
 let Random;
 
 // ------------------ Setups ------------------
 // Clear table and insert dummy data
-before(function(done){
-	utils.resetTestTables().then(() => {
-		connect.then((client) => {
-			const db = client.db();
-			return db.createCollection(testSchema.$id).then(() => db.collection("_schema"));
-		}).then((col) => {
-			const databaseInsert = _.cloneDeep(testSchema);
-			databaseInsert._$id = databaseInsert.$id;
-			databaseInsert._$schema = databaseInsert.$schema;
-			delete databaseInsert.$id;
-			delete databaseInsert.$schema;
-			return col.insertOne(databaseInsert);
-		}).then(() => {
-			Random = new DynamicRecord({
-				tableSlug: testSchema.$id
-			});
-			done();
-		});
+before(async function(){
+	await utils.resetTestTables();
+	await utils.setupSuite();
+
+	Random = new DynamicRecord({
+		tableSlug: testSchema.$id
 	});
 });
 
 // Close all database connections
-after(function(){
-	return utils.dropTestTable().then(() => {
-		return Random.closeConnection();
-	}).then(() => {
-		return connect.then((client) => {
-			return client.close();
-		});
-	});
+after(async function(){
+	await Random.closeConnection();
+	await utils.dropTestTable();
+	await utils.cleanUpSuite();
 });
 // --------------------------------------------
 

@@ -59,7 +59,48 @@ utils.prototype.resetTestTables = async function(){
 	await this.createTestTable();
 };
 
+utils.prototype.setupSuite = async function(){
+	if(this.databaseType === constants.databaseEnums.mongodb){
+		await mongodbUtils.setupSuite(this.connect);
+	}else if(this.databaseType === constants.databaseEnums.mysql){
+		await mysqlUtils.setupSuite(this.connect);
+	}
+};
+
+utils.prototype.cleanUpSuite = async function(){
+	if(this.databaseType === constants.databaseEnums.mongodb){
+		await mongodbUtils.cleanUpSuite(this.connect);
+	}else if(this.databaseType === constants.databaseEnums.mysql){
+		await mysqlUtils.cleanUpSuite(this.connect);
+	}
+};
+
+// Data to be inserted into database for testing
+// Each element in array correspond to an entry in database
+// Objects keys are just for reference, not meant to represent actual types
+const testData = Object.freeze([
+	{
+		"string": "Velit tempor.",
+		"wholeNumber": 42,
+		"floatingPoint": 3.1415926536,
+		"testIndex": 0
+	},
+	{
+		"string": "Fugiat laboris cillum quis pariatur.",
+		"wholeNumber": 42,
+		"floatingPoint": 2.7182818285,
+		"testIndex": 1
+	},
+	{
+		"string": "Reprehenderit sint.",
+		"wholeNumber": 10958,
+		"floatingPoint": 2.7182818285,
+		"testIndex": 2
+	}
+]);
+
 module.exports = {
 	utils,
-	url
+	url,
+	testData
 };

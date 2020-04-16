@@ -100,3 +100,4 @@ test/test_db
 
 # Documentation
 docs/
+mysql-test.js

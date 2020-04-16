@@ -19,4 +19,12 @@ utils.dropTestTable = async function(connect){
 	});
 };
 
+utils.setupSuite = async function(connect){
+};
+
+utils.cleanUpSuite = async function(connect){
+	const connection = await connect;
+	await connection.destroy();
+};
+
 module.exports = utils;
