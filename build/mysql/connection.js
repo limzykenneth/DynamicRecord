@@ -21,6 +21,5 @@ if (!regexResult.options) {
     regexResult.options = "";
 }
 const url = `${regexResult.schema}://${regexResult.username}:${regexResult.password}@${regexResult.host}:${regexResult.port}/${regexResult.database}?${regexResult.options}`;
-const connectionPool = mysql.createPool(url);
-const connection = connectionPool.promise();
+const connection = mysql.createPool(url);
 exports.default = connection;
