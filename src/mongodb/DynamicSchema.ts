@@ -121,7 +121,7 @@ class DynamicSchema extends Schema{
 		});
 	}
 
-	renameTable(newSlug:string, newName:string): Promise<DynamicSchema>{
+	renameTable(newSlug:string, newName?:string): Promise<DynamicSchema>{
 		return connect.then((opts) => {
 			const db = opts.db;
 			const promises = [];

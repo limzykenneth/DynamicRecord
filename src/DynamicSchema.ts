@@ -152,7 +152,7 @@ export abstract class DynamicSchema{
 	 * @param {string} [newName] Defaults to newSlug
 	 * @return {Promise} Return promise of DynamicSchema instance
 	 */
-	abstract renameTable(newSlug:string, newName:string): Promise<DynamicSchema>;
+	abstract renameTable(newSlug:string, newName?:string): Promise<DynamicSchema>;
 
 	/**
 	 * Add an index to the table's schema.

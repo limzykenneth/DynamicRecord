@@ -113,7 +113,7 @@ class DynamicSchema extends Schema{
 		return this;
 	}
 
-	async renameTable(newSlug:string, newName:string): Promise<DynamicSchema>{
+	async renameTable(newSlug:string, newName?:string): Promise<DynamicSchema>{
 		return this;
 	}
 
