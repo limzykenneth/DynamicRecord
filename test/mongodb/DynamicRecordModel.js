@@ -67,63 +67,57 @@ describe("Model", function(){
 	});
 
 	describe("save()", function(){
-		beforeEach(function(){
-			return connect.then((client) => {
-				const db = client.db();
-				// Fill with dummy data
-				return db.collection(testSchema.$id).insertMany(testData);
-			});
+		beforeEach(async function(){
+			const client = await connect;
+			const db = client.db();
+			// Fill with dummy data
+			await db.collection(testSchema.$id).insertMany(testData);
 		});
 
-		afterEach(function(){
-			return connect.then((client) => {
-				const db = client.db();
-				// Clear out dummy data
-				return db.collection(testSchema.$id).deleteMany({});
-			});
+		afterEach(async function(){
+			const client = await connect;
+			const db = client.db();
+			// Clear out dummy data
+			await db.collection(testSchema.$id).deleteMany({});
 		});
 
-		// Tests
-		it("should insert the corresponding entry in the database if not exist", function(){
+		it("should insert the corresponding entry in the database if not exist", async function(){
 			let model = new Random.Model({
 				"string": "Laborum non culpa.",
 				"wholeNumber": 27,
 				"floatingPoint": 6.2831853072
 			});
-			return model.save().then(() => {
-				return connect.then((client) => client.db());
-			}).then((db) => {
-				return db.collection(testSchema.$id).findOne({
-					"string": "Laborum non culpa.",
-					"wholeNumber": 27,
-					"floatingPoint": 6.2831853072
-				});
-			}).then((m) => {
-				assert.isNotNull(m, "returned result is not null");
+			await model.save();
+
+			const client = await connect;
+			const db = client.db();
+
+			const m = await db.collection(testSchema.$id).findOne({
+				"string": "Laborum non culpa.",
+				"wholeNumber": 27,
+				"floatingPoint": 6.2831853072
 			});
+			assert.isNotNull(m, "returned result is not null");
 		});
-		it("should update the corresponding entry in the database if exist", function(){
+		it("should update the corresponding entry in the database if exist", async function(){
 			let model;
-			return Random.findBy({"wholeNumber": 10958}).then((m) => {
-				model = m;
-				model.data.string = "New string";
-				return model.save();
-			}).then(() => {
-				return connect.then((client) => client.db());
-			}).then((db) => {
-				return db.collection(testSchema.$id).findOne({"wholeNumber": 10958});
-			}).then((m) => {
-				delete m._id;
-				assert.deepEqual(m, model.data, "returned result is equal to 'model.data'");
-			});
+			const m = await Random.findBy({"wholeNumber": 10958});
+			model = m;
+			model.data.string = "New string";
+			await model.save();
+
+			const client = await connect;
+			const db = client.db();
+
+			const res = await db.collection(testSchema.$id).findOne({"wholeNumber": 10958});
+			delete res._id;
+			assert.deepEqual(res, model.data, "returned result is equal to 'model.data'");
 		});
-		it("should update the deep copy of the data into _original", function(){
-			return Random.findBy({"wholeNumber": 10958}).then((model) => {
-				model.data.string = "New string";
-				return model.save();
-			}).then((model) => {
-				assert.equal(model._original.string, "New string", "string of original is as defined");
-			});
+		it("should update the deep copy of the data into _original", async function(){
+			let model = await Random.findBy({"wholeNumber": 10958});
+			model.data.string = "New string";
+			model = await model.save();
+			assert.equal(model._original.string, "New string", "string of original is as defined");
 		});
 		it("should return a rejected Promise if the new model doesn't match the schema definition", function(done){
 			let model = new Random.Model();
@@ -153,7 +147,6 @@ describe("Model", function(){
 			}).then((model) => {
 				done("model.save() is not rejecting a mismatch between data and schema");
 			}).catch((err) => {
-				// done();
 				return Promise.resolve();
 			}).then(() => {
 				return connect.then((client) => client.db());
@@ -169,58 +162,46 @@ describe("Model", function(){
 	});
 
 	describe("destroy()", function(){
-		beforeEach(function(){
-			return connect.then((client) => {
-				const db = client.db();
-				return db.collection(testSchema.$id).insertOne({
-					"string": "Delete me"
-				});
+		beforeEach(async function(){
+			const client = await connect;
+			const db = client.db();
+			await db.collection(testSchema.$id).insertOne({
+				"string": "Delete me"
 			});
 		});
 
-		afterEach(function(){
-			return connect.then((client) => {
-				const db = client.db();
-				return db.collection(testSchema.$id).deleteOne({
-					"string": "Delete me"
-				});
+		afterEach(async function(){
+			const client = await connect;
+			const db = client.db();
+			await db.collection(testSchema.$id).deleteOne({
+				"string": "Delete me"
 			});
 		});
 
-		it("should delete the corresponding entry in the database", function(){
-			let testModel;
-			return Random.findBy({"string": "Delete me"}).then((model) => {
-				testModel = model;
-				return connect.then((client) => client.db());
-			}).then((db) => {
-				return db.collection(testSchema.$id).findOne({"string": "Delete me"});
-			}).then((model) => {
-				assert.isNotNull(model, "model is not null");
-				assert.equal(model.string, "Delete me", "string of model is defined");
-				return testModel.destroy();
-			}).then(() => {
-				return connect.then((client) => client.db());
-			}).then((db) => {
-				return db.collection(testSchema.$id).findOne({"string": "Delete me"});
-			}).then((model) => {
-				assert.isNull(model, "model is null");
-			});
+		it("should delete the corresponding entry in the database", async function(){
+			const client = await connect;
+			const db = client.db();
+
+			const model = await Random.findBy({"string": "Delete me"});
+			assert.isNotNull(model, "model is not null");
+			assert.equal(model.data.string, "Delete me", "string of model is defined");
+
+			await model.destroy();
+
+			const res = await db.collection(testSchema.$id).findOne({"string": "Delete me"});
+			assert.isNull(res, "model is null");
 		});
-		it("should clear remaining data in data and _original object", function(){
-			let model;
-			return Random.findBy({"string": "Delete me"}).then((m) => {
-				model = m;
-				return model.destroy();
-			}).then(() => {
-				assert.isNull(model.data, "data is null");
-				assert.isNull(model._original, "original is null");
-			});
+		it("should clear remaining data in data and _original object", async function(){
+			const model = await Random.findBy({"string": "Delete me"});
+			await model.destroy();
+			assert.isNull(model.data, "data is null");
+			assert.isNull(model._original, "original is null");
 		});
 		it("should throw an error if an entry is not found in the database", function(done){
 			Random.findBy({"string": "Not exist"}).then((model) => {
 				return model.destroy();
 			}).then(() => {
-				done(new Error("expected function to throw an error."));
+				done("expected function to throw an error.");
 			}).catch((err) => {
 				done();
 			});
