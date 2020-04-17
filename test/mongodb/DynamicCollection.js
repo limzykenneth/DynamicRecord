@@ -80,125 +80,90 @@ describe("DynamicCollection", function(){
 
 	describe("saveAll()", function(){
 		let col;
-		const testData = [
-			{
-				"string": "Velit tempor.",
-				"wholeNumber": 42,
-				"floatingPoint": 3.1415926536
-			},
-			{
-				"string": "Fugiat laboris cillum quis pariatur.",
-				"wholeNumber": 42,
-				"floatingPoint": 2.7182818285
-			},
-			{
-				"string": "Reprehenderit sint.",
-				"wholeNumber": 10958,
-				"floatingPoint": 2.7182818285
-			}
-		];
+
 		beforeEach(function(){
-			col = new DynamicCollection(Random.Model, ...testData);
+			const data = _.cloneDeep(testData);
+			col = new DynamicCollection(Random.Model, ...data);
 		});
 
 		afterEach(function(){
 			return utils.resetTestTables();
 		});
 
-		it("should call save function of all the models in the collection", function(){
-			return col.saveAll().then((res) => {
-				return connect.then((client) => {
-					const db = client.db();
-					return db.collection(testSchema.$id).find().toArray();
-				});
-			}).then((res) => {
-				_.each(col.data, (el) => {
-					assert.deepInclude(res, el);
-				});
+		it("should call save function of all the models in the collection", async function(){
+			await col.saveAll();
+
+			const client = await connect;
+			const db = client.db();
+			const res = await db.collection(testSchema.$id).find().toArray();
+
+			_.each(col.data, (el) => {
+				assert.deepInclude(res, el);
 			});
 		});
 
 		describe("autoIncrement", function(){
-			beforeEach(function(){
-				return connect.then((client) => {
-					const db = client.db();
-					return db.collection("_counters").insertOne({
-						"_$id": testSchema.$id,
-						sequences: {
-							wholeNumber: 0
-						}
-					});
+			beforeEach(async function(){
+				const client = await connect;
+				const db = client.db();
+				await db.collection("_counters").insertOne({
+					"_$id": testSchema.$id,
+					sequences: {
+						wholeNumber: 0
+					}
 				});
 			});
 
-			afterEach(function(){
-				return connect.then((client) => {
-					const db = client.db();
-					return db.collection("_counters").deleteOne({"_$id": testSchema.$id});
-				});
+			afterEach(async function(){
+				const client = await connect;
+				const db = client.db();
+				await db.collection("_counters").deleteOne({"_$id": testSchema.$id});
 			});
 
-			it("should set the autoincrementing index correctly", function(){
+			it("should set the autoincrementing index correctly", async function(){
 				col.forEach((model) => {
 					delete model.data.wholeNumber;
 				});
-				return col.saveAll().then((res) => {
-					return connect.then((client) => {
-						const db = client.db();
-						return db.collection(testSchema.$id).find().toArray();
-					});
-				}).then((res) => {
-					for(let i=0; i<res.length; i++){
-						assert.equal(res[i].wholeNumber, i+1, `database entry has auto increment value ${i+1}`);
-					}
-					for(let i=0; i<col.length; i++){
-						assert.equal(col[i].data.wholeNumber, i+1, `collection entry has auto increment value ${i+1}`);
-					}
-				});
+
+				await col.saveAll();
+
+				const client = await connect;
+				const db = client.db();
+				const res = await db.collection(testSchema.$id).find().toArray();
+
+				for(let i=0; i<res.length; i++){
+					assert.equal(res[i].wholeNumber, i+1, `database entry has auto increment value ${i+1}`);
+				}
+				for(let i=0; i<col.length; i++){
+					assert.equal(col[i].data.wholeNumber, i+1, `collection entry has auto increment value ${i+1}`);
+				}
 			});
 		});
 	});
 
 	describe("dropAll()", function(){
 		let col;
-		const testData = [
-			{
-				"string": "Velit tempor.",
-				"wholeNumber": 42,
-				"floatingPoint": 3.1415926536
-			},
-			{
-				"string": "Fugiat laboris cillum quis pariatur.",
-				"wholeNumber": 42,
-				"floatingPoint": 2.7182818285
-			},
-			{
-				"string": "Reprehenderit sint.",
-				"wholeNumber": 10958,
-				"floatingPoint": 2.7182818285
-			}
-		];
+
 		beforeEach(function(){
-			col = new DynamicCollection(Random.Model, ...testData);
+			const data = _.cloneDeep(testData);
+			col = new DynamicCollection(Random.Model, ...data);
 		});
 
 		afterEach(function(){
 			return utils.resetTestTables();
 		});
 
-		it("should call save function of all the models in the collection", function(){
-			return col.saveAll().then((res) => {
-				return col.dropAll();
-			}).then(() => {
-				return connect.then((client) => {
-					const db = client.db();
-					return db.collection(testSchema.$id).find().toArray();
-				});
-			}).then((res) => {
-				assert.lengthOf(res, 0, "collection doesn't exist in database");
-				_.each(col.data, (el) => {
-					assert.isNull(el, "models in collection are emptied out");
-				});
+		it("should call destroy function of all the models in the collection", async function(){
+			await col.saveAll();
+			await col.dropAll();
+
+			const client = await connect;
+			const db = client.db();
+			const res = await db.collection(testSchema.$id).find().toArray();
+
+			assert.lengthOf(res, 0, "collection doesn't exist in database");
+			_.each(col.data, (el) => {
+				assert.isNull(el, "models in collection are emptied out");
 			});
 		});
 	});

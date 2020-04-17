@@ -76,4 +76,34 @@ describe("DynamicCollection", function(){
 			"string": "Magna dolor."
 		}, "collection data include pushed entry");
 	});
+
+	describe("saveAll()", function(){
+		let col;
+
+		beforeEach(function(){
+			const data = _.cloneDeep(testData);
+			col = new DynamicCollection(Random.Model, ...data);
+		});
+
+		afterEach(function(){
+			return utils.resetTestTables();
+		});
+
+		it("should call save function of all the models in the collection");
+	});
+
+	describe("dropAll()", function(){
+		let col;
+
+		beforeEach(function(){
+			const data = _.cloneDeep(testData);
+			col = new DynamicCollection(Random.Model, ...data);
+		});
+
+		afterEach(function(){
+			return utils.resetTestTables();
+		});
+
+		it("should call destroy function of all the models in the collection");
+	});
 });
