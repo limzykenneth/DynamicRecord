@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Model = exports.DynamicRecord = void 0;
 const _ = require("lodash");
 class DynamicRecord {
     /**
@@ -11,7 +12,7 @@ class DynamicRecord {
      * @param {string} options.tableSlug - The slug of the table. Must be lowercase only
      * and not containing any whitespace
      */
-    constructor() { }
+    constructor(options) { }
 }
 exports.DynamicRecord = DynamicRecord;
 class Model {

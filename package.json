@@ -59,6 +59,6 @@
     "np": "^6.1.0",
     "surge": "^0.21.3",
     "tui-jsdoc-template": "^1.2.2",
-    "typescript": "^3.7.2"
+    "typescript": "^3.9.5"
   }
 }

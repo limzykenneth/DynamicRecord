@@ -16,7 +16,7 @@ class DynamicRecord extends DRBase {
 	private _client: any;
 
 	constructor(options){
-		super();
+		super(options);
 		this._databaseConnection = connect;
 		const _schema = this.schema = new (DynamicSchema(this._databaseConnection))();
 		const tableSlug = options.tableSlug;

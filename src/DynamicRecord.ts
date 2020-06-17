@@ -16,7 +16,7 @@ export abstract class DynamicRecord {
 	 * @param {string} options.tableSlug - The slug of the table. Must be lowercase only
 	 * and not containing any whitespace
 	 */
-	constructor(){}
+	constructor(options: object){}
 
 	/**
 	 * Close the connection to the database server. Only used to terminate

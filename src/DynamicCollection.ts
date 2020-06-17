@@ -86,7 +86,7 @@ export default abstract class DynamicCollection extends Array{
 			}
 		});
 
-		await Promise.all(promises)
+		await Promise.all(promises);
 		return this;
 	}
 }

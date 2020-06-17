@@ -14,7 +14,7 @@ const DynamicCollection_1 = require("./DynamicCollection");
 const connection_1 = require("./connection");
 class DynamicRecord extends DynamicRecord_1.DynamicRecord {
     constructor(options) {
-        super();
+        super(options);
         this._databaseConnection = connection_1.default;
         const tableSlug = options.tableSlug;
         // const _ready = this._ready = connect.execute("");

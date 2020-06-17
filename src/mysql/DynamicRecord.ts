@@ -12,7 +12,7 @@ class DynamicRecord extends DRBase{
 	private _ready: any;
 
 	constructor(options){
-		super();
+		super(options);
 		this._databaseConnection = connect;
 		const tableSlug = options.tableSlug;
 

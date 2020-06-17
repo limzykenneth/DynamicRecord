@@ -17,7 +17,7 @@ const connection_1 = require("./connection");
 const schemaValidator = new (require("./schemaValidation.js"))(connection_1.default);
 class DynamicRecord extends DynamicRecord_1.DynamicRecord {
     constructor(options) {
-        super();
+        super(options);
         this._databaseConnection = connection_1.default;
         const _schema = this.schema = new (DynamicSchema_1.default(this._databaseConnection))();
         const tableSlug = options.tableSlug;
