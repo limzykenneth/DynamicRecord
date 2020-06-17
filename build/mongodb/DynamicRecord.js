@@ -48,6 +48,7 @@ class DynamicRecord extends DynamicRecord_1.DynamicRecord {
                 return __awaiter(this, void 0, void 0, function* () {
                     const col = yield _ready;
                     if (this._original) {
+                        delete this.data._id;
                         yield validateData(this.data);
                         yield col.updateOne(this._original, { $set: this.data }, { upsert: true });
                         this._original = _.cloneDeep(this.data);
