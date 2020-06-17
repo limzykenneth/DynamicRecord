@@ -95,16 +95,18 @@ function init(program){
 
 				// Create .env file if needed
 				if(response.env){
-					if(response.databaseType === constants.databaseEnums.mongodb){
-						const data = `database_host=${response.url}`;
-						console.log("Writing to .env ... ");
+					const data = `database_host=${response.url}`;
+					console.log("Writing to .env ... ");
 
-						if(!cmd.preview){
-							fs.appendFile("./.env", `\n${data}`).then(() => {
-								console.log("Written .env file");
-							});
-						}
+					if(!cmd.preview){
+						fs.appendFile("./.env", `\n${data}`).then(() => {
+							console.log("Written .env file");
+						});
 					}
+				}else{
+					const data = `database_host=${response.url}`;
+					console.log("Please set the following in your environment vairables:");
+					console.log(data);
 				}
 
 				// Initialize database
