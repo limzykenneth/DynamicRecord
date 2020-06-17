@@ -100,7 +100,7 @@ function init(program){
 						console.log("Writing to .env ... ");
 
 						if(!cmd.preview){
-							fs.writeFile("./.env", data).then(() => {
+							fs.appendFile("./.env", `\n${data}`).then(() => {
 								console.log("Written .env file");
 							});
 						}
