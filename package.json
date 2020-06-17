@@ -18,7 +18,7 @@
   "homepage": "https://dynamic-record.js.org",
   "bugs": "https://github.com/limzykenneth/DynamicRecord/issues",
   "repository": "https://github.com/limzykenneth/DynamicRecord.git",
-  "main": "build/DynamicRecord.js",
+  "main": "build/main.js",
   "scripts": {
     "lint": "eslint src/**/*.ts test/**/*.js tools/**/*.js",
     "pretest": "npm run build",
