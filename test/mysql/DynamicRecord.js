@@ -43,8 +43,17 @@ after(async function(){
 
 // ----------------- Tests --------------------
 describe("DynamicRecord", function(){
-	beforeEach(function(){
-
+	beforeEach(async function(){
+		// Fill with dummy data
+		const connection = await connect;
+		const fields = [];
+		const values = [];
+		testData.forEach((data) => {
+			_.each(data, (val, key) => {
+				console.error("We stopped here");
+			});
+		});
+		// connection.execute(`INSERT INTO ${testSchema.$id} () VALUES ()`, []);
 	});
 
 	afterEach(function(){
