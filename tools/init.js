@@ -64,7 +64,7 @@ function init(program){
 				response.database = cmd.database;
 			}
 
-			if(typeof cmd.env === "undefined"){
+			if(cmd.env === false){
 				response.env = false;
 			}else{
 				response.env = true;
