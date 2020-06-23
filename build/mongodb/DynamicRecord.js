@@ -138,6 +138,16 @@ class DynamicRecord extends DynamicRecord_1.DynamicRecord {
             }
         };
     }
+    static closeConnection() {
+        const _super = Object.create(null, {
+            closeConnection: { get: () => super.closeConnection }
+        });
+        return __awaiter(this, void 0, void 0, function* () {
+            yield _super.closeConnection.call(this);
+            const opts = yield connection_1.default;
+            yield opts.client.close();
+        });
+    }
     closeConnection() {
         return __awaiter(this, void 0, void 0, function* () {
             // Should only ever be called to terminate the node process

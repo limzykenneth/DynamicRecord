@@ -8,6 +8,15 @@ export abstract class DynamicRecord {
 	schema: any;
 
 	/**
+	 * Close the connection to the database server. Only used to terminate
+	 * the running node instance.
+	 *
+	 * @method closeConnection
+	 * @static
+	 */
+	static closeConnection(){}
+
+	/**
 	 * Creates a new DynamicRecord instance.
 	 *
 	 * @name DynamicRecord

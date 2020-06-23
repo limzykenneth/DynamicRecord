@@ -13,6 +13,14 @@ class DynamicRecord {
      * and not containing any whitespace
      */
     constructor(options) { }
+    /**
+     * Close the connection to the database server. Only used to terminate
+     * the running node instance.
+     *
+     * @method closeConnection
+     * @static
+     */
+    static closeConnection() { }
 }
 exports.DynamicRecord = DynamicRecord;
 class Model {

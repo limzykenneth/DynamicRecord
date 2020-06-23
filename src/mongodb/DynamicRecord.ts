@@ -15,6 +15,12 @@ class DynamicRecord extends DRBase {
 	private _db: any;
 	private _client: any;
 
+	static async closeConnection(){
+		await super.closeConnection();
+		const opts = await connect;
+		await opts.client.close();
+	}
+
 	constructor(options){
 		super(options);
 		this._databaseConnection = connect;
