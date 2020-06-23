@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import * as Ajv from "ajv";
-const countersSchema = require("../schemas/_counters.schema.json");
+import * as countersSchema from "../schemas/_counters.schema.json";
 
 let connect;
 
