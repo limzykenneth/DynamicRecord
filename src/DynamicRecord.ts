@@ -105,7 +105,7 @@ export abstract class Model {
 	 * @param {object} data - Object containing data for this instance of
 	 * DynamicRecord.Model
 	 */
-	constructor(data, _preserveOriginal){
+	constructor(data: any, _preserveOriginal: boolean){
 		/**
 		 * The data contained in this instance. It is not kept in sync with
 		 * the database automatically.

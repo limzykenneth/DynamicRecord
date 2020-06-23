@@ -49,17 +49,18 @@ class DynamicRecord extends DRBase {
 		});
 
 		const Model = this.Model = class Model extends ModelBase{
-			constructor(data, _preserveOriginal){
+			constructor(data: any, _preserveOriginal: boolean){
+				if(_.has(data, "_id")){
+					delete data._id;
+				}
 				super(data, _preserveOriginal);
 			}
 
 			async save(): Promise<Model>{
 				const col = await _ready;
 				if(this._original){
-					// Doesn't seem to work in Windows if _id key is not deleted
-					delete this.data._id;
 					await validateData(this.data);
-					await col.updateOne(this._original, {$set: this.data}, {upsert: true});
+					await col.updateOne(this._original, {$set: this.data});
 					this._original = _.cloneDeep(this.data);
 					return this;
 				}else{
