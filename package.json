@@ -19,6 +19,9 @@
   "bugs": "https://github.com/limzykenneth/DynamicRecord/issues",
   "repository": "https://github.com/limzykenneth/DynamicRecord.git",
   "main": "build/main.js",
+  "files": [
+    "build/**"
+  ],
   "scripts": {
     "lint": "eslint src/**/*.ts test/**/*.js tools/**/*.js",
     "pretest": "npm run build",

@@ -95,6 +95,8 @@ Temporary Items
 
 # End of https://www.gitignore.io/api/macos
 
+build/
+
 # Test database
 test/test_db
 
