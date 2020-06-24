@@ -159,6 +159,90 @@ describe("Model", function(){
 				done(err);
 			});
 		});
+
+		describe("Concurrent saves", function(){
+			it("should end up with the right data at the end of concurrent saves", async function(){
+				const model = new Random.Model();
+				model.data.wholeNumber = 1576;
+				model.data.floatingPoint = 4.4;
+				model.data.string = "Nobunaga";
+
+				const promises = [];
+				promises.push(new Promise((resolve, reject) => {
+					setTimeout(() => {
+						model.data.string = "Hideyoshi";
+						model.save().then(resolve).catch(reject);
+					}, 0);
+				}));
+
+				promises.push(new Promise((resolve, reject) => {
+					setTimeout(async () => {
+						model.data.wholeNumber = 1586;
+						model.save().then(resolve).catch(reject);
+					}, 0);
+				}));
+
+				promises.push(new Promise((resolve, reject) => {
+					setTimeout(async () => {
+						model.data.floatingPoint = 1.2;
+						model.save().then(resolve).catch(reject);
+					}, 0);
+				}));
+
+				await Promise.all(promises);
+
+				assert(model.data.string, "Hideyoshi", "string entry has expected value");
+				assert(model.data.wholeNumber, 1586, "whole number entry has expected value");
+				assert(model.data.floatingPoint, 1.2, "floating point entry has expected value");
+				assert(model._original.string, "Hideyoshi", "original string entry has expected value");
+				assert(model._original.wholeNumber, 1586, "original whole number entry has expected value");
+				assert(model._original.floatingPoint, 1.2, "original floating point entry has expected value");
+			});
+			it("should have the right entry in database at the end of concurrent saves", async function(){
+				const model = new Random.Model();
+				model.data.wholeNumber = 1576;
+				model.data.floatingPoint = 4.4;
+				model.data.string = "Nobunaga";
+
+				const promises = [];
+				promises.push(new Promise((resolve, reject) => {
+					setTimeout(() => {
+						model.data.string = "Hideyoshi";
+						model.save().then(resolve).catch(reject);
+					}, 0);
+				}));
+
+				promises.push(new Promise((resolve, reject) => {
+					setTimeout(async () => {
+						model.data.wholeNumber = 1586;
+						model.save().then(resolve).catch(reject);
+					}, 0);
+				}));
+
+				promises.push(new Promise((resolve, reject) => {
+					setTimeout(async () => {
+						model.data.floatingPoint = 1.2;
+						model.save().then(resolve).catch(reject);
+					}, 0);
+				}));
+
+				await Promise.all(promises);
+
+				const client = await connect;
+				const db = client.db();
+
+				const m = await db.collection(testSchema.$id).findOne({
+					string: "Hideyoshi",
+					wholeNumber: 1586,
+					floatingPoint: 1.2
+				});
+
+				assert.isNotNull(m, "database entry exist");
+				assert.equal(m.string, model.data.string, "string entry match with database");
+				assert.equal(m.wholeNumber, model.data.wholeNumber, "whole number entry match with database");
+				assert.equal(m.floatingPoint, model.data.floatingPoint, "floating point entry match with database");
+			});
+		});
 	});
 
 	describe("destroy()", function(){

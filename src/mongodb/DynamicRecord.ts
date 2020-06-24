@@ -49,61 +49,76 @@ class DynamicRecord extends DRBase {
 		});
 
 		const Model = this.Model = class Model extends ModelBase{
+			private _saveQueue: Array< Promise<any> >;
+
 			constructor(data: any, _preserveOriginal: boolean){
 				if(_.has(data, "_id")){
 					delete data._id;
 				}
 				super(data, _preserveOriginal);
+				this._saveQueue = [];
 			}
 
 			async save(): Promise<Model>{
-				const col = await _ready;
-				if(this._original){
-					await validateData(this.data);
-					await col.updateOne(this._original, {$set: this.data});
-					this._original = _.cloneDeep(this.data);
-					return this;
-				}else{
-					// Check if collection contains index that needs auto incrementing
-					return _db.collection("_counters").findOne({_$id: tableSlug}).then(async (res) => {
-						const promises = [];
-						if(res !== null){
-							// Auto incrementing index exist
-							_.each(res.sequences, (el, columnLabel) => {
-								promises.push(_schema._incrementCounter(tableSlug, columnLabel).then((newSequence) => {
-									this.data[columnLabel] = newSequence;
-									return Promise.resolve(newSequence);
-								}));
-							});
-
-							await Promise.all(promises);
-						}
+				const saveData = async () => {
+					const col = await _ready;
+					if(this._original){
 						await validateData(this.data);
-
-						// Save data into the database
-						await col.insertOne(this.data);
+						await col.updateOne(this._original, {$set: this.data});
 						this._original = _.cloneDeep(this.data);
 						return this;
-					}).catch(async (err) => {
-						// Reverse database actions
-						try{
-							await Promise.all([
-								// 1. Decrement autoincrement counter
-								_db.collection("_counters").findOne({_$id: tableSlug}).then((res) => {
-									const promises = [];
-									_.each(res.sequences, (el, columnLabel) => {
-										promises.push(_schema._decrementCounter(tableSlug, columnLabel));
-									});
+					}else{
+						// Check if collection contains index that needs auto incrementing
+						return _db.collection("_counters").findOne({_$id: tableSlug}).then(async (res) => {
+							const promises = [];
+							if(res !== null){
+								// Auto incrementing index exist
+								_.each(res.sequences, (el, columnLabel) => {
+									promises.push(_schema._incrementCounter(tableSlug, columnLabel).then((newSequence) => {
+										this.data[columnLabel] = newSequence;
+										return Promise.resolve(newSequence);
+									}));
+								});
 
-									return Promise.all(promises);
-								})
-							]);
-							return Promise.reject(err);
-						} catch(e) {
-							return Promise.reject(e);
-						}
-					});
-				}
+								await Promise.all(promises);
+							}
+							await validateData(this.data);
+
+							// Save data into the database
+							await col.insertOne(this.data);
+							this._original = _.cloneDeep(this.data);
+							return this;
+						}).catch(async (err) => {
+							// Reverse database actions
+							try{
+								await Promise.all([
+									// 1. Decrement autoincrement counter
+									_db.collection("_counters").findOne({_$id: tableSlug}).then((res) => {
+										const promises = [];
+										if(res){
+											_.each(res.sequences, (el, columnLabel) => {
+												promises.push(_schema._decrementCounter(tableSlug, columnLabel));
+											});
+										}
+
+										return Promise.all(promises);
+									})
+								]);
+								return Promise.reject(err);
+							} catch(e) {
+								return Promise.reject(e);
+							}
+						});
+					}
+				};
+
+				// Wait for current queue of saves before continuing
+				return Promise.all(this._saveQueue).then(() => {
+					this._saveQueue = [];
+					const res = saveData();
+					this._saveQueue.push(res);
+					return res;
+				});
 
 				async function validateData(data){
 					const validate = await schemaValidator.compileAsync({$ref: _schema.tableSlug});
@@ -118,14 +133,17 @@ class DynamicRecord extends DRBase {
 			async destroy(): Promise<Model>{
 				const col = await _ready;
 
-				if(this._original){
-					await col.deleteOne(this._original);
-					this._original = null;
-					this.data = null;
-					return this;
-				}else{
-					throw new Error("Model not saved in database yet.");
-				}
+				// Wait for current queue of saves before continuing
+				return Promise.all(this._saveQueue).then(async () => {
+					if(this._original){
+						await col.deleteOne(this._original);
+						this._original = null;
+						this.data = null;
+						return this;
+					}else{
+						throw new Error("Model not saved in database yet.");
+					}
+				});
 			}
 
 			validate(schema): boolean{
