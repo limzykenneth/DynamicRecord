@@ -1,22 +1,20 @@
 language: node_js
 node_js:
-  - 10
   - 12
-services: mongodb
+  - 14
+ services: mongodb
 before_script:
   - sleep 15
   - mongo mongo_test_db --eval 'db.createUser({user:"travis",pwd:"test",roles:["readWrite"]});'
-env:
-  database_host: mongodb://127.0.0.1:27017
-  database_name: mongo_test_db
-  database_username: travis
-  database_password: test
+
+jobs:
+  include:
+    - name: MongoDB
+      env:
+        database_host: mongodb://127.0.0.1:27017
+        database_name: mongo_test_db
+        database_username: travis
+        database_password: test
+
 script:
-  - npm run docs
-deploy:
-  provider: surge
-  project: ./docs/
-  domain: dynamic-record.js.org
-  skip_cleanup: true
-  on:
-    tags: true
+  - npm test
