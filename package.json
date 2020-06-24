@@ -20,7 +20,8 @@
   "repository": "https://github.com/limzykenneth/DynamicRecord.git",
   "main": "build/main.js",
   "files": [
-    "build/**"
+    "build/**",
+    "tools/**"
   ],
   "scripts": {
     "lint": "eslint src/**/*.ts test/**/*.js tools/**/*.js",
