@@ -132,9 +132,7 @@ class DynamicRecord extends DRBase {
 
 			async destroy(): Promise<Model>{
 				const col = await _ready;
-
-				// Wait for current queue of saves before continuing
-				return Promise.all(this._saveQueue).then(async () => {
+				const destroyData = async () => {
 					if(this._original){
 						await col.deleteOne(this._original);
 						this._original = null;
@@ -143,6 +141,14 @@ class DynamicRecord extends DRBase {
 					}else{
 						throw new Error("Model not saved in database yet.");
 					}
+				};
+
+				// Wait for current queue of saves before continuing
+				return Promise.all(this._saveQueue).then(() => {
+					this._saveQueue = [];
+					const res = destroyData();
+					this._saveQueue.push(res);
+					return res;
 				});
 			}
 
