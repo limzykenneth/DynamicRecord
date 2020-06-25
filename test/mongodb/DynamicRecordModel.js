@@ -176,14 +176,14 @@ describe("Model", function(){
 				}));
 
 				promises.push(new Promise((resolve, reject) => {
-					setTimeout(async () => {
+					setTimeout(() => {
 						model.data.wholeNumber = 1586;
 						model.save().then(resolve).catch(reject);
 					}, 0);
 				}));
 
 				promises.push(new Promise((resolve, reject) => {
-					setTimeout(async () => {
+					setTimeout(() => {
 						model.data.floatingPoint = 1.2;
 						model.save().then(resolve).catch(reject);
 					}, 0);
@@ -250,7 +250,9 @@ describe("Model", function(){
 			const client = await connect;
 			const db = client.db();
 			await db.collection(testSchema.$id).insertOne({
-				"string": "Delete me"
+				string: "Delete me",
+				wholeNumber: 42,
+				floatingPoint: 1.2
 			});
 		});
 
@@ -288,6 +290,28 @@ describe("Model", function(){
 				done("expected function to throw an error.");
 			}).catch((err) => {
 				done();
+			});
+		});
+
+		describe("Concurrent writes", function(){
+			it("should wait for model to save before trying to delete in concurrent situation", async function(){
+				const model = await Random.findBy({"string": "Delete me"});
+				const promises = [];
+
+				promises.push(new Promise((resolve, reject) => {
+					setTimeout(() => {
+						model.data.string = "Changed";
+						model.save().then(resolve).catch(reject);
+					}, 0);
+				}));
+
+				promises.push(new Promise((resolve, reject) => {
+					setTimeout(() => {
+						model.destroy().then(resolve).catch(reject);
+					}, 0);
+				}));
+
+				await Promise.all(promises);
 			});
 		});
 	});
