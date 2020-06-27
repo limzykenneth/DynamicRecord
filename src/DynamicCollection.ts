@@ -10,7 +10,7 @@ export default abstract class DynamicCollection extends Array{
 	 * @name DynamicCollection
 	 * @constructor
 	 * @extends Array
-	 * @param {DynamicRecord.Model} Model - The Model constructor to use for
+	 * @param {DynamicRecord.Model} Model	The Model constructor to use for
 	 *                              this collection
 	 */
 	constructor(Model, ...data){
@@ -25,6 +25,7 @@ export default abstract class DynamicCollection extends Array{
 	/**
 	 * Returns a native array of data objects
 	 *
+	 * @name data
 	 * @type Array
 	 */
 	get data(): Array<any>{
@@ -42,7 +43,7 @@ export default abstract class DynamicCollection extends Array{
 	 * @method fromArray
 	 * @memberOf DynamicCollection
 	 * @static
-	 * @return DynamicCollection
+	 * @return {DynamicCollection}
 	 * @hidden
 	 */
 	// ABSTRACT STATIC METHOD
@@ -56,7 +57,7 @@ export default abstract class DynamicCollection extends Array{
 	 * @method saveAll
 	 * @memberOf DynamicCollection
 	 * @instance
-	 * @return {Promise} Return promise of this DynamicCollection instance
+	 * @return {Promise} - Return promise of this DynamicCollection instance
 	 */
 	// CONSIDER: Saving in series thus slow. Can consider assigning a block of counters at once
 	async saveAll(): Promise<DynamicCollection>{
@@ -76,7 +77,7 @@ export default abstract class DynamicCollection extends Array{
 	 * @method dropAll
 	 * @memberOf DynamicCollection
 	 * @instance
-	 * @return {Promise} Return promise of this DynamicCollection instance
+	 * @return {Promise} - Return promise of this DynamicCollection instance
 	 */
 	async dropAll(): Promise<DynamicCollection>{
 		const promises = [];

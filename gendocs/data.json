@@ -1,0 +1,477 @@
+{
+  "src/DynamicCollection.ts": [
+    {
+      "itemType": "class",
+      "name": "DynamicCollection",
+      "line": 3,
+      "source": "Creates a new DynamicCollection instance.\n\nDynamicCollection is an extension of the native Array object thus\nimplementing all of Array's methods and properties.\n\n@name DynamicCollection\n@constructor\n@extends Array\n@param {DynamicRecord.Model} Model\tThe Model constructor to use for\nthis collection",
+      "description": "Creates a new DynamicCollection instance.\n\nDynamicCollection is an extension of the native Array object thus implementing all of Array's methods and properties.",
+      "return": {
+        "type": "DynamicCollection",
+        "description": ""
+      },
+      "params": [
+        {
+          "type": "DynamicRecord.Model",
+          "name": "Model",
+          "description": "The Model constructor to use for this collection",
+          "optional": false
+        }
+      ],
+      "extends": "Array"
+    },
+    {
+      "itemType": "property",
+      "name": "data",
+      "line": 24,
+      "source": "Returns a native array of data objects\n\n@name data\n@type Array",
+      "description": "Returns a native array of data objects",
+      "type": "Array",
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "method",
+      "name": "fromArray",
+      "line": 38,
+      "source": "Converts an array of objects into a DynamicCollection. If an element in\nthe array is not an object, it will be skipped.\n\n@method fromArray\n@memberOf DynamicCollection\n@static\n@return {DynamicCollection}\n@hidden",
+      "description": "Converts an array of objects into a DynamicCollection. If an element in the array is not an object, it will be skipped.",
+      "return": {
+        "type": "DynamicCollection",
+        "description": ""
+      },
+      "params": [],
+      "static": true,
+      "private": false,
+      "hidden": true
+    },
+    {
+      "itemType": "method",
+      "name": "saveAll",
+      "line": 51,
+      "source": "Save all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `save()` method.\n\n@method saveAll\n@memberOf DynamicCollection\n@instance\n@return {Promise} - Return promise of this DynamicCollection instance",
+      "description": "Save all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `save()` method.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of this DynamicCollection instance"
+      },
+      "params": [],
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "method",
+      "name": "dropAll",
+      "line": 71,
+      "source": "Destroy all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `destroy()` method.\n\n@method dropAll\n@memberOf DynamicCollection\n@instance\n@return {Promise} - Return promise of this DynamicCollection instance",
+      "description": "Destroy all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `destroy()` method.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of this DynamicCollection instance"
+      },
+      "params": [],
+      "static": false,
+      "private": false
+    }
+  ],
+  "src/DynamicSchema.ts": [
+    {
+      "itemType": "class",
+      "name": "DynamicSchema",
+      "line": 41,
+      "source": "Create an new DynamicSchema instance\n\n@name DynamicSchema\n@class",
+      "description": "Create an new DynamicSchema instance",
+      "return": {
+        "type": "DynamicSchema",
+        "description": ""
+      },
+      "params": [],
+      "extends": ""
+    },
+    {
+      "itemType": "property",
+      "name": "tableName",
+      "line": 48,
+      "source": "The name of the table.\n\n@name tableName\n@type string\n@memberOf DynamicSchema\n@instance",
+      "description": "The name of the table.",
+      "type": "string",
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "property",
+      "name": "tableSlug",
+      "line": 58,
+      "source": "The slug of the table.\n\n@name tableSlug\n@type string\n@memberOf DynamicSchema\n@instance",
+      "description": "The slug of the table.",
+      "type": "string",
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "property",
+      "name": "definition",
+      "line": 68,
+      "source": "The table's column definitions.\n\n@name definition\n@type object\n@memberOf DynamicSchema\n@instance",
+      "description": "The table's column definitions.",
+      "type": "object",
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "property",
+      "name": "required",
+      "line": 78,
+      "source": "Label of required fields of this schema. Array of strings.\n\n@name required\n@type array\n@memberOf DynamicSchema\n@instance",
+      "description": "Label of required fields of this schema. Array of strings.",
+      "type": "array",
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "property",
+      "name": "description",
+      "line": 88,
+      "source": "Description of the schema. Not used for anything internally.\n\n@name description\n@type string\n@memberOf DynamicSchema\n@instance",
+      "description": "Description of the schema. Not used for anything internally.",
+      "type": "string",
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "property",
+      "name": "jsonSchema",
+      "line": 98,
+      "source": "The underlying JSON Schema definition of the schema\n\n@name jsonSchema\n@type object\n@memberOf DynamicSchema\n@instance",
+      "description": "The underlying JSON Schema definition of the schema",
+      "type": "object",
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "method",
+      "name": "createTable",
+      "line": 109,
+      "source": "Create a new table with the given schema. Schema must adhere to the\nJSON Schema definition set out in\n[https://json-schema.org/](https://json-schema.org/)\n\nEach property corresponds to each column in the database. A few\ncustom attributes to each property can be included for use by\nDynamicSchema to generate columns for special behaviour.\n\nThese properties are:\n- `isIndex`: Whether the column is an index field\n- `isUnique`: Whether the column is an unique field\n- `isAutoIncrement`: Whether the column is an auto-incrementing integer\n\n@method createTable\n@memberOf DynamicSchema\n@instance\n@param {object} schema\n@param {string} schema.$id\tID of the table, must be unique\n@param {string} [schema.title]\tDefaults to `schema.$id`\n@param {object} schema.properties\tThe column definitions of the table\n@return {Promise} - Return promise of the instance containing the new table",
+      "description": "Create a new table with the given schema. Schema must adhere to the JSON Schema definition set out in\n[https://json-schema.org/](https://json-schema.org/)\n\nEach property corresponds to each column in the database. A few custom attributes to each property can be included for use by DynamicSchema to generate columns for special behaviour.\n\nThese properties are:\n- `isIndex`: Whether the column is an index field\n- `isUnique`: Whether the column is an unique field\n- `isAutoIncrement`: Whether the column is an auto-incrementing integer",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of the instance containing the new table"
+      },
+      "params": [
+        {
+          "type": "object",
+          "name": "schema",
+          "description": "",
+          "optional": false
+        },
+        {
+          "type": "string",
+          "name": "schema.$id",
+          "description": "ID of the table, must be unique",
+          "optional": false
+        },
+        {
+          "type": "string",
+          "name": "schema.title",
+          "description": "Defaults to `schema.$id`",
+          "optional": true
+        },
+        {
+          "type": "object",
+          "name": "schema.properties",
+          "description": "The column definitions of the table",
+          "optional": false
+        }
+      ],
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "method",
+      "name": "dropTable",
+      "line": 134,
+      "source": "Drop the table from the database.\n\n@method dropTable\n@memberOf DynamicSchema\n@instance\n@return {Promise} - Return promise of empty DynamicSchema instance",
+      "description": "Drop the table from the database.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of empty DynamicSchema instance"
+      },
+      "params": [],
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "method",
+      "name": "renameTable",
+      "line": 144,
+      "source": "Rename the table.\n\n@method renameTable\n@memberOf DynamicSchema\n@instance\n@param {string} newSlug\n@param {string} [newName] Defaults to newSlug\n@return {Promise} - Return promise of DynamicSchema instance",
+      "description": "Rename the table.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of DynamicSchema instance"
+      },
+      "params": [
+        {
+          "type": "string",
+          "name": "newSlug",
+          "description": "",
+          "optional": false
+        },
+        {
+          "type": "string",
+          "name": "newName",
+          "description": "Defaults to newSlug",
+          "optional": true
+        }
+      ],
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "method",
+      "name": "addIndex",
+      "line": 156,
+      "source": "Add an index to the table's schema.\n\n@method addIndex\n@memberOf DynamicSchema\n@instance\n@param {object} options\n@param {string} options.name\tThe name of the column to be used as index\n@param {boolean} [options.unique]\tWhether the index is unique or not\n@param {boolean} [options.autoInrement]\tWhether it is an\nauto-incrementing index or not. If true, `options.unique`\nis automatically set to true\n@return {Promise} - Return promise of DynamicSchema instance",
+      "description": "Add an index to the table's schema.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of DynamicSchema instance"
+      },
+      "params": [
+        {
+          "type": "object",
+          "name": "options",
+          "description": "",
+          "optional": false
+        },
+        {
+          "type": "string",
+          "name": "options.name",
+          "description": "The name of the column to be used as index",
+          "optional": false
+        },
+        {
+          "type": "boolean",
+          "name": "options.unique",
+          "description": "Whether the index is unique or not",
+          "optional": true
+        },
+        {
+          "type": "boolean",
+          "name": "options.autoInrement",
+          "description": "Whether it is an auto-incrementing index or not. If true, `options.unique`\nis automatically set to true",
+          "optional": true
+        }
+      ],
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "method",
+      "name": "removeIndex",
+      "line": 175,
+      "source": "Remove an index to the table's schema\n\n@method removeIndex\n@memberOf DynamicSchema\n@instance\n@param {string} columnName:stringThe name of the index to remove\n@return {Promise} - Return promise of DynamicSchema instance",
+      "description": "Remove an index to the table's schema",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of DynamicSchema instance"
+      },
+      "params": [
+        {
+          "type": "string",
+          "name": "columnName:stringThe",
+          "description": "name of the index to remove",
+          "optional": false
+        }
+      ],
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "method",
+      "name": "read",
+      "line": 186,
+      "source": "Read the schema definition from the database.\n\n@method read\n@memberOf DynamicSchema\n@instance\n@param {string} tableSlug\tThe name of the table schema to retrieve\n@return {Promise} - Return promise of DynamicSchema instance",
+      "description": "Read the schema definition from the database.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of DynamicSchema instance"
+      },
+      "params": [
+        {
+          "type": "string",
+          "name": "tableSlug",
+          "description": "The name of the table schema to retrieve",
+          "optional": false
+        }
+      ],
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "method",
+      "name": "define",
+      "line": 197,
+      "source": "Define the table's columns. Passed object must adhere to `properties`\nattribute of [JSON Schema](https://json-schema.org/)'s definition.\n\n@method define\n@memberOf DynamicSchema\n@instance\n@param {object} definition\tDefinition of the table columns\n@return {Promise} - Return promise of DynamicSchema instance",
+      "description": "Define the table's columns. Passed object must adhere to `properties`\nattribute of [JSON Schema](https://json-schema.org/)'s definition.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of DynamicSchema instance"
+      },
+      "params": [
+        {
+          "type": "object",
+          "name": "definition",
+          "description": "Definition of the table columns",
+          "optional": false
+        }
+      ],
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "method",
+      "name": "addColumn",
+      "line": 209,
+      "source": "Add a single column to the table's schema definition. If the column name\nis already in use, this will return a rejected Promise.\n\n@method addColumn\n@memberOf DynamicSchema\n@instance\n@param {string} name\tThe name of the column to add\n@param {string} type\tType of the column to add\n@param {string} [description]\tDescription of the column to add\n@return {Promise} - Return promise of DynamicSchema instance",
+      "description": "Add a single column to the table's schema definition. If the column name is already in use, this will return a rejected Promise.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of DynamicSchema instance"
+      },
+      "params": [
+        {
+          "type": "string",
+          "name": "name",
+          "description": "The name of the column to add",
+          "optional": false
+        },
+        {
+          "type": "string",
+          "name": "type",
+          "description": "Type of the column to add",
+          "optional": false
+        },
+        {
+          "type": "string",
+          "name": "description",
+          "description": "Description of the column to add",
+          "optional": true
+        }
+      ],
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "method",
+      "name": "addColumns",
+      "line": 241,
+      "source": "Add multiple columns to the table's schema definition. If any of the\ngiven columns already exist, this will return a rejected Promise. None\nof the changes will be made.\n\n@method addColumns\n@memberOf DynamicSchema\n@instance\n@param {object} definitions\tObject of objects containing new columns\ndefinitions\n@return {Promise} - Return promise of DynamicSchema instance",
+      "description": "Add multiple columns to the table's schema definition. If any of the given columns already exist, this will return a rejected Promise. None of the changes will be made.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of DynamicSchema instance"
+      },
+      "params": [
+        {
+          "type": "object",
+          "name": "definitions",
+          "description": "Object of objects containing new columns definitions",
+          "optional": false
+        }
+      ],
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "method",
+      "name": "renameColumn",
+      "line": 272,
+      "source": "Rename a single column in the table's schema definition.\n\n@method renameColumn\n@memberOf DynamicSchema\n@instance\n@param {string} name\tThe name of the column to rename\n@param {string} newName\tThe new name of the target column\n@return {Promise} - Return promise of DynamicSchema instance",
+      "description": "Rename a single column in the table's schema definition.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of DynamicSchema instance"
+      },
+      "params": [
+        {
+          "type": "string",
+          "name": "name",
+          "description": "The name of the column to rename",
+          "optional": false
+        },
+        {
+          "type": "string",
+          "name": "newName",
+          "description": "The new name of the target column",
+          "optional": false
+        }
+      ],
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "method",
+      "name": "changeColumnType",
+      "line": 284,
+      "source": "Change the type of a single column in the table's schema definition.\n\n@method changeColumnType\n@memberOf DynamicSchema\n@instance\n@param {string} name\tThe name of the column to change type\n@param {string} newType\tThe new type of the target column\n@return {Promise} - Return promise of DynamicSchema instance",
+      "description": "Change the type of a single column in the table's schema definition.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of DynamicSchema instance"
+      },
+      "params": [
+        {
+          "type": "string",
+          "name": "name",
+          "description": "The name of the column to change type",
+          "optional": false
+        },
+        {
+          "type": "string",
+          "name": "newType",
+          "description": "The new type of the target column",
+          "optional": false
+        }
+      ],
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "method",
+      "name": "removeColumn",
+      "line": 307,
+      "source": "Remove a single column from the table's schema definition.\n\n@method removeColumn\n@memberOf DynamicSchema\n@instance\n@param {string} name\tThe name of the column to remove\n@return {Promise} - Return promise of DynamicSchema instance",
+      "description": "Remove a single column from the table's schema definition.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of DynamicSchema instance"
+      },
+      "params": [
+        {
+          "type": "string",
+          "name": "name",
+          "description": "The name of the column to remove",
+          "optional": false
+        }
+      ],
+      "static": false,
+      "private": false
+    },
+    {
+      "itemType": "method",
+      "name": "_writeSchema",
+      "line": 330,
+      "source": "Update the new schema structure into the database\n\n@method _writeSchema\n@memberOf DynamicSchema\n@instance\n@private\n@return {Promise} - Return promise of DynamicSchema instance",
+      "description": "Update the new schema structure into the database",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of DynamicSchema instance"
+      },
+      "params": [],
+      "static": false,
+      "private": true
+    }
+  ]
+}

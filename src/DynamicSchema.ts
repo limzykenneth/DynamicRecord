@@ -125,10 +125,10 @@ export abstract class DynamicSchema{
 	 * @memberOf DynamicSchema
 	 * @instance
 	 * @param {object} schema
-	 * @param {string} schema.$id - ID of the table, must be unique
-	 * @param {string} [schema.title] - Defaults to `schema.$id`
-	 * @param {object} schema.properties - The column definitions of the table
-	 * @return {Promise} Return promise of the instance containing the new table
+	 * @param {string} schema.$id	ID of the table, must be unique
+	 * @param {string} [schema.title]	Defaults to `schema.$id`
+	 * @param {object} schema.properties	The column definitions of the table
+	 * @return {Promise} - Return promise of the instance containing the new table
 	 */
 	abstract createTable(schemaInput:TableSchema): Promise<DynamicSchema>;
 
@@ -138,7 +138,7 @@ export abstract class DynamicSchema{
 	 * @method dropTable
 	 * @memberOf DynamicSchema
 	 * @instance
-	 * @return {Promise} Return promise of empty DynamicSchema instance
+	 * @return {Promise} - Return promise of empty DynamicSchema instance
 	 */
 	abstract dropTable(): Promise<DynamicSchema>;
 
@@ -150,7 +150,7 @@ export abstract class DynamicSchema{
 	 * @instance
 	 * @param {string} newSlug
 	 * @param {string} [newName] Defaults to newSlug
-	 * @return {Promise} Return promise of DynamicSchema instance
+	 * @return {Promise} - Return promise of DynamicSchema instance
 	 */
 	abstract renameTable(newSlug:string, newName?:string): Promise<DynamicSchema>;
 
@@ -161,12 +161,12 @@ export abstract class DynamicSchema{
 	 * @memberOf DynamicSchema
 	 * @instance
 	 * @param {object} options
-	 * @param {string} options.name - The name of the column to be used as index
-	 * @param {boolean} [options.unique] - Whether the index is unique or not
-	 * @param {boolean} [options.autoInrement] - Whether it is an
+	 * @param {string} options.name	The name of the column to be used as index
+	 * @param {boolean} [options.unique]	Whether the index is unique or not
+	 * @param {boolean} [options.autoInrement]	Whether it is an
 	 *                  auto-incrementing index or not. If true, `options.unique`
 	 *                  is automatically set to true
-	 * @return {Promise} Return promise of DynamicSchema instance
+	 * @return {Promise} - Return promise of DynamicSchema instance
 	 */
 	abstract addIndex(options:IndexOptions): Promise<DynamicSchema>;
 
@@ -179,8 +179,8 @@ export abstract class DynamicSchema{
 	 * @method removeIndex
 	 * @memberOf DynamicSchema
 	 * @instance
-	 * @param {string} columnName - The name of the index to remove
-	 * @return {Promise} Return promise of DynamicSchema instance
+	 * @param {string} columnName:stringThe name of the index to remove
+	 * @return {Promise} - Return promise of DynamicSchema instance
 	 */
 	abstract removeIndex(columnName:string): Promise<DynamicSchema>;
 
@@ -190,7 +190,7 @@ export abstract class DynamicSchema{
 	 * @method read
 	 * @memberOf DynamicSchema
 	 * @instance
-	 * @param {string} tableSlug - The name of the table schema to retrieve
+	 * @param {string} tableSlug	The name of the table schema to retrieve
 	 * @return {Promise} - Return promise of DynamicSchema instance
 	 */
 	abstract read(tableSlug:string): Promise<DynamicSchema>;
@@ -202,8 +202,8 @@ export abstract class DynamicSchema{
 	 * @method define
 	 * @memberOf DynamicSchema
 	 * @instance
-	 * @param {object} definition - Definition of the table columns
-	 * @return {Promise} Return promise of DynamicSchema instance
+	 * @param {object} definition	Definition of the table columns
+	 * @return {Promise} - Return promise of DynamicSchema instance
 	 */
 	abstract define(def:SchemaDefinitions): Promise<DynamicSchema>;
 
@@ -214,10 +214,10 @@ export abstract class DynamicSchema{
 	 * @method addColumn
 	 * @memberOf DynamicSchema
 	 * @instance
-	 * @param {string} name - The name of the column to add
-	 * @param {string} type - Type of the column to add
-	 * @param {string} [description] - Description of the column to add
-	 * @return {Promise} Return promise of DynamicSchema instance
+	 * @param {string} name	The name of the column to add
+	 * @param {string} type	Type of the column to add
+	 * @param {string} [description]	Description of the column to add
+	 * @return {Promise} - Return promise of DynamicSchema instance
 	 */
 	async addColumn(name:string, type:string, description:string = ""): Promise<DynamicSchema>{
 		if(this.definition[name]){
@@ -247,9 +247,9 @@ export abstract class DynamicSchema{
 	 * @method addColumns
 	 * @memberOf DynamicSchema
 	 * @instance
-	 * @param {object} definitions - Object of objects containing new columns
+	 * @param {object} definitions	Object of objects containing new columns
 	 *                               definitions
-	 * @return {Promise} Return promise of DynamicSchema instance
+	 * @return {Promise} - Return promise of DynamicSchema instance
 	 */
 	async addColumns(def:SchemaDefinitions): Promise<DynamicSchema>{
 		const oldDefinition:SchemaDefinitions = _.cloneDeep(this.definition);
@@ -276,9 +276,9 @@ export abstract class DynamicSchema{
 	 * @method renameColumn
 	 * @memberOf DynamicSchema
 	 * @instance
-	 * @param {string} name - The name of the column to rename
-	 * @param {string} newName - The new name of the target column
-	 * @return {Promise} Return promise of DynamicSchema instance
+	 * @param {string} name	The name of the column to rename
+	 * @param {string} newName	The new name of the target column
+	 * @return {Promise} - Return promise of DynamicSchema instance
 	 */
 	abstract renameColumn(name:string, newName:string): Promise<DynamicSchema>;
 
@@ -288,9 +288,9 @@ export abstract class DynamicSchema{
 	 * @method changeColumnType
 	 * @memberOf DynamicSchema
 	 * @instance
-	 * @param {string} name - The name of the column to change type
-	 * @param {string} newType - The new type of the target column
-	 * @return {Promise} Return promise of DynamicSchema instance
+	 * @param {string} name	The name of the column to change type
+	 * @param {string} newType	The new type of the target column
+	 * @return {Promise} - Return promise of DynamicSchema instance
 	 */
 	async changeColumnType(name:string, newType:string): Promise<DynamicSchema>{
 		const oldType:string = this.definition[name].type;
@@ -311,8 +311,8 @@ export abstract class DynamicSchema{
 	 * @method removeColumn
 	 * @memberOf DynamicSchema
 	 * @instance
-	 * @param {string} name - The name of the column to remove
-	 * @return {Promise} Return promise of DynamicSchema instance
+	 * @param {string} name	The name of the column to remove
+	 * @return {Promise} - Return promise of DynamicSchema instance
 	 */
 	async removeColumn(name:string): Promise<DynamicSchema>{
 		const deleted:Definition = _.cloneDeep(this.definition[name]);
@@ -335,7 +335,7 @@ export abstract class DynamicSchema{
 	 * @memberOf DynamicSchema
 	 * @instance
 	 * @private
-	 * @return {Promise} Return promise of DynamicSchema instance
+	 * @return {Promise} - Return promise of DynamicSchema instance
 	 */
 	abstract _writeSchema(): Promise<DynamicSchema>;
 }
