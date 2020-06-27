@@ -24,16 +24,17 @@
       "itemType": "property",
       "name": "data",
       "line": 24,
-      "source": "Returns a native array of data objects\n\n@name data\n@type Array",
+      "source": "Returns a native array of data objects\n\n@name data\n@memberOf DynamicCollection\n@type Array",
       "description": "Returns a native array of data objects",
       "type": "Array",
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicCollection"
     },
     {
       "itemType": "method",
       "name": "fromArray",
-      "line": 38,
+      "line": 39,
       "source": "Converts an array of objects into a DynamicCollection. If an element in\nthe array is not an object, it will be skipped.\n\n@method fromArray\n@memberOf DynamicCollection\n@static\n@return {DynamicCollection}\n@hidden",
       "description": "Converts an array of objects into a DynamicCollection. If an element in the array is not an object, it will be skipped.",
       "return": {
@@ -42,13 +43,12 @@
       },
       "params": [],
       "static": true,
-      "private": false,
       "hidden": true
     },
     {
       "itemType": "method",
       "name": "saveAll",
-      "line": 51,
+      "line": 52,
       "source": "Save all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `save()` method.\n\n@method saveAll\n@memberOf DynamicCollection\n@instance\n@return {Promise} - Return promise of this DynamicCollection instance",
       "description": "Save all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `save()` method.",
       "return": {
@@ -57,12 +57,13 @@
       },
       "params": [],
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicCollection"
     },
     {
       "itemType": "method",
       "name": "dropAll",
-      "line": 71,
+      "line": 72,
       "source": "Destroy all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `destroy()` method.\n\n@method dropAll\n@memberOf DynamicCollection\n@instance\n@return {Promise} - Return promise of this DynamicCollection instance",
       "description": "Destroy all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `destroy()` method.",
       "return": {
@@ -71,7 +72,219 @@
       },
       "params": [],
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicCollection"
+    }
+  ],
+  "src/DynamicRecord.ts": [
+    {
+      "itemType": "method",
+      "name": "closeConnection",
+      "line": 9,
+      "source": "Close the connection to the database server. Only used to terminate\nthe running node instance.\n\n@method closeConnection\n@static",
+      "description": "Close the connection to the database server. Only used to terminate the running node instance.",
+      "params": [],
+      "static": true
+    },
+    {
+      "itemType": "class",
+      "name": "DynamicRecord",
+      "line": 18,
+      "source": "Creates a new DynamicRecord instance.\n\n@name DynamicRecord\n@class\n@param {object} options\n@param {string} options.tableSlug\tThe slug of the table. Must be lowercase only\nand not containing any whitespace",
+      "description": "Creates a new DynamicRecord instance.",
+      "return": {
+        "type": "DynamicRecord",
+        "description": ""
+      },
+      "params": [
+        {
+          "type": "object",
+          "name": "options",
+          "description": "",
+          "optional": false
+        },
+        {
+          "type": "string",
+          "name": "options.tableSlug",
+          "description": "The slug of the table. Must be lowercase only and not containing any whitespace",
+          "optional": false
+        }
+      ],
+      "extends": ""
+    },
+    {
+      "itemType": "method",
+      "name": "closeConnection",
+      "line": 29,
+      "source": "Close the connection to the database server. Only used to terminate\nthe running node instance.\n\n@method closeConnection\n@memberOf DynamicRecord\n@instance",
+      "description": "Close the connection to the database server. Only used to terminate the running node instance.",
+      "params": [],
+      "static": false,
+      "private": false,
+      "memberOf": "DynamicRecord"
+    },
+    {
+      "itemType": "method",
+      "name": "findBy",
+      "line": 40,
+      "source": "Find the latest entry in the table that match the query.\n\n@method findBy\n@memberOf DynamicRecord\n@instance\n@param {object} query\tA key value pair that will be used to match for entry\nin the database\n@return {Promise} - Return promise of DynamicRecord.Model instance or null",
+      "description": "Find the latest entry in the table that match the query.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of DynamicRecord.Model instance or null"
+      },
+      "params": [
+        {
+          "type": "object",
+          "name": "query",
+          "description": "A key value pair that will be used to match for entry in the database",
+          "optional": false
+        }
+      ],
+      "static": false,
+      "private": false,
+      "memberOf": "DynamicRecord"
+    },
+    {
+      "itemType": "method",
+      "name": "where",
+      "line": 52,
+      "source": "Find all the entries in the table that match the query.\n\nYou can sort the returned data by providing a string key to sort the\ndata by or a sorting function to manually sort the data. By default\nthey are sorted in the order they are in in the database.\n\n@method where\n@memberOf DynamicRecord\n@instance\n@param {object} query\tA key value pair that will be used to match for entries\n@param {string|function} orderBy\tThe key to sort by or a sorting function\n@return {Promise} - Return promise of DynamicCollection instance",
+      "description": "Find all the entries in the table that match the query.\n\nYou can sort the returned data by providing a string key to sort the data by or a sorting function to manually sort the data. By default they are sorted in the order they are in in the database.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of DynamicCollection instance"
+      },
+      "params": [
+        {
+          "type": "object",
+          "name": "query",
+          "description": "A key value pair that will be used to match for entries",
+          "optional": false
+        },
+        {
+          "type": "string|function",
+          "name": "orderBy",
+          "description": "The key to sort by or a sorting function",
+          "optional": false
+        }
+      ],
+      "static": false,
+      "private": false,
+      "memberOf": "DynamicRecord"
+    },
+    {
+      "itemType": "method",
+      "name": "all",
+      "line": 68,
+      "source": "Return all entries from the table.\n\n@method all\n@memberOf DynamicRecord\n@instance\n@return {Promise} - Return promise of DynamicCollection instance",
+      "description": "Return all entries from the table.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of DynamicCollection instance"
+      },
+      "params": [],
+      "static": false,
+      "private": false,
+      "memberOf": "DynamicRecord"
+    },
+    {
+      "itemType": "method",
+      "name": "first",
+      "line": 78,
+      "source": "Return the first entry in the table. If provided with an integer\nargument n, it will return the first nth entry in the database wrapped\nin a Promise of DynamicCollection.\n\n@method first\n@memberOf DynamicRecord\n@instance\n@param {number} [n]\tThe number of records to return\n@return {Promise} - Return promise of DynamicRecord.Model instance,\nDynamicCollection instance, or null",
+      "description": "Return the first entry in the table. If provided with an integer argument n, it will return the first nth entry in the database wrapped in a Promise of DynamicCollection.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of DynamicRecord.Model instance,\nDynamicCollection instance, or null"
+      },
+      "params": [
+        {
+          "type": "number",
+          "name": "n",
+          "description": "The number of records to return",
+          "optional": true
+        }
+      ],
+      "static": false,
+      "private": false,
+      "memberOf": "DynamicRecord"
+    },
+    {
+      "itemType": "class",
+      "name": "DynamicRecord.Model",
+      "line": 97,
+      "source": "Create a new DynamicRecord.Model instance.\n\n@name DynamicRecord.Model\n@memberOf DynamicRecord\n@instance\n@constructor\n@param {object} data\tObject containing data for this instance of\nDynamicRecord.Model",
+      "description": "Create a new DynamicRecord.Model instance.",
+      "return": {
+        "type": "DynamicRecord.Model",
+        "description": ""
+      },
+      "params": [
+        {
+          "type": "object",
+          "name": "data",
+          "description": "Object containing data for this instance of DynamicRecord.Model",
+          "optional": false
+        }
+      ],
+      "extends": ""
+    },
+    {
+      "itemType": "property",
+      "name": "data",
+      "line": 108,
+      "source": "The data contained in this instance. It is not kept in sync with\nthe database automatically.\n\nYou should be directly modifying this object. When done and you\nwish to save the data to the database, call `save()` on the\nparent object instance.\n\n@name data\n@type object\n@memberOf DynamicRecord.Model\n@instance",
+      "description": "The data contained in this instance. It is not kept in sync with the database automatically.\n\nYou should be directly modifying this object. When done and you wish to save the data to the database, call `save()` on the parent object instance.",
+      "type": "object",
+      "static": false,
+      "private": false,
+      "memberOf": "DynamicRecord.Model"
+    },
+    {
+      "itemType": "method",
+      "name": "save",
+      "line": 130,
+      "source": "Save the data in this instance to the database.\n\nIf you have a series of models of the same schema, it is recommended\nto put them in a DynamicCollection and calling `saveAll()` on it\ninstead of attempting to save them all in parallel. This applies to\nschemas with auto incrementing counters.\n\n@method save\n@memberOf DynamicRecord.Model\n@instance\n@return {Promise} - Return promise of this DynamicRecord.Model instance",
+      "description": "Save the data in this instance to the database.\n\nIf you have a series of models of the same schema, it is recommended to put them in a DynamicCollection and calling `saveAll()` on it instead of attempting to save them all in parallel. This applies to schemas with auto incrementing counters.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of this DynamicRecord.Model instance"
+      },
+      "params": [],
+      "static": false,
+      "private": false,
+      "memberOf": "DynamicRecord.Model"
+    },
+    {
+      "itemType": "method",
+      "name": "destroy",
+      "line": 145,
+      "source": "Delete the entry this instance links to. Clear the data property\nof this instance as well.\n\n@method destroy\n@memberOf DynamicRecord.Model\n@instance\n@return {Promise} - Return promise of this DynamicRecord.Model instance",
+      "description": "Delete the entry this instance links to. Clear the data property of this instance as well.",
+      "return": {
+        "type": "Promise",
+        "description": "Return promise of this DynamicRecord.Model instance"
+      },
+      "params": [],
+      "static": false,
+      "private": false,
+      "memberOf": "DynamicRecord.Model"
+    },
+    {
+      "itemType": "method",
+      "name": "validate",
+      "line": 156,
+      "source": "Validate the data in this instance conform to its schema.\n\n**Implementation not settled**\n\n@method validate\n@memberOf DynamicRecord.Model\n@instance\n@return {boolean}",
+      "description": "Validate the data in this instance conform to its schema.\n\n**Implementation not settled**",
+      "return": {
+        "type": "boolean",
+        "description": ""
+      },
+      "params": [],
+      "static": false,
+      "private": false,
+      "memberOf": "DynamicRecord.Model"
     }
   ],
   "src/DynamicSchema.ts": [
@@ -96,7 +309,8 @@
       "description": "The name of the table.",
       "type": "string",
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "property",
@@ -106,7 +320,8 @@
       "description": "The slug of the table.",
       "type": "string",
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "property",
@@ -116,7 +331,8 @@
       "description": "The table's column definitions.",
       "type": "object",
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "property",
@@ -126,7 +342,8 @@
       "description": "Label of required fields of this schema. Array of strings.",
       "type": "array",
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "property",
@@ -136,7 +353,8 @@
       "description": "Description of the schema. Not used for anything internally.",
       "type": "string",
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "property",
@@ -146,7 +364,8 @@
       "description": "The underlying JSON Schema definition of the schema",
       "type": "object",
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "method",
@@ -185,7 +404,8 @@
         }
       ],
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "method",
@@ -199,7 +419,8 @@
       },
       "params": [],
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "method",
@@ -226,7 +447,8 @@
         }
       ],
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "method",
@@ -265,7 +487,8 @@
         }
       ],
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "method",
@@ -286,7 +509,8 @@
         }
       ],
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "method",
@@ -307,7 +531,8 @@
         }
       ],
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "method",
@@ -328,7 +553,8 @@
         }
       ],
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "method",
@@ -361,7 +587,8 @@
         }
       ],
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "method",
@@ -382,7 +609,8 @@
         }
       ],
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "method",
@@ -409,7 +637,8 @@
         }
       ],
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "method",
@@ -436,7 +665,8 @@
         }
       ],
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "method",
@@ -457,7 +687,8 @@
         }
       ],
       "static": false,
-      "private": false
+      "private": false,
+      "memberOf": "DynamicSchema"
     },
     {
       "itemType": "method",
@@ -471,7 +702,8 @@
       },
       "params": [],
       "static": false,
-      "private": true
+      "private": true,
+      "memberOf": "DynamicSchema"
     }
   ]
 }

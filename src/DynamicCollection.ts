@@ -26,6 +26,7 @@ export default abstract class DynamicCollection extends Array{
 	 * Returns a native array of data objects
 	 *
 	 * @name data
+	 * @memberOf DynamicCollection
 	 * @type Array
 	 */
 	get data(): Array<any>{

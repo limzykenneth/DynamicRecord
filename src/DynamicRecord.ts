@@ -22,7 +22,7 @@ export abstract class DynamicRecord {
 	 * @name DynamicRecord
 	 * @class
 	 * @param {object} options
-	 * @param {string} options.tableSlug - The slug of the table. Must be lowercase only
+	 * @param {string} options.tableSlug	The slug of the table. Must be lowercase only
 	 * and not containing any whitespace
 	 */
 	constructor(options: object){}
@@ -44,9 +44,9 @@ export abstract class DynamicRecord {
 	 * @method findBy
 	 * @memberOf DynamicRecord
 	 * @instance
-	 * @param {object} query - A key value pair that will be used to match for entry
+	 * @param {object} query	A key value pair that will be used to match for entry
 	 * in the database
-	 * @return {Promise} Return promise of DynamicRecord.Model instance or null
+	 * @return {Promise} - Return promise of DynamicRecord.Model instance or null
 	 */
 	abstract findBy(query: object): Promise<Model>;
 
@@ -60,9 +60,9 @@ export abstract class DynamicRecord {
 	 * @method where
 	 * @memberOf DynamicRecord
 	 * @instance
-	 * @param {object} query - A key value pair that will be used to match for entries
-	 * @param {string|function} orderBy - The key to sort by or a sorting function
-	 * @return {Promise} Return promise of DynamicCollection instance
+	 * @param {object} query	A key value pair that will be used to match for entries
+	 * @param {string|function} orderBy	The key to sort by or a sorting function
+	 * @return {Promise} - Return promise of DynamicCollection instance
 	 */
 	abstract where(query: object, orderBy: string | Function): Promise<DynamicCollection>;
 
@@ -72,7 +72,7 @@ export abstract class DynamicRecord {
 	 * @method all
 	 * @memberOf DynamicRecord
 	 * @instance
-	 * @return {Promise} Return promise of DynamicCollection instance
+	 * @return {Promise} - Return promise of DynamicCollection instance
 	 */
 	abstract all(): Promise<DynamicCollection>;
 
@@ -84,8 +84,8 @@ export abstract class DynamicRecord {
 	 * @method first
 	 * @memberOf DynamicRecord
 	 * @instance
-	 * @param {number} [n] - The number of records to return
-	 * @return {Promise} Return promise of DynamicRecord.Model instance,
+	 * @param {number} [n]	The number of records to return
+	 * @return {Promise} - Return promise of DynamicRecord.Model instance,
 	 * DynamicCollection instance, or null
 	 */
 	abstract first(n?:number): Promise<Model|DynamicCollection>;
@@ -102,7 +102,7 @@ export abstract class Model {
 	 * @memberOf DynamicRecord
 	 * @instance
 	 * @constructor
-	 * @param {object} data - Object containing data for this instance of
+	 * @param {object} data	Object containing data for this instance of
 	 * DynamicRecord.Model
 	 */
 	constructor(data: any, _preserveOriginal: boolean){
@@ -139,7 +139,7 @@ export abstract class Model {
 	 * @method save
 	 * @memberOf DynamicRecord.Model
 	 * @instance
-	 * @return {Promise} Return promise of this DynamicRecord.Model instance
+	 * @return {Promise} - Return promise of this DynamicRecord.Model instance
 	 */
 	abstract save(): Promise<Model>;
 
@@ -150,7 +150,7 @@ export abstract class Model {
 	 * @method destroy
 	 * @memberOf DynamicRecord.Model
 	 * @instance
-	 * @return {Promise} Return promise of this DynamicRecord.Model instance
+	 * @return {Promise} - Return promise of this DynamicRecord.Model instance
 	 */
 	abstract destroy(): Promise<Model>;
 

@@ -6,8 +6,8 @@ const path = require("path");
 const _ = require("lodash");
 const rootPath = path.join(__dirname, "..");
 
-// glob(path.join(__dirname, "../src/**/*.ts"), async (err, files) => {
-glob(path.join(__dirname, "../src/+(DynamicCollection|DynamicSchema).ts"), async (err, files) => {
+glob(path.join(__dirname, "../src/**/*.ts"), async (err, files) => {
+// glob(path.join(__dirname, "../src/+(DynamicCollection|DynamicSchema).ts"), async (err, files) => {
 	const result = {};
 	const promises = [];
 
@@ -17,8 +17,7 @@ glob(path.join(__dirname, "../src/+(DynamicCollection|DynamicSchema).ts"), async
 				join: true
 			}).then((data) => {
 				if(data.length > 0){
-					data = processData(data);
-					result[path.relative(rootPath, file)] = data;
+					result[path.relative(rootPath, file)] = processData(data);
 				}
 			})
 		);
@@ -108,8 +107,13 @@ function processData(data){
 			// Get static
 			newEntry.static = getTag(entry, "static") ? true : false;
 
-			// Get private
-			newEntry.private = getTag(entry, "private") ? true : false;
+			if(newEntry.static !== true){
+				// Get private
+				newEntry.private = getTag(entry, "private") ? true : false;
+
+				// Get memberOf
+				newEntry.memberOf = getTag(entry, "memberOf")?.name || entry.name;
+			}
 
 		}else if(newEntry.itemType === "property"){
 			newEntry.type = getTag(entry, "type").name || "any";
@@ -117,8 +121,13 @@ function processData(data){
 			// Get static
 			newEntry.static = getTag(entry, "static") ? true : false;
 
-			// Get private
-			newEntry.private = getTag(entry, "private") ? true : false;
+			if(newEntry.static !== true){
+				// Get private
+				newEntry.private = getTag(entry, "private") ? true : false;
+
+				// Get memberOf
+				newEntry.memberOf = getTag(entry, "memberOf")?.name;
+			}
 		}
 
 		// General
