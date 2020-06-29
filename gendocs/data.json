@@ -1,5 +1,87 @@
 {
   "classes": {
+    "DynamicCollection": {
+      "name": "DynamicCollection",
+      "constructor": {
+        "itemType": "class",
+        "name": "DynamicCollection",
+        "line": 3,
+        "source": "Creates a new DynamicCollection instance.\n\nDynamicCollection is an extension of the native Array object thus\nimplementing all of Array's methods and properties.\n\n@name DynamicCollection\n@constructor\n@extends Array\n@param {DynamicRecord.Model} Model\tThe Model constructor to use for\nthis collection",
+        "description": "Creates a new DynamicCollection instance.\n\nDynamicCollection is an extension of the native Array object thus implementing all of Array's methods and properties.",
+        "return": {
+          "type": "DynamicCollection",
+          "description": ""
+        },
+        "params": [
+          {
+            "type": "DynamicRecord.Model",
+            "name": "Model",
+            "description": "The Model constructor to use for this collection",
+            "optional": false
+          }
+        ],
+        "extends": "Array"
+      },
+      "methods": [
+        {
+          "itemType": "method",
+          "name": "fromArray",
+          "line": 39,
+          "source": "Converts an array of objects into a DynamicCollection. If an element in\nthe array is not an object, it will be skipped.\n\n@method fromArray\n@memberOf DynamicCollection\n@static\n@return {DynamicCollection}",
+          "description": "Converts an array of objects into a DynamicCollection. If an element in the array is not an object, it will be skipped.",
+          "return": {
+            "type": "DynamicCollection",
+            "description": ""
+          },
+          "params": [],
+          "static": true,
+          "memberOf": "DynamicCollection"
+        },
+        {
+          "itemType": "method",
+          "name": "saveAll",
+          "line": 51,
+          "source": "Save all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `save()` method.\n\n@method saveAll\n@memberOf DynamicCollection\n@instance\n@return {Promise} - Return promise of this DynamicCollection instance",
+          "description": "Save all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `save()` method.",
+          "return": {
+            "type": "Promise",
+            "description": "Return promise of this DynamicCollection instance"
+          },
+          "params": [],
+          "static": false,
+          "private": false,
+          "memberOf": "DynamicCollection"
+        },
+        {
+          "itemType": "method",
+          "name": "dropAll",
+          "line": 71,
+          "source": "Destroy all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `destroy()` method.\n\n@method dropAll\n@memberOf DynamicCollection\n@instance\n@return {Promise} - Return promise of this DynamicCollection instance",
+          "description": "Destroy all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `destroy()` method.",
+          "return": {
+            "type": "Promise",
+            "description": "Return promise of this DynamicCollection instance"
+          },
+          "params": [],
+          "static": false,
+          "private": false,
+          "memberOf": "DynamicCollection"
+        }
+      ],
+      "properties": [
+        {
+          "itemType": "property",
+          "name": "data",
+          "line": 24,
+          "source": "Returns a native array of data objects\n\n@name data\n@memberOf DynamicCollection\n@type Array",
+          "description": "Returns a native array of data objects",
+          "type": "Array",
+          "static": false,
+          "private": false,
+          "memberOf": "DynamicCollection"
+        }
+      ]
+    },
     "DynamicRecord": {
       "name": "DynamicRecord",
       "constructor": {
@@ -221,88 +303,6 @@
           "static": false,
           "private": false,
           "memberOf": "DynamicRecord.Model"
-        }
-      ]
-    },
-    "DynamicCollection": {
-      "name": "DynamicCollection",
-      "constructor": {
-        "itemType": "class",
-        "name": "DynamicCollection",
-        "line": 3,
-        "source": "Creates a new DynamicCollection instance.\n\nDynamicCollection is an extension of the native Array object thus\nimplementing all of Array's methods and properties.\n\n@name DynamicCollection\n@constructor\n@extends Array\n@param {DynamicRecord.Model} Model\tThe Model constructor to use for\nthis collection",
-        "description": "Creates a new DynamicCollection instance.\n\nDynamicCollection is an extension of the native Array object thus implementing all of Array's methods and properties.",
-        "return": {
-          "type": "DynamicCollection",
-          "description": ""
-        },
-        "params": [
-          {
-            "type": "DynamicRecord.Model",
-            "name": "Model",
-            "description": "The Model constructor to use for this collection",
-            "optional": false
-          }
-        ],
-        "extends": "Array"
-      },
-      "methods": [
-        {
-          "itemType": "method",
-          "name": "fromArray",
-          "line": 39,
-          "source": "Converts an array of objects into a DynamicCollection. If an element in\nthe array is not an object, it will be skipped.\n\n@method fromArray\n@memberOf DynamicCollection\n@static\n@return {DynamicCollection}",
-          "description": "Converts an array of objects into a DynamicCollection. If an element in the array is not an object, it will be skipped.",
-          "return": {
-            "type": "DynamicCollection",
-            "description": ""
-          },
-          "params": [],
-          "static": true,
-          "memberOf": "DynamicCollection"
-        },
-        {
-          "itemType": "method",
-          "name": "saveAll",
-          "line": 51,
-          "source": "Save all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `save()` method.\n\n@method saveAll\n@memberOf DynamicCollection\n@instance\n@return {Promise} - Return promise of this DynamicCollection instance",
-          "description": "Save all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `save()` method.",
-          "return": {
-            "type": "Promise",
-            "description": "Return promise of this DynamicCollection instance"
-          },
-          "params": [],
-          "static": false,
-          "private": false,
-          "memberOf": "DynamicCollection"
-        },
-        {
-          "itemType": "method",
-          "name": "dropAll",
-          "line": 71,
-          "source": "Destroy all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `destroy()` method.\n\n@method dropAll\n@memberOf DynamicCollection\n@instance\n@return {Promise} - Return promise of this DynamicCollection instance",
-          "description": "Destroy all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `destroy()` method.",
-          "return": {
-            "type": "Promise",
-            "description": "Return promise of this DynamicCollection instance"
-          },
-          "params": [],
-          "static": false,
-          "private": false,
-          "memberOf": "DynamicCollection"
-        }
-      ],
-      "properties": [
-        {
-          "itemType": "property",
-          "name": "data",
-          "line": 24,
-          "source": "Returns a native array of data objects\n\n@name data\n@memberOf DynamicCollection\n@type Array",
-          "description": "Returns a native array of data objects",
-          "type": "Array",
-          "static": false,
-          "private": false,
-          "memberOf": "DynamicCollection"
         }
       ]
     },

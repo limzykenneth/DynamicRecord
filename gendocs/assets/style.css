@@ -5,6 +5,15 @@
 body{
 	display: flex;
 	overflow: hidden;
+	font-family: "Fira Sans", sans-serif;
+}
+
+code, pre{
+	font-family: "Inconsolata", monospace;
+}
+
+ol, ul{
+	padding-left: 1rem;
 }
 
 #sidebar{
@@ -24,9 +33,13 @@ body{
 
 #sidebar a{
 	color: white;
+	text-decoration: none;
 
 	height: 100vh;
 	overflow: scroll;
+}
+#sidebar a:hover{
+	text-decoration: underline;
 }
 
 #sidebar h4:first-of-type{
@@ -40,6 +53,7 @@ body{
 #sidebar details summary{
 	cursor: pointer;
 	list-style: " + " inside;
+	font-family: "Inconsolata", monospace;
 }
 #sidebar details[open] summary{
 	list-style: " - " inside;
@@ -47,7 +61,8 @@ body{
 
 #sidebar .sidebar-list{
 	margin: 0;
-	padding: 1rem;
+	padding: 1rem 2rem;
+	font-family: "Inconsolata", monospace;
 }
 
 #sidebar .sidebar-list li{
