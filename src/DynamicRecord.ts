@@ -12,6 +12,7 @@ export abstract class DynamicRecord {
 	 * the running node instance.
 	 *
 	 * @method closeConnection
+	 * @memberOf DynamicRecord
 	 * @static
 	 */
 	static closeConnection(){}
@@ -163,6 +164,7 @@ export abstract class Model {
 	 * @memberOf DynamicRecord.Model
 	 * @instance
 	 * @return {boolean}
+	 * @hidden
 	 */
 	abstract validate(schema): boolean;
 }

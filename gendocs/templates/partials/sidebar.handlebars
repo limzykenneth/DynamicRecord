@@ -1,0 +1,41 @@
+<section id="sidebar">
+	<h1 id="title"><a href="index.html">{{title}}</a></h1>
+	<h4>v{{version}}</h4>
+
+	{{#ifNotEmpty data.classes}}
+	<h3>Classes</h3>
+	{{#each this}}
+	<details id="classes">
+		<summary><a href="./{{@key}}.html">{{@key}}</a></summary>
+		<ul class="sidebar-list">
+			{{#ifNotEmpty properties}}
+				<h4>Properties</h4>
+				{{#each this}}
+					{{#unless private}}{{#unless hidden}}
+					<li><a href="./{{memberOf}}.html#{{name}}">{{name}}</a></li>
+					{{/unless}}{{/unless}}
+				{{/each}}
+			{{/ifNotEmpty}}
+
+			{{#ifNotEmpty methods}}
+				<h4>Methods</h4>
+				{{#each this}}
+					{{#unless private}}{{#unless hidden}}
+					<li><a href="./{{memberOf}}.html#{{name}}">{{name}}</a></li>
+					{{/unless}}{{/unless}}
+				{{/each}}
+			{{/ifNotEmpty}}
+		</ul>
+	</details>
+	{{/each}}
+	{{/ifNotEmpty}}
+
+	{{#ifNotEmpty data.globals}}
+	<h3>Globals</h3>
+	<ul id="globals" class="sidebar-list">
+		{{#each this}}
+			<li><a href="./{{@key}}.html">{{@key}}</a></li>
+		{{/each}}
+	</ul>
+	{{/ifNotEmpty}}
+</section>

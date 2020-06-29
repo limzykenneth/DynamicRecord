@@ -5,10 +5,10 @@ const fs = require("fs").promises;
 const path = require("path");
 const _ = require("lodash");
 const rootPath = path.join(__dirname, "..");
+const render = require("./render.js");
 
 glob(path.join(__dirname, "../src/**/*.ts"), async (err, files) => {
-// glob(path.join(__dirname, "../src/+(DynamicCollection|DynamicSchema).ts"), async (err, files) => {
-	const result = {};
+	let result = {};
 	const promises = [];
 
 	files.forEach((file) => {
@@ -25,7 +25,10 @@ glob(path.join(__dirname, "../src/**/*.ts"), async (err, files) => {
 
 	await Promise.all(promises);
 
-	fs.writeFile(path.join(__dirname, "./data.json"), JSON.stringify(result, null, 2));
+	result = createTree(result);
+	await fs.writeFile(path.join(__dirname, "./data.json"), JSON.stringify(result, null, 2));
+
+	await render(result);
 });
 
 function processData(data){
@@ -110,10 +113,10 @@ function processData(data){
 			if(newEntry.static !== true){
 				// Get private
 				newEntry.private = getTag(entry, "private") ? true : false;
-
-				// Get memberOf
-				newEntry.memberOf = getTag(entry, "memberOf")?.name || entry.name;
 			}
+
+			// Get memberOf
+			newEntry.memberOf = getTag(entry, "memberOf")?.name || entry.name;
 
 		}else if(newEntry.itemType === "property"){
 			newEntry.type = getTag(entry, "type").name || "any";
@@ -124,10 +127,10 @@ function processData(data){
 			if(newEntry.static !== true){
 				// Get private
 				newEntry.private = getTag(entry, "private") ? true : false;
-
-				// Get memberOf
-				newEntry.memberOf = getTag(entry, "memberOf")?.name;
 			}
+
+			// Get memberOf
+			newEntry.memberOf = getTag(entry, "memberOf")?.name;
 		}
 
 		// General
@@ -137,6 +140,7 @@ function processData(data){
 
 		ret.push(newEntry);
 
+		// Functional utils
 		function getTag(entry, t){
 			if(Array.isArray(t)){
 				let result = false;
@@ -179,4 +183,45 @@ function processData(data){
 	});
 
 	return ret;
+}
+
+function createTree(data){
+	// Construct class trees
+	// - globals
+	// - classes
+	let classes = {};
+	let globals = {};
+	_.each(data, (entry, filename) => {
+		entry.forEach((tag) => {
+			if(tag.itemType === "class"){
+				classes[tag.name] = {
+					name: tag.name,
+					constructor: tag,
+					methods: [],
+					properties: []
+				};
+			}
+		});
+
+		entry.forEach((tag) => {
+			if(tag.itemType === "method"){
+				if(tag.memberOf){
+					classes[tag.memberOf].methods.push(tag);
+				}else{
+					globals[tag.name] = tag;
+				}
+			}else if(tag.itemType === "property"){
+				if(tag.memberOf){
+					classes[tag.memberOf].properties.push(tag);
+				}else{
+					globals[tag.name] = tag;
+				}
+			}
+		});
+	});
+
+	return {
+		classes,
+		globals
+	};
 }

@@ -45,7 +45,6 @@ export default abstract class DynamicCollection extends Array{
 	 * @memberOf DynamicCollection
 	 * @static
 	 * @return {DynamicCollection}
-	 * @hidden
 	 */
 	// ABSTRACT STATIC METHOD
 	static fromArray(arr: Array<any>, Model){}
