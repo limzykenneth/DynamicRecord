@@ -1,6 +1,6 @@
 {
   "name": "dynamic-record",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "A bare minimum Javascript implementation of the Active Record pattern",
   "keywords": [
     "orm",
