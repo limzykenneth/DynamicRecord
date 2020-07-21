@@ -63,5 +63,23 @@ module.exports = async function(data){
 		fsp.writeFile("../docs/index.html", result),
 		fsp.copyFile("./assets/style.css", "../docs/style.css")
 	]);
-	// console.log(result);
+
+	// Render individual pages
+	_.each(data.classes, async (cls, name) => {
+		const page = renderPage("item", {
+			data: cls
+		});
+		const result = template({
+			title: "DynamicRecord",
+			version: pjson.version,
+			body: page,
+			data: data
+		});
+
+		await fsp.writeFile(`../docs/${name}.html`, result);
+	});
+
+	_.each(data.globals, (glb) => {
+
+	});
 };

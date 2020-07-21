@@ -1,3 +1,65 @@
 <main id="page-content">
-	<h1>{{name}}</h1>
+	<h1>{{data.name}}</h1>
+
+	{{#if data.constructor}}
+	{{/if}}
+
+	{{#if data.properties}}
+		<h2>Properties</h2>
+		{{#each data.properties}}
+		{{#unless hidden}}{{#unless private}}
+
+			<article class="class-item properties">
+				<h3>{{name}}: {{type}}</h3>
+				<div class="description">{{markdown description}}</div>
+			</article>
+
+		{{/unless}}{{/unless}}
+		{{/each}}
+	{{/if}}
+
+	<hr>
+
+	{{#if data.methods}}
+		{{#each data.methods}}
+		{{#unless hidden}}{{#unless private}}
+
+			{{#if static}}
+				<article class="class-item methods">
+					<h3><span class="static-label">static</span> {{name}}{{#if return}} &rarr; {{return.type}}{{/if}}</h3>
+					<div class="description">{{markdown description}}</div>
+
+					{{#if return}}
+					<div class="return">
+						<h4>Returns:</h4>
+						<span class="return-type">{{return.type}}</span> - {{return.description}}
+					</div>
+					{{/if}}
+				</article>
+			{{/if}}
+
+		{{/unless}}{{/unless}}
+		{{/each}}
+
+		<h2>Methods</h2>
+		{{#each data.methods}}
+		{{#unless hidden}}{{#unless private}}
+
+			{{#unless static}}
+				<article class="class-item methods">
+					<h3>{{name}}{{#if return}} &rarr; {{return.type}}{{/if}}</h3>
+					<div class="description">{{markdown description}}</div>
+
+					{{#if return}}
+					<div class="return">
+						<h4>Returns:</h4>
+						<span class="return-type">{{return.type}}</span> - {{return.description}}
+					</div>
+					{{/if}}
+				</article>
+			{{/unless}}
+
+		{{/unless}}{{/unless}}
+		{{/each}}
+	{{/if}}
 </main>

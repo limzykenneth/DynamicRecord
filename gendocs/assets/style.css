@@ -27,6 +27,10 @@ ol, ul{
 	overflow: scroll;
 }
 
+#sidebar #title{
+	font-size: 3.1vw;
+}
+
 #sidebar #title a{
 	text-decoration: none;
 }
