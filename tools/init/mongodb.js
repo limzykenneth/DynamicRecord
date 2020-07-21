@@ -1,7 +1,10 @@
 const MongoClient = require("mongodb").MongoClient;
 
 module.exports = function(response){
-	const connect = MongoClient.connect(response.url, {useUnifiedTopology: true});
+	const connect = MongoClient.connect(response.url, {
+		useUnifiedTopology: true,
+		useNewUrlParser: true
+	});
 
 	return connect.then((client) => {
 		const db = client.db();

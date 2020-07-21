@@ -12,7 +12,10 @@ const DynamicSchema = DynamicRecord.DynamicSchema;
 
 // Database specific dependencies
 const MongoClient = require("mongodb").MongoClient;
-const connect = MongoClient.connect(url, {useUnifiedTopology: true});
+const connect = MongoClient.connect(url, {
+	useUnifiedTopology: true,
+	useNewUrlParser: true
+});
 
 // Setup helpers
 const utils = new utility.utils(connect);

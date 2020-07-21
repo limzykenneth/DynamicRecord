@@ -5,6 +5,7 @@ let DynamicRecord;
 
 switch(regexResult.groups.schema){
 	case "mongodb":
+	case "mongodb+srv":
 		DynamicRecord = require("./mongodb/DynamicRecord.js");
 		break;
 

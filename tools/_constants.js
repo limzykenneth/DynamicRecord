@@ -1,6 +1,8 @@
 // An enums of all supported database type
+const mongoDBSymbol = Symbol("mongodb");
 const databaseEnums = Object.freeze({
-	mongodb: Symbol("mongodb"),
+	mongodb: mongoDBSymbol,
+	"mongodb+srv": mongoDBSymbol,
 	mysql: Symbol("mysql")
 });
 
