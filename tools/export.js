@@ -98,16 +98,16 @@ function exp(program){
 				const username = regexResult.groups.username || response.username;
 				const password = regexResult.groups.password || response.password;
 				const host = regexResult.groups.host;
-				const port = regexResult.groups.port || "27017";
+				const port = regexResult.groups.port ? `:${regexResult.groups.port}` : "";
 				const database = regexResult.groups.database || response.database;
 
 				if(regexResult === null){
 					throw new Error(`Invalid database server URL: ${response.server}`);
 				}else if(username.length > 0 && password.length > 0 && database.length > 0){
-					response.url = `${schema}://${username}:${password}@${regexResult.groups.host}:${port}/${database}`;
+					response.url = `${schema}://${username}:${password}@${host}${port}/${database}`;
 					response.databaseType = constants.databaseEnums[regexResult.groups.schema];
 				}else{
-					throw new Error(`Invalid database server URL: ${schema}://${username}:${password}@${regexResult.groups.host}:${port}/${database}`);
+					throw new Error(`Invalid database server URL: ${schema}://${username}:${password}@${host}:${port}/${database}`);
 				}
 
 				// Export the database

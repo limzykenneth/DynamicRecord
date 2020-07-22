@@ -10,8 +10,8 @@ if(!regexResult.username){
 if(!regexResult.password){
 	regexResult.password = process.env.database_password;
 }
-if(!regexResult.port){
-	regexResult.port = "27017";
+if(regexResult.port){
+	regexResult.port = `:${regexResult.port}`;
 }
 if(!regexResult.database){
 	regexResult.database = process.env.database_name;
@@ -20,7 +20,7 @@ if(!regexResult.options){
 	regexResult.options = "";
 }
 
-const url = `${regexResult.schema}://${regexResult.username}:${regexResult.password}@${regexResult.host}:${regexResult.port}/${regexResult.database}?${regexResult.options}`;
+const url = `${regexResult.schema}://${regexResult.username}:${regexResult.password}@${regexResult.host}${regexResult.port || ""}/${regexResult.database}?${regexResult.options}`;
 const client = new MongoClient(url, {
 	poolSize: 10,
 	useNewUrlParser: true,
