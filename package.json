@@ -30,7 +30,7 @@
     "database": "sh test/mongo_test.sh",
     "build": "tsc",
     "predocs": "npm test && rm -rf docs/",
-    "docs": "jsdoc -c ./jsdoc.conf.json build/",
+    "docs": "node ./gendocs/gendocs.js",
     "prepublish-docs": "npm run docs",
     "publish-docs": "surge --domain dynamic-record.js.org ./docs",
     "release": "np"
@@ -61,12 +61,10 @@
     "eslint": "^6.8.0",
     "glob": "^7.1.6",
     "handlebars": "^4.7.6",
-    "jsdoc": "^3.6.3",
     "marked": "^1.1.0",
     "mocha": "^8.0.1",
     "np": "^6.1.0",
     "surge": "^0.21.3",
-    "tui-jsdoc-template": "^1.2.2",
     "typescript": "^3.9.5"
   }
 }

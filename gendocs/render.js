@@ -32,7 +32,7 @@ Handlebars.registerHelper("JSONStringify", (context, options) => {
 });
 
 // Register all in partials folder as partials
-glob("./templates/partials/*.@(handlebars|hbs)", (err, files) => {
+glob(path.join(__dirname, "./templates/partials/*.@(handlebars|hbs)"), (err, files) => {
 	if(err) throw err;
 
 	files.forEach(async (file) => {
@@ -43,16 +43,16 @@ glob("./templates/partials/*.@(handlebars|hbs)", (err, files) => {
 });
 
 function renderPage(page, data){
-	const templateString = fs.readFileSync(`./templates/pages/${page}.handlebars`, {encoding: "utf8"});
+	const templateString = fs.readFileSync(path.join(__dirname, `./templates/pages/${page}.handlebars`), {encoding: "utf8"});
 	const template = Handlebars.compile(templateString);
 
 	return template(data);
 }
 
 module.exports = async function(data){
-	const templateString = await fsp.readFile("./templates/layout.handlebars", {encoding: "utf8"});
+	const templateString = await fsp.readFile(path.join(__dirname, "./templates/layout.handlebars"), {encoding: "utf8"});
 	const template = Handlebars.compile(templateString);
-	const readme = await fsp.readFile("../README.md", {encoding: "utf8"});
+	const readme = await fsp.readFile(path.join(__dirname, "../README.md"), {encoding: "utf8"});
 
 	const page = renderPage("index", {
 		data: data,
@@ -66,10 +66,10 @@ module.exports = async function(data){
 		data: data
 	});
 
-	await fsp.mkdir("../docs", {recursive: true});
+	await fsp.mkdir(path.join(__dirname, "../docs"), {recursive: true});
 	await Promise.all([
-		fsp.writeFile("../docs/index.html", result),
-		fsp.copyFile("./assets/style.css", "../docs/style.css")
+		fsp.writeFile(path.join(__dirname, "../docs/index.html"), result),
+		fsp.copyFile(path.join(__dirname, "./assets/style.css"), path.join(__dirname, "../docs/style.css"))
 	]);
 
 	// Render individual pages
@@ -86,7 +86,7 @@ module.exports = async function(data){
 			selected: name
 		});
 
-		await fsp.writeFile(`../docs/${name}.html`, result);
+		await fsp.writeFile(path.join(__dirname, `../docs/${name}.html`), result);
 	});
 
 	_.each(data.globals, (glb) => {
