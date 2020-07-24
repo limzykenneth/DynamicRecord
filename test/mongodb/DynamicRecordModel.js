@@ -216,14 +216,14 @@ describe("Model", function(){
 				}));
 
 				promises.push(new Promise((resolve, reject) => {
-					setTimeout(async () => {
+					setTimeout(() => {
 						model.data.wholeNumber = 1586;
 						model.save().then(resolve).catch(reject);
 					}, 0);
 				}));
 
 				promises.push(new Promise((resolve, reject) => {
-					setTimeout(async () => {
+					setTimeout(() => {
 						model.data.floatingPoint = 1.2;
 						model.save().then(resolve).catch(reject);
 					}, 0);
