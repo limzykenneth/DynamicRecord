@@ -19,6 +19,14 @@ Handlebars.registerHelper("ifNotEmpty", (context, options) => {
 	}
 });
 
+Handlebars.registerHelper("ifEquals", function(a, b, options) {
+	if (a == b) {
+		return options.fn(this);
+	} else {
+		return options.inverse(this);
+	}
+});
+
 Handlebars.registerHelper("JSONStringify", (context, options) => {
 	return JSON.stringify(context);
 });
@@ -69,11 +77,13 @@ module.exports = async function(data){
 		const page = renderPage("item", {
 			data: cls
 		});
+
 		const result = template({
 			title: "DynamicRecord",
 			version: pjson.version,
 			body: page,
-			data: data
+			data: data,
+			selected: name
 		});
 
 		await fsp.writeFile(`../docs/${name}.html`, result);

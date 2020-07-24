@@ -5,7 +5,12 @@
 	{{#ifNotEmpty data.classes}}
 	<h3>Classes</h3>
 	{{#each this}}
+
+	{{#ifEquals @key ../../selected}}
+	<details id="classes" open="true">
+	{{else}}
 	<details id="classes">
+	{{/ifEquals}}
 		<summary><a href="./{{@key}}.html">{{@key}}</a></summary>
 		<ul class="sidebar-list">
 			{{#ifNotEmpty properties}}
