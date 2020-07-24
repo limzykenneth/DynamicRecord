@@ -19,7 +19,7 @@ Handlebars.registerHelper("ifNotEmpty", (context, options) => {
 	}
 });
 
-Handlebars.registerHelper("ifEquals", function(a, b, options) {
+Handlebars.registerHelper("ifEquals", (a, b, options) => {
 	if (a == b) {
 		return options.fn(this);
 	} else {

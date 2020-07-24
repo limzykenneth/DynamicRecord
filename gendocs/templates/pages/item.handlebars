@@ -1,7 +1,16 @@
-<main id="page-content">
+<section class="scroll-content">
 	<h1>{{data.name}}</h1>
 
+
 	{{#if data.constructor}}
+		<h2>Constructor</h2>
+		{{#with data.constructor}}
+			<article class="class-item consturctor" id="{{name}}">
+				<h3>new {{name}}()</h3>
+				<div class="description">{{markdown description}}</div>
+		</article>
+		{{/with}}
+		<hr>
 	{{/if}}
 
 	{{#if data.properties}}
@@ -10,29 +19,31 @@
 		{{#unless hidden}}{{#unless private}}
 
 			<article class="class-item properties" id="{{name}}">
-				<h3>{{name}}: {{type}}</h3>
+				<h3 class="title">{{name}}<span class="type">: {{type}}</span></h3>
 				<div class="description">{{markdown description}}</div>
 			</article>
 
 		{{/unless}}{{/unless}}
 		{{/each}}
+		<hr>
 	{{/if}}
 
-	<hr>
-
 	{{#if data.methods}}
+		<h2>Methods</h2>
+
 		{{#each data.methods}}
 		{{#unless hidden}}{{#unless private}}
 
 			{{#if static}}
 				<article class="class-item methods" id="{{name}}">
-					<h3><span class="static-label">static</span> {{name}}{{#if return}} &rarr; {{return.type}}{{/if}}</h3>
+					<h3 class="title"><span class="static-label">static</span> {{name}}{{#if return}} <span class="type">&rarr; {{return.type}}</span>{{/if}}</h3>
+
 					<div class="description">{{markdown description}}</div>
 
 					{{#if return}}
 					<div class="return">
 						<h4>Returns:</h4>
-						<span class="return-type">{{return.type}}</span> - {{return.description}}
+						<span class="type">{{return.type}}</span> - {{return.description}}
 					</div>
 					{{/if}}
 				</article>
@@ -41,19 +52,19 @@
 		{{/unless}}{{/unless}}
 		{{/each}}
 
-		<h2>Methods</h2>
 		{{#each data.methods}}
 		{{#unless hidden}}{{#unless private}}
 
 			{{#unless static}}
 				<article class="class-item methods" id="{{name}}">
-					<h3>{{name}}{{#if return}} &rarr; {{return.type}}{{/if}}</h3>
+					<h3 class="title">{{name}}{{#if return}} <span class="type">&rarr; {{return.type}}</span>{{/if}}</h3>
+
 					<div class="description">{{markdown description}}</div>
 
 					{{#if return}}
 					<div class="return">
 						<h4>Returns:</h4>
-						<span class="return-type">{{return.type}}</span> - {{return.description}}
+						<span class="type">{{return.type}}</span> - {{return.description}}
 					</div>
 					{{/if}}
 				</article>
@@ -62,4 +73,4 @@
 		{{/unless}}{{/unless}}
 		{{/each}}
 	{{/if}}
-</main>
+</section>

@@ -18,6 +18,7 @@ ol, ul{
 
 #sidebar{
 	width: 30%;
+	max-width: 350px;
 	background: #333;
 	color: white;
 
@@ -28,7 +29,8 @@ ol, ul{
 }
 
 #sidebar #title{
-	font-size: 3.1vw;
+	font-size: 2rem;
+	word-wrap: break-word;
 }
 
 #sidebar #title a{
@@ -75,8 +77,69 @@ ol, ul{
 
 #page-content{
 	width: 70%;
-
-	padding: 50px;
 	height: 100vh;
 	overflow: scroll;
+	flex-grow: 2;
+}
+
+#page-content h1{
+	font-size: 2.5rem;
+}
+
+#page-content h2{
+	font-size: 2rem;
+}
+
+#page-content h3{
+	font-size: 1.3rem;
+	margin: 0;
+}
+
+#page-content h4{
+	font-size: 1rem;
+	margin: 0;
+}
+
+#page-content .scroll-content{
+	padding: 50px;
+}
+
+#page-content .class-item{
+	margin: 2rem 0;
+}
+
+#page-content .class-item.constructor{
+
+}
+
+#page-content .class-item.properties{
+
+}
+
+#page-content .class-item.methods{
+
+}
+
+#page-content .class-item .title{
+	background: #e6f0f2;
+	padding: 0.25rem 0.5rem;
+}
+
+#page-content .class-item .title .static-label{
+	color: #555;
+	font-size: 1rem;
+}
+
+#page-content .class-item .description{
+	font-size: 1rem;
+	padding: 0rem 0.5rem;
+}
+
+#page-content .class-item .return{
+	padding: 0rem 0.5rem;
+	font-size: 1rem;
+}
+
+#page-content .class-item .type{
+	color: #3ea1b7;
 }
