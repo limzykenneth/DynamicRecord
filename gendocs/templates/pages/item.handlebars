@@ -6,8 +6,22 @@
 		<h2>Constructor</h2>
 		{{#with data.constructor}}
 			<article class="class-item consturctor" id="{{name}}">
-				<h3>new {{name}}()</h3>
+				<h3 class="title">new {{name}}()</h3>
 				<div class="description">{{markdown description}}</div>
+
+				{{#ifNotEmpty params}}
+				<div class="parameters">
+					<h4>Parameters:</h4>
+
+					<ul class="parameter-list">
+					{{#each ../params}}
+						<li class="parameter-list-item">
+							<code>{{name}}</code><span class="type">: {{type}}</span>{{#ifNotEmpty description}} - <span>{{this}}</span>{{/ifNotEmpty}}
+						</li>
+					{{/each}}
+					</ul>
+				</div>
+				{{/ifNotEmpty}}
 		</article>
 		{{/with}}
 		<hr>
@@ -40,6 +54,20 @@
 
 					<div class="description">{{markdown description}}</div>
 
+					{{#ifNotEmpty params}}
+					<div class="parameters">
+						<h4>Parameters:</h4>
+
+						<ul class="parameter-list">
+						{{#each ../params}}
+							<li class="parameter-list-item">
+								<code>{{name}}</code><span class="type">: {{type}}</span>{{#ifNotEmpty description}} - <span>{{this}}</span>{{/ifNotEmpty}}
+							</li>
+						{{/each}}
+						</ul>
+					</div>
+					{{/ifNotEmpty}}
+
 					{{#if return}}
 					<div class="return">
 						<h4>Returns:</h4>
@@ -60,6 +88,20 @@
 					<h3 class="title">{{name}}{{#if return}} <span class="type">&rarr; {{return.type}}</span>{{/if}}</h3>
 
 					<div class="description">{{markdown description}}</div>
+
+					{{#ifNotEmpty params}}
+					<div class="parameters">
+						<h4>Parameters:</h4>
+
+						<ul class="parameter-list">
+						{{#each ../params}}
+							<li class="parameter-list-item">
+								<code>{{name}}</code><span class="type">: {{type}}</span>{{#ifNotEmpty description}} - <span>{{this}}</span>{{/ifNotEmpty}}
+							</li>
+						{{/each}}
+						</ul>
+					</div>
+					{{/ifNotEmpty}}
 
 					{{#if return}}
 					<div class="return">

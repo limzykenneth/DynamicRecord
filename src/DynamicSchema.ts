@@ -179,7 +179,7 @@ export abstract class DynamicSchema{
 	 * @method removeIndex
 	 * @memberOf DynamicSchema
 	 * @instance
-	 * @param {string} columnName:stringThe name of the index to remove
+	 * @param {string} columnName	The name of the index to remove
 	 * @return {Promise} - Return promise of DynamicSchema instance
 	 */
 	abstract removeIndex(columnName:string): Promise<DynamicSchema>;

@@ -44,6 +44,7 @@ export default abstract class DynamicCollection extends Array{
 	 * @method fromArray
 	 * @memberOf DynamicCollection
 	 * @static
+	 * @param {Array} array	Array to be converted into a DynamicCollection
 	 * @return {DynamicCollection}
 	 */
 	// ABSTRACT STATIC METHOD

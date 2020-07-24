@@ -27,20 +27,27 @@
           "itemType": "method",
           "name": "fromArray",
           "line": 39,
-          "source": "Converts an array of objects into a DynamicCollection. If an element in\nthe array is not an object, it will be skipped.\n\n@method fromArray\n@memberOf DynamicCollection\n@static\n@return {DynamicCollection}",
+          "source": "Converts an array of objects into a DynamicCollection. If an element in\nthe array is not an object, it will be skipped.\n\n@method fromArray\n@memberOf DynamicCollection\n@static\n@param {Array} array\tArray to be converted into a DynamicCollection\n@return {DynamicCollection}",
           "description": "Converts an array of objects into a DynamicCollection. If an element in the array is not an object, it will be skipped.",
           "return": {
             "type": "DynamicCollection",
             "description": ""
           },
-          "params": [],
+          "params": [
+            {
+              "type": "Array",
+              "name": "array",
+              "description": "Array to be converted into a DynamicCollection",
+              "optional": false
+            }
+          ],
           "static": true,
           "memberOf": "DynamicCollection"
         },
         {
           "itemType": "method",
           "name": "saveAll",
-          "line": 51,
+          "line": 52,
           "source": "Save all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `save()` method.\n\n@method saveAll\n@memberOf DynamicCollection\n@instance\n@return {Promise} - Return promise of this DynamicCollection instance",
           "description": "Save all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `save()` method.",
           "return": {
@@ -55,7 +62,7 @@
         {
           "itemType": "method",
           "name": "dropAll",
-          "line": 71,
+          "line": 72,
           "source": "Destroy all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `destroy()` method.\n\n@method dropAll\n@memberOf DynamicCollection\n@instance\n@return {Promise} - Return promise of this DynamicCollection instance",
           "description": "Destroy all the model instances in the DynamicCollection.\n\nSimply calls all the individual model's `destroy()` method.",
           "return": {
@@ -449,7 +456,7 @@
           "itemType": "method",
           "name": "removeIndex",
           "line": 175,
-          "source": "Remove an index to the table's schema\n\n@method removeIndex\n@memberOf DynamicSchema\n@instance\n@param {string} columnName:stringThe name of the index to remove\n@return {Promise} - Return promise of DynamicSchema instance",
+          "source": "Remove an index to the table's schema\n\n@method removeIndex\n@memberOf DynamicSchema\n@instance\n@param {string} columnName\tThe name of the index to remove\n@return {Promise} - Return promise of DynamicSchema instance",
           "description": "Remove an index to the table's schema",
           "return": {
             "type": "Promise",
@@ -458,8 +465,8 @@
           "params": [
             {
               "type": "string",
-              "name": "columnName:stringThe",
-              "description": "name of the index to remove",
+              "name": "columnName",
+              "description": "The name of the index to remove",
               "optional": false
             }
           ],

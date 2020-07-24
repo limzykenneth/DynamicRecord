@@ -135,6 +135,20 @@ ol, ul{
 	padding: 0rem 0.5rem;
 }
 
+#page-content .class-item .parameters{
+	font-size: 1rem;
+	padding: 0rem 0.5rem;
+	margin-bottom: 1rem;
+}
+
+#page-content .class-item .parameters .parameter-list{
+	list-style: none;
+	margin: 0;
+}
+
+#page-content .class-item .parameters .parameter-list .parameter-list-item{
+}
+
 #page-content .class-item .return{
 	padding: 0rem 0.5rem;
 	font-size: 1rem;
