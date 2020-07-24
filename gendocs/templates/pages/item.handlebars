@@ -9,7 +9,7 @@
 		{{#each data.properties}}
 		{{#unless hidden}}{{#unless private}}
 
-			<article class="class-item properties">
+			<article class="class-item properties" id="{{name}}">
 				<h3>{{name}}: {{type}}</h3>
 				<div class="description">{{markdown description}}</div>
 			</article>
@@ -25,7 +25,7 @@
 		{{#unless hidden}}{{#unless private}}
 
 			{{#if static}}
-				<article class="class-item methods">
+				<article class="class-item methods" id="{{name}}">
 					<h3><span class="static-label">static</span> {{name}}{{#if return}} &rarr; {{return.type}}{{/if}}</h3>
 					<div class="description">{{markdown description}}</div>
 
@@ -46,7 +46,7 @@
 		{{#unless hidden}}{{#unless private}}
 
 			{{#unless static}}
-				<article class="class-item methods">
+				<article class="class-item methods" id="{{name}}">
 					<h3>{{name}}{{#if return}} &rarr; {{return.type}}{{/if}}</h3>
 					<div class="description">{{markdown description}}</div>
 
