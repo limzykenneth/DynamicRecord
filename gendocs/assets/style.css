@@ -19,7 +19,7 @@ ol, ul{
 #sidebar{
 	width: 30%;
 	max-width: 350px;
-	background: #333;
+	background: #222;
 	color: white;
 
 	padding: 50px 20px;
@@ -60,7 +60,17 @@ ol, ul{
 	cursor: pointer;
 	list-style: " + " inside;
 	font-family: "Inconsolata", monospace;
+	color: #77f0f0;
 }
+
+#sidebar details summary a{
+	color: #77f0f0;
+}
+
+#sidebar details summary:hover{
+	background-color: rgba(255, 255, 255, 0.2);
+}
+
 #sidebar details[open] summary{
 	list-style: " - " inside;
 }
@@ -73,6 +83,10 @@ ol, ul{
 
 #sidebar .sidebar-list li{
 	list-style: none;
+}
+
+#sidebar .sidebar-list .sidebar-subtitle{
+	color: #aaa;
 }
 
 #page-content{

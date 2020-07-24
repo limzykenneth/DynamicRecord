@@ -14,7 +14,7 @@
 		<summary><a href="./{{@key}}.html">{{@key}}</a></summary>
 		<ul class="sidebar-list">
 			{{#ifNotEmpty properties}}
-				<h4>Properties</h4>
+				<h4 class="sidebar-subtitle">Properties</h4>
 				{{#each this}}
 					{{#unless private}}{{#unless hidden}}
 					<li><a href="./{{memberOf}}.html#{{name}}">{{name}}</a></li>
@@ -23,7 +23,7 @@
 			{{/ifNotEmpty}}
 
 			{{#ifNotEmpty methods}}
-				<h4>Methods</h4>
+				<h4 class="sidebar-subtitle">Methods</h4>
 				{{#each this}}
 					{{#unless private}}{{#unless hidden}}
 					<li><a href="./{{memberOf}}.html#{{name}}">{{name}}</a></li>
