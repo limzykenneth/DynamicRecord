@@ -85,6 +85,11 @@ describe("Model", function(){
 		});
 		it("should return a rejected Promise if the new model doesn't match the schema definition");
 		it("should return a rejected Promise if the updated data doesn't match the schema definition");
+
+		describe("Concurrent saves", function(){
+			it("should end up with the right data at the end of concurrent saves");
+			it("should have the right entry in database at the end of concurrent saves");
+		});
 	});
 
 	describe("destroy()", function(){
@@ -111,6 +116,10 @@ describe("Model", function(){
 			}).catch((err) => {
 				done();
 			});
+		});
+
+		describe("Concurrent writes", function(){
+			it("should wait for model to save before trying to delete in concurrent situation");
 		});
 	});
 });
