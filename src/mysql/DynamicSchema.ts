@@ -48,11 +48,10 @@ class DynamicSchema extends Schema{
 					columnQueries.push(q);
 				}
 
-				if(column.isIndex || column.isUnique || column.isAutoIncrement){
-					indexQueries.push(name);
-				}
 				if(column.isUnique){
 					uniqueQueries.push(name);
+				}else if(column.isIndex || column.isAutoIncrement){
+					indexQueries.push(name);
 				}
 
 				function setNotNullIncrement(){
@@ -67,6 +66,7 @@ class DynamicSchema extends Schema{
 					}
 				}
 			});
+
 			let partialSql = `${columnQueries.join(", ")}`;
 			if(indexQueries.length > 0){
 				partialSql += `, INDEX (${indexQueries.join(", ")})`;
@@ -74,6 +74,7 @@ class DynamicSchema extends Schema{
 			if(uniqueQueries.length > 0){
 				partialSql += `, UNIQUE KEY (${uniqueQueries.join(", ")})`;
 			}
+
 			const sql = `CREATE TABLE ${connect.escapeId(tableSlug, true)} (${partialSql})`;
 
 			try{
@@ -81,6 +82,14 @@ class DynamicSchema extends Schema{
 					connect.execute(sql),
 					connect.execute("INSERT INTO _schema ($id, jsonschema) VALUES (?, ?)", [tableSlug, JSON.stringify(schema)])
 				]);
+
+				this.tableName = tableName;
+				this.tableSlug = tableSlug;
+				this.required = required;
+				this.description = description;
+				this.jsonSchema = schema;
+				this.definition = columns;
+
 				return this;
 			} catch(e) {
 				// Query failed, reset object state
