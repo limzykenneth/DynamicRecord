@@ -1,11 +1,12 @@
 import * as _ from "lodash";
 import {Model as ModelBase, DynamicRecord as DRBase} from "../DynamicRecord";
 import DynamicCollection from "./DynamicCollection";
+import DynamicSchema from "./DynamicSchema";
 import connect from "./connection";
 
 class DynamicRecord extends DRBase{
 	// Static constructors for their own separate use
-	// static DynamicSchema = DynamicSchema(connect);
+	static DynamicSchema = DynamicSchema(connect);
 	static DynamicCollection = DynamicCollection;
 
 	private _databaseConnection: any;
