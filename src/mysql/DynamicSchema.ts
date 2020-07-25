@@ -119,11 +119,40 @@ class DynamicSchema extends Schema{
 	}
 
 	async dropTable(): Promise<DynamicSchema>{
-		return this;
+		try{
+			await Promise.all([
+				connect.execute(`DROP TABLE ${connect.escapeId(this.tableSlug, true)}`),
+				connect.execute("DELETE FROM _schema WHERE $id=?", [this.tableSlug])
+			]);
+
+			this.tableName = null;
+			this.tableSlug = null;
+			this.definition = {};
+
+			return this;
+		}catch(e){
+			return Promise.reject(e);
+		}
 	}
 
 	async renameTable(newSlug:string, newName?:string): Promise<DynamicSchema>{
-		return this;
+		try{
+			const [result] = await connect.execute("SELECT * FROM _schema WHERE $id=?", [this.tableSlug]);
+			const schema = JSON.parse(result[0].jsonschema);
+			schema.$id = newSlug;
+			schema.title = newName || newSlug;
+
+			await Promise.all([
+				connect.execute(`RENAME TABLE ${connect.escapeId(this.tableSlug, true)} TO ${connect.escapeId(newSlug, true)}`),
+				connect.execute("UPDATE _schema SET $id=?, jsonschema=? WHERE $id=?", [newSlug, JSON.stringify(schema), this.tableSlug])
+			]);
+
+			this.tableSlug = newSlug;
+			this.tableName = newName || newSlug;
+			return this;
+		}catch(e){
+			return Promise.reject(e);
+		}
 	}
 
 	async addIndex(options:IndexOptions): Promise<DynamicSchema>{

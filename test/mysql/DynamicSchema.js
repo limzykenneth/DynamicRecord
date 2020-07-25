@@ -43,7 +43,9 @@ after(async function(){
 // --------------------------------------------
 
 // ----------------- Tests --------------------
-describe("Schema", function(){
+describe("Schema", async function(){
+	const connection = await connect;
+
 	describe("createTable()", function(){
 		beforeEach(function(){
 			return utils.resetTestTables();
@@ -57,7 +59,6 @@ describe("Schema", function(){
 			const table = new DynamicSchema();
 			await table.createTable(testSchema);
 
-			const connection = await connect;
 			const [result] = await connection.execute("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_name=?", [testSchema.$id]);
 			const t = _.find(result, (entry) => {
 				return entry.TABLE_NAME === testSchema.$id;
@@ -69,9 +70,8 @@ describe("Schema", function(){
 			const table = new DynamicSchema();
 			await table.createTable(testSchema);
 
-			const connection = await connect;
 			const [result] = await connection.execute(`SHOW INDEXES FROM ${testSchema.$id}`);
-			assert.equal(result.length, 1, "only one index created");
+			assert.lengthOf(result, 1, "only one index created");
 			assert.equal(result[0].Key_name, "wholeNumber", "index name is correct");
 			assert.equal(result[0].Non_unique, 0, "index is unique");
 
@@ -100,35 +100,76 @@ describe("Schema", function(){
 			return utils.dropTestTable();
 		});
 
-		it("should remove the table's entry in the _schema table");
-		it("should drop the table itself");
-		it("should remove the table's entry in the _counters table");
-	// 	it("should remove existing data from the instance", async function(){
-	// 		await table.dropTable();
-	// 		assert.isNull(table.tableName, "Table name is set to null");
-	// 		assert.isNull(table.tableSlug, "Table slug is set to null");
-	// 		assert.isEmpty(table.definition, "Table definition is emptied");
-	// 	});
+		it("should remove the table's entry in the _schema table", async function(){
+			await table.dropTable();
+			const [result] = await connection.execute("SELECT * FROM _schema WHERE $id=?", [testSchema.$id]);
+			assert.isEmpty(result, "entry doesn't exist in _schema table");
+		});
+		it("should drop the table itself", async function(){
+			await table.dropTable();
+			const [result] = await connection.execute("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_name=?", [testSchema.$id]);
+			const t = _.find(result, (entry) => {
+				return entry.TABLE_NAME === testSchema.$id;
+			});
+			assert.notExists(t, "table doesn't exist in database");
+		});
+		it("should remove existing data from the instance", async function(){
+			await table.dropTable();
+			assert.isNull(table.tableName, "Table name is set to null");
+			assert.isNull(table.tableSlug, "Table slug is set to null");
+			assert.isEmpty(table.definition, "Table definition is emptied");
+		});
 	});
 
-	// describe("renameTable()", function(){
-	// 	let table;
+	describe("renameTable()", function(){
+		let table;
 
-	// 	beforeEach(async function(){
-	// 		await utils.resetTestTables();
-	// 		table = new DynamicSchema();
-	// 		await table.createTable(testSchema);
-	// 	});
+		beforeEach(async function(){
+			await utils.resetTestTables();
+			table = new DynamicSchema();
+			await table.createTable(testSchema);
+		});
 
-	// 	after(function(){
-	// 		return utils.dropTestTable();
-	// 	});
+		after(function(){
+			return utils.dropTestTable();
+		});
 
-	// 	it("should rename the table in database and object instance");
-	// 	it("should default new name to new slug");
-	// 	it("should rename the entry in _schema table");
-	// 	it("should rename the entry in _counters table");
-	// });
+		it("should rename the table in database and object instance", async function(){
+			await table.renameTable("test_table", "Test Table");
+
+			let [result] = await connection.execute("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_name=?", [testSchema.$id]);
+			let t = _.find(result, (entry) => {
+				return entry.TABLE_NAME === testSchema.$id;
+			});
+			assert.notExists(t, "table with old slug no longer exist in database");
+
+			[result] = await connection.execute("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_name=?", ["test_table"]);
+			t = _.find(result, (entry) => {
+				return entry.TABLE_NAME === "test_table";
+			});
+			assert.exists(t, "table exist with new slug");
+			assert.lengthOf(result, 1, "only one table with new slug exist in database");
+			assert.equal(table.tableSlug, "test_table", "slug is updated in object");
+			assert.equal(table.tableName, "Test Table", "name is updated in object");
+		});
+		it("should default new name to new slug", async function(){
+			await table.renameTable("test_table");
+
+			assert.equal(table.tableName, "test_table", "name is defaulted to slug in object");
+			const [result] = await connection.execute("SELECT jsonschema FROM _schema WHERE $id=?", ["test_table"]);
+			const schema = JSON.parse(result[0].jsonschema);
+			assert.equal(schema.title, "test_table", "name is defaulted to slug in schema entry");
+		});
+		it("should rename the entry in _schema table", async function(){
+			await table.renameTable("test_table");
+
+			const [result] = await connection.execute("SELECT jsonschema FROM _schema WHERE $id=?", ["test_table"]);
+			assert.isNotEmpty(result, "entry with new name exist");
+			const schema = JSON.parse(result[0].jsonschema);
+			assert.equal(schema.title, "test_table", "name is defaulted to slug in schema entry");
+			assert.equal(schema.$id, "test_table", "slug is updated in schema entry");
+		});
+	});
 
 	// describe("addIndex()", function(){
 	// 	let table;
