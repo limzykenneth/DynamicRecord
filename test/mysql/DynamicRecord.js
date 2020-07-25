@@ -49,11 +49,15 @@ describe("DynamicRecord", function(){
 		const fields = [];
 		const values = [];
 		testData.forEach((data) => {
-			_.each(data, (val, key) => {
-				console.error("We stopped here");
+			const keys = _.map(data, (val, key) => {
+				return key;
+			}).join(", ");
+			const values = _.map(data, (val, key) => {
+				return val;
 			});
+			const query = `INSERT INTO ${testSchema.$id} (${keys}) VALUES (${_.map(values, () => "?").join(", ")})`;
+			connection.execute(query, values);
 		});
-		// connection.execute(`INSERT INTO ${testSchema.$id} () VALUES ()`, []);
 	});
 
 	afterEach(function(){
