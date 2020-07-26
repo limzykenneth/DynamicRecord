@@ -20,60 +20,7 @@ class DynamicSchema extends Schema{
 			const required = _.cloneDeep(schema.required) || [];
 			const description = schema.description || "";
 
-			const columnQueries = [];
-			const indexQueries = [];
-			const uniqueQueries = [];
-			_.each(columns, (column, name) => {
-				let q = "";
-				if(column.type === "string"){
-					q += `${name} LONGTEXT`;
-					setNotNullIncrement();
-					columnQueries.push(q);
-				}else if(column.type === "integer"){
-					q += `${name} INT`;
-					setNotNullIncrement();
-					columnQueries.push(q);
-				}else if(column.type === "number"){
-					q += `${name} DOUBLE`;
-					setNotNullIncrement();
-					columnQueries.push(q);
-				}else if(column.type === "boolean"){
-					q += `${name} BOOLEAN`;
-					setNotNullIncrement();
-					columnQueries.push(q);
-				}else{
-					// NOTE: If it's `null`, `object`, or `array`, we just store as string for now
-					q += `${name} LONGTEXT`;
-					setNotNullIncrement();
-					columnQueries.push(q);
-				}
-
-				if(column.isUnique){
-					uniqueQueries.push(name);
-				}else if(column.isIndex || column.isAutoIncrement){
-					indexQueries.push(name);
-				}
-
-				function setNotNullIncrement(){
-					if(_.includes(schema.required, name)){
-						q += " NOT NULL";
-
-						if(column.isAutoIncrement){
-							q += " AUTO_INCREMENT";
-						}
-					}else if(column.isAutoIncrement){
-						q += " NOT NULL AUTO_INCREMENT";
-					}
-				}
-			});
-
-			let partialSql = `${columnQueries.join(", ")}`;
-			if(indexQueries.length > 0){
-				partialSql += `, INDEX (${indexQueries.join(", ")})`;
-			}
-			if(uniqueQueries.length > 0){
-				partialSql += `, UNIQUE KEY (${uniqueQueries.join(", ")})`;
-			}
+			const partialSql = this.definitionToSQL(columns, required);
 
 			const sql = `CREATE TABLE ${connect.escapeId(tableSlug, true)} (${partialSql})`;
 
@@ -213,7 +160,24 @@ class DynamicSchema extends Schema{
 	}
 
 	async define(def:SchemaDefinitions): Promise<DynamicSchema>{
-		return this;
+		const oldDef:SchemaDefinitions = this.definition;
+		this.definition = def;
+
+		try{
+			this.jsonSchema.properties = def;
+			// Change _schema entry
+			await connect.execute("UPDATE _schema SET jsonschema=? WHERE $id=?", [JSON.stringify(this.jsonSchema.properties), this.tableSlug]);
+			// Change shape of table
+			const partialSql = this.definitionToSQL(def, []);
+			// NOTE: Pending implementation rethink
+			// await connect.execute(`ALTER TABLE ${connect.escapeId(this.tableSlug, true)} MODIFY ${partialSql}`);
+
+			return this;
+		}catch(e){
+			this.definition = oldDef;
+			this.jsonSchema.properties = oldDef;
+			return Promise.reject(e);
+		}
 	}
 
 	async renameColumn(name:string, newName:string): Promise<DynamicSchema>{
@@ -223,6 +187,65 @@ class DynamicSchema extends Schema{
 	// Utils --------------------------------------------------------
 	async _writeSchema(): Promise<DynamicSchema>{
 		return this;
+	}
+
+	private definitionToSQL(definition: SchemaDefinitions, required): string{
+		const columnQueries = [];
+		const indexQueries = [];
+		const uniqueQueries = [];
+		_.each(definition, (column, name) => {
+			let q = "";
+			if(column.type === "string"){
+				q += `${name} LONGTEXT`;
+				setNotNullIncrement();
+				columnQueries.push(q);
+			}else if(column.type === "integer"){
+				q += `${name} INT`;
+				setNotNullIncrement();
+				columnQueries.push(q);
+			}else if(column.type === "number"){
+				q += `${name} DOUBLE`;
+				setNotNullIncrement();
+				columnQueries.push(q);
+			}else if(column.type === "boolean"){
+				q += `${name} BOOLEAN`;
+				setNotNullIncrement();
+				columnQueries.push(q);
+			}else{
+				// NOTE: If it's `null`, `object`, or `array`, we just store as string for now
+				q += `${name} LONGTEXT`;
+				setNotNullIncrement();
+				columnQueries.push(q);
+			}
+
+			if(column.isUnique){
+				uniqueQueries.push(name);
+			}else if(column.isIndex || column.isAutoIncrement){
+				indexQueries.push(name);
+			}
+
+			function setNotNullIncrement(){
+				if(_.includes(required, name)){
+					q += " NOT NULL";
+
+					if(column.isAutoIncrement){
+						q += " AUTO_INCREMENT";
+					}
+				}else if(column.isAutoIncrement){
+					q += " NOT NULL AUTO_INCREMENT";
+				}
+			}
+		});
+
+		let partialSql = `${columnQueries.join(", ")}`;
+		if(indexQueries.length > 0){
+			partialSql += `, INDEX (${indexQueries.join(", ")})`;
+		}
+		if(uniqueQueries.length > 0){
+			partialSql += `, UNIQUE KEY (${uniqueQueries.join(", ")})`;
+		}
+
+		return partialSql;
 	}
 }
 
