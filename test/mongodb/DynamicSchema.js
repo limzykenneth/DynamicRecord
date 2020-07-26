@@ -248,7 +248,7 @@ describe("Schema", function(){
 
 			await table.addIndex({
 				name: "testIndex"
-			}, true);
+			});
 
 			const res = await db.collection(testSchema.$id).indexExists("testIndex");
 			assert.isTrue(res, "index exists in database");
