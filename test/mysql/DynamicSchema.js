@@ -212,24 +212,30 @@ describe("Schema", async function(){
 		});
 	});
 
-	// describe("removeIndex()", function(){
-	// 	let table;
+	describe("removeIndex()", function(){
+		let table;
 
-	// 	beforeEach(async function(){
-	// 		await utils.resetTestTables();
-	// 		table = new DynamicSchema();
-	// 		await table.createTable(testSchema);
-	// 		await table.addIndex({
-	// 			name: "testIndex",
-	// 		});
-	// 	});
+		beforeEach(async function(){
+			await utils.resetTestTables();
+			table = new DynamicSchema();
+			await table.createTable(testSchema);
+			await table.addIndex({
+				name: "testIndex",
+			});
+		});
 
-	// 	after(function(){
-	// 		return utils.dropTestTable();
-	// 	});
+		after(function(){
+			return utils.dropTestTable();
+		});
 
-	// 	it("should remove the column from the index list");
-	// });
+		it("should remove the column from the index list", async function(){
+			await table.removeIndex("testIndex");
+
+			const [result] = await connection.execute(`SHOW INDEXES FROM ${testSchema.$id}`);
+			assert.lengthOf(result, 1, "only one index in database");
+			assert.notEqual(result[0].Key_name, "testIndex", "index does not exist in database");
+		});
+	});
 
 	// describe("read()", function(){
 	// 	beforeEach(async function(){

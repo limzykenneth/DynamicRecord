@@ -186,7 +186,12 @@ class DynamicSchema extends Schema{
 	}
 
 	async removeIndex(columnName:string): Promise<DynamicSchema>{
-		return this;
+		try{
+			await connect.execute(`DROP INDEX ${connect.escapeId(columnName, true)} ON ${connect.escapeId(this.tableSlug, true)}`);
+			return this;
+		}catch(e){
+			return Promise.reject(e);
+		}
 	}
 
 	async read(tableSlug:string): Promise<DynamicSchema>{
