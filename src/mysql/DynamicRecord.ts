@@ -15,9 +15,15 @@ class DynamicRecord extends DRBase{
 	constructor(options){
 		super(options);
 		this._databaseConnection = connect;
+		const _schema = this.schema = new (DynamicSchema(this._databaseConnection))();
 		const tableSlug = options.tableSlug;
 
-		// const _ready = this._ready = connect.execute("");
+		const _ready = this._ready = (async () => {
+			const schema = await this.schema.read(tableSlug);
+			if(schema.tableSlug === "") return Promise.reject(`Table with name ${tableSlug} does not exist`);
+			return connect;
+		})();
+
 		const Model = this.Model = class Model extends ModelBase{
 			constructor(data, _preserveOriginal){
 				super(data, _preserveOriginal);
