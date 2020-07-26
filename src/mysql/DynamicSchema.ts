@@ -195,7 +195,21 @@ class DynamicSchema extends Schema{
 	}
 
 	async read(tableSlug:string): Promise<DynamicSchema>{
-		return this;
+		try{
+			const [result] = await connect.execute("SELECT jsonschema FROM _schema WHERE $id=?", [tableSlug]);
+			if(result.length > 0){
+				const schema = JSON.parse(result[0].jsonschema);
+				this.jsonSchema = schema;
+				this.tableName = schema.title;
+				this.tableSlug = schema.$id;
+				this.definition = schema.properties;
+				this.required = schema.required;
+			}
+
+			return this;
+		}catch(e){
+			return Promise.reject(e);
+		}
 	}
 
 	async define(def:SchemaDefinitions): Promise<DynamicSchema>{

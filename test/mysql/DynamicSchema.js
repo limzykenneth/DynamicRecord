@@ -237,24 +237,24 @@ describe("Schema", async function(){
 		});
 	});
 
-	// describe("read()", function(){
-	// 	beforeEach(async function(){
-	// 		await utils.resetTestTables();
-	// 		await utils.setupSuite();
-	// 	});
+	describe("read()", function(){
+		beforeEach(async function(){
+			await utils.resetTestTables();
+			await utils.setupSuite();
+		});
 
-	// 	after(function(){
-	// 		return utils.dropTestTable();
-	// 	});
+		after(function(){
+			return utils.dropTestTable();
+		});
 
-	// 	it("should read the schema entry from the database correctly", async function(){
-	// 		const table = new DynamicSchema();
-	// 		await table.read(testSchema.$id);
-	// 		assert.equal(table.tableSlug, testSchema.$id, "object slug is equal to testSchema.$id");
-	// 		assert.deepEqual(table.definition, testSchema.properties, "object definition is as defined");
-	// 		assert.deepEqual(table.required, testSchema.required, "required properties is as defined");
-	// 	});
-	// });
+		it("should read the schema entry from the database correctly", async function(){
+			const table = new DynamicSchema();
+			await table.read(testSchema.$id);
+			assert.equal(table.tableSlug, testSchema.$id, "object slug is equal to testSchema.$id");
+			assert.deepEqual(table.definition, testSchema.properties, "object definition is as defined");
+			assert.deepEqual(table.required, testSchema.required, "required properties is as defined");
+		});
+	});
 
 	// describe("define()", function(){
 	// 	beforeEach(function(){
