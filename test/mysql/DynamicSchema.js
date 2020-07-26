@@ -256,6 +256,7 @@ describe("Schema", async function(){
 		});
 	});
 
+	// NOTE: Pending implementation rethink
 	// describe("define()", function(){
 	// 	beforeEach(function(){
 	// 		return utils.resetTestTables();
@@ -268,9 +269,12 @@ describe("Schema", async function(){
 	// 	it("should write the schema definition to the database");
 	// 	it("should set the correct definition", async function(){
 	// 		const table = new DynamicSchema();
+	// 		const emptyTestSchema = _.cloneDeep(testSchema);
+	// 		await table.createTable(emptyTestSchema);
 	// 		await table.define(testSchema.properties);
 	// 		assert.deepEqual(table.definition, testSchema.properties, "object definition is set correctly");
 	// 	});
+	// 	it("should edit the table in database");
 	// });
 
 	// describe("addColumn()", function(){

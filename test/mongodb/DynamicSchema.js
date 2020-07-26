@@ -496,6 +496,7 @@ describe("Schema", function(){
 			assert.deepEqual(data.properties, testSchema.properties, "database entry has correct definition");
 		});
 		it("should set the correct definition", async function(){
+			// NOTE: This shouldn't work? Table wasn't created.
 			const table = new DynamicSchema();
 			await table.define(testSchema.properties);
 			assert.deepEqual(table.definition, testSchema.properties, "object definition is set correctly");
