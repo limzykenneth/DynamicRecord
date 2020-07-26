@@ -156,7 +156,33 @@ class DynamicSchema extends Schema{
 	}
 
 	async addIndex(options:IndexOptions): Promise<DynamicSchema>{
-		return this;
+		try{
+			const columnName:string = options.name;
+			const isAutoIncrement:boolean = options.autoIncrement;
+			let unique:boolean = options.unique;
+			if(isAutoIncrement && unique === false){
+				console.warn("Auto increment index must be unique, setting to unique.");
+				unique = true;
+			}
+
+			if(typeof unique === "undefined"){
+				unique = true;
+			}
+
+			if(unique){
+				await connect.execute(`ALTER TABLE ${connect.escapeId(this.tableSlug, true)} ADD CONSTRAINT ${connect.escapeId(columnName, true)} UNIQUE (${connect.escapeId(columnName, true)})`);
+			}else{
+				await connect.execute(`ALTER TABLE ${connect.escapeId(this.tableSlug, true)} ADD INDEX ${connect.escapeId(columnName, true)} (${connect.escapeId(columnName, true)})`);
+			}
+
+			if(isAutoIncrement){
+				await connect.execute(`ALTER TABLE ${connect.escapeId(this.tableSlug, true)} MODIFY ${connect.escapeId(columnName, true)} int AUTO_INCREMENT`);
+			}
+
+			return this;
+		}catch(e){
+			return Promise.reject(e);
+		}
 	}
 
 	async removeIndex(columnName:string): Promise<DynamicSchema>{

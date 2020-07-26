@@ -171,23 +171,46 @@ describe("Schema", async function(){
 		});
 	});
 
-	// describe("addIndex()", function(){
-	// 	let table;
+	describe("addIndex()", function(){
+		let table;
 
-	// 	beforeEach(async function(){
-	// 		await utils.resetTestTables();
-	// 		table = new DynamicSchema();
-	// 		await table.createTable(testSchema);
-	// 	});
+		beforeEach(async function(){
+			await utils.resetTestTables();
+			table = new DynamicSchema();
+			await table.createTable(testSchema);
+		});
 
-	// 	after(function(){
-	// 		return utils.dropTestTable();
-	// 	});
+		after(function(){
+			return utils.dropTestTable();
+		});
 
-	// 	it("should create a new index");
-	// 	it("should make the index unique by default");
-	// 	it("should not make the index unique if passed false to unique");
-	// });
+		it("should create a new index", async function(){
+			await table.addIndex({
+				name: "testIndex"
+			});
+
+			const [result] = await connection.execute(`SHOW INDEXES FROM ${testSchema.$id}`);
+			assert.lengthOf(result, 2, "only one index created");
+			assert.equal(result[1].Key_name, "testIndex", "index exists in database");
+		});
+		it("should make the index unique by default", async function(){
+			await table.addIndex({
+				name: "testIndex"
+			});
+
+			const [result] = await connection.execute(`SHOW INDEXES FROM ${testSchema.$id}`);
+			assert.equal(result[1].Non_unique, 0, "index is unique by default");
+		});
+		it("should not make the index unique if passed false to unique", async function(){
+			await table.addIndex({
+				name: "testIndex",
+				unique: false
+			});
+
+			const [result] = await connection.execute(`SHOW INDEXES FROM ${testSchema.$id}`);
+			assert.equal(result[1].Non_unique, 1, "index is not unique");
+		});
+	});
 
 	// describe("removeIndex()", function(){
 	// 	let table;
