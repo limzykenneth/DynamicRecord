@@ -117,7 +117,7 @@ function cli(program){
 		});
 }
 
-async function init(url, isPreview=false){
+async function init(url, isPreview=false, quiet=false){
 	const {schema, database} = url.match(constants.databaseRegex).groups;
 	const databaseType = constants.databaseEnums[schema];
 
@@ -125,14 +125,14 @@ async function init(url, isPreview=false){
 	if(databaseType === constants.databaseEnums.mongodb){
 		if(!isPreview){
 			return initMongodb(url).then(() => {
-				console.log(`Initialized mongodb database ${database}`);
+				if(!quiet) console.log(`Initialized mongodb database ${database}`);
 				return Promise.resolve();
 			});
 		}
 	}else if(databaseType === constants.databaseEnums.mysql){
 		if(!isPreview){
 			return initMySQL(url).then(() => {
-				console.log(`Initialized mysql database ${database}`);
+				if(!quiet) console.log(`Initialized mysql database ${database}`);
 				return Promise.resolve();
 			});
 		}

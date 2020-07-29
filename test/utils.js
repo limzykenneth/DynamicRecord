@@ -1,6 +1,7 @@
 require("dotenv").config();
 const _ = require("lodash");
 
+const initDB =  require("../tools/init.js").init;
 const initMongodb = require("../tools/init/mongodb.js");
 const mongodbUtils = require("./mongodb/utils");
 
@@ -35,15 +36,7 @@ let utils = function(connect){
 };
 
 utils.prototype.createTestTable = async function(){
-	if(this.databaseType === constants.databaseEnums.mongodb){
-		await initMongodb({
-			url
-		});
-	}else if(this.databaseType === constants.databaseEnums.mysql){
-		await initMySQL({
-			url
-		});
-	}
+	await initDB(url, false, true);
 };
 
 utils.prototype.dropTestTable = async function(){
