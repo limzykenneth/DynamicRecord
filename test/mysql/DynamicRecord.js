@@ -73,13 +73,13 @@ describe("DynamicRecord", function(){
 		});
 	});
 
-	// describe("findBy()", function(){
-	// 	it("should retrieve an entry from the database matching the query", async function(){
-	// 		const model = await Random.findBy({"string": testData[0].string});
-	// 		assert.equal(model.data.string, testData[0].string, "string property matches test data");
-	// 		assert.equal(model.data.int, testData[0].int, "int property matches test data");
-	// 		assert.equal(model.data.float, testData[0].float, "float property matches test data");
-	// 	});
+	describe("findBy()", function(){
+		it("should retrieve an entry from the database matching the query", async function(){
+			const model = await Random.findBy({"string": testData[0].string});
+			assert.equal(model.data.string, testData[0].string, "string property matches test data");
+			assert.equal(model.data.int, testData[0].int, "int property matches test data");
+			assert.equal(model.data.float, testData[0].float, "float property matches test data");
+		});
 	// 	it("should return a single object of type DynamicRecord.Model", async function(){
 	// 		const model = await Random.findBy({"string": testData[0].string});
 	// 		assert.instanceOf(model, Random.Model, "'model' is and instance of 'Random.Model'");
@@ -93,7 +93,7 @@ describe("DynamicRecord", function(){
 	// 		assert.isNotNull(model._original, "'model._original' is populated");
 	// 		assert.deepEqual(model.data, model._original, "'model._original' is a copy of 'model.data'");
 	// 	});
-	// });
+	});
 
 	// describe("where()", function(){
 	// 	it("should retrieve all entries from the database matching the query", async function(){
