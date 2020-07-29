@@ -8,9 +8,9 @@ const _ = require("lodash");
 const pjson = require("../package.json");
 
 // CLI Tools
-const init = require("./init.js");
-const exp = require("./export.js");
-const imp = require("./import.js");
+const init = require("./init.js").cli;
+const exp = require("./export.js").cli;
+const imp = require("./import.js").cli;
 
 const response = {};
 const questions = [];

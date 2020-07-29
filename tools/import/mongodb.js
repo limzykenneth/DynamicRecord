@@ -2,15 +2,15 @@ const MongoClient = require("mongodb").MongoClient;
 const fs = require("fs").promises;
 const _ = require("lodash");
 
-module.exports = async function(response){
-	const connect = MongoClient.connect(response.url, {
+module.exports = async function(url, input){
+	const connect = MongoClient.connect(url, {
 		useUnifiedTopology: true,
 		useNewUrlParser: true
 	});
 	const client = await connect;
 	const db = client.db();
 
-	const fileText = await fs.readFile(response.input, {encoding: "utf8"});
+	const fileText = await fs.readFile(input, {encoding: "utf8"});
 	let {schemas, tables} = JSON.parse(fileText);
 	const tableNames = _.keys(tables);
 

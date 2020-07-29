@@ -2,8 +2,8 @@ const MongoClient = require("mongodb").MongoClient;
 const fs = require("fs").promises;
 const _ = require("lodash");
 
-module.exports = async function(response){
-	const connect = MongoClient.connect(response.url, {
+module.exports = async function(url, output){
+	const connect = MongoClient.connect(url, {
 		useUnifiedTopology: true,
 		useNewUrlParser: true
 	});
@@ -39,7 +39,7 @@ module.exports = async function(response){
 	}
 
 	// 4. Save all data in one JSON file
-	await fs.writeFile(response.output, JSON.stringify(exportedData, null, 2));
+	await fs.writeFile(output, JSON.stringify(exportedData, null, 2));
 
 	client.close();
 };

@@ -1,7 +1,7 @@
 const MongoClient = require("mongodb").MongoClient;
 
-module.exports = function(response){
-	const connect = MongoClient.connect(response.url, {
+module.exports = function(url){
+	const connect = MongoClient.connect(url, {
 		useUnifiedTopology: true,
 		useNewUrlParser: true
 	});

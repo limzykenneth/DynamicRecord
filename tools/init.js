@@ -6,7 +6,7 @@ const constants = require("./_constants.js");
 const initMongodb = require("./init/mongodb.js");
 const initMySQL = require("./init/mysql.js");
 
-function init(program){
+function cli(program){
 	const response = {};
 	const questions = [];
 
@@ -17,7 +17,7 @@ function init(program){
 		.option("-d, --database <database name>", "Name of the database to use")
 		.option("-e, --env", "Create .env file", false)
 		.option("--preview", "Dry run tasks without writing anything to file or database", false)
-		.action(function(cmd){
+		.action(async function(cmd){
 			if(typeof cmd.server === "undefined"){
 				questions.push({
 					type: "input",
@@ -71,10 +71,12 @@ function init(program){
 			}
 
 			// Use Inquirer to ask for missing info
-			inquirer.prompt(questions).then((answer) => {
-				// Copy answers from inquirer into response object
-				_.assign(response, answer);
+			const answer = await inquirer.prompt(questions);
 
+			// Copy answers from inquirer into response object
+			_.assign(response, answer);
+
+			try{
 				// Identify the database type
 				const regexResult = response.server.match(constants.databaseRegex);
 				const schema = regexResult.groups.schema;
@@ -88,7 +90,6 @@ function init(program){
 					throw new Error(`Invalid database server URL: ${response.server}`);
 				}else if(username.length > 0 && password.length > 0 && database.length > 0){
 					response.url = `${schema}://${username}:${password}@${host}${port}/${database}`;
-					response.databaseType = constants.databaseEnums[regexResult.groups.schema];
 				}else{
 					throw new Error(`Invalid database server URL: ${schema}://${username}:${password}@${host}${port}/${database}`);
 				}
@@ -109,27 +110,36 @@ function init(program){
 					console.log(data);
 				}
 
-				// Initialize database
-				if(response.databaseType === constants.databaseEnums.mongodb){
-					if(!cmd.preview){
-						return initMongodb(response).then(() => {
-							console.log(`Initialized mongodb database ${response.database}`);
-							return Promise.resolve();
-						});
-					}
-				}else if(response.databaseType === constants.databaseEnums.mysql){
-					if(!cmd.preview){
-						return initMySQL(response).then(() => {
-							console.log(`Initialized mysql database ${response.database}`);
-							return Promise.resolve();
-						});
-					}
-				}
-
-			}).catch((err) => {
+				await init(response.url, cmd.preview);
+			}catch(err){
 				console.error(err);
-			});
+			}
 		});
 }
 
-module.exports = init;
+async function init(url, isPreview=false){
+	const {schema, database} = url.match(constants.databaseRegex).groups;
+	const databaseType = constants.databaseEnums[schema];
+
+	// Initialize database
+	if(databaseType === constants.databaseEnums.mongodb){
+		if(!isPreview){
+			return initMongodb(url).then(() => {
+				console.log(`Initialized mongodb database ${database}`);
+				return Promise.resolve();
+			});
+		}
+	}else if(databaseType === constants.databaseEnums.mysql){
+		if(!isPreview){
+			return initMySQL(url).then(() => {
+				console.log(`Initialized mysql database ${database}`);
+				return Promise.resolve();
+			});
+		}
+	}
+}
+
+module.exports = {
+	cli,
+	init
+};
