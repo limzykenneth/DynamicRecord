@@ -14,7 +14,7 @@ Dynamic Record is a database abstraction package for node.js that is inspired by
 2. Ensure you have your database running and you have the appropriate credentials to be used with the app. (You will need read/write permissions)
 3. Run the initialization script with `npx dynamic-record init`.
 4. Follow the steps in the wizard and everything will be setup correctly for you. Or you can run `npx dynamic-record init` by providing flags and arguments that can be found using `npx dynamic-record init --help`.
-5. Environment variable `database_host` needs to be set in the format of `[schema]://[username]:[password]@[host]:[port]/[database]` (eg. `mongodb://username:password@localhost:27017/my_blog`) when running DynamicRecord. You can pass a `-e` flag to `npx dynamic-record init` to automatically write this setting to a `.env` file which will be read by DynamicRecord.
+5. Environment variable `database_host` needs to be set in the format of `[schema]://[username]:[password]@[host]:[port]/[database]` (eg. `mongodb://username:password@localhost:27017/my_blog`) when running DynamicRecord. You can pass a `-e` flag to `npx dynamic-record init` to automatically write this setting to a `.env` file which you can read in your app with [`dotenv`](https://www.npmjs.com/package/dotenv).
 
 ## Usage
 Although the API is more or less as how we wanted it to be, changes can still occur. Documentation of the API is available at [https://dynamic-record.js.org/](https://dynamic-record.js.org/)
@@ -52,8 +52,8 @@ This will create an empty instance of `DynamicSchema` but it will do nothing els
 ```javascript
 const monarchSchema = require("./monarch.schema.json");
 
-mySchema.createTable(monarchSchema).then(() => {
-    // Schema created in database
+monarchSchema.createTable(monarchSchema).then(() => {
+	// Schema created in database
 });
 ```
 
@@ -70,7 +70,7 @@ With the created instance you can fetch a particular entry from the database by 
 
 ```javascript
 myTable.findBy({name: "Henry V"}).then((entry) => {
-    console.log(entry.data);
+	console.log(entry.data);
 });
 ```
 
@@ -82,9 +82,9 @@ const DynamicRecord = require("dynamic-record");
 const myTable = new DynamicRecord({tableSlug: "myTableSlug"});
 
 const newKing = new myTable.Model({
-    name: "Henry VI",
-    house: "York",
-    coronation: "6 November 1429"
+	name: "Henry VI",
+	house: "York",
+	coronation: "6 November 1429"
 });
 ```
 
@@ -98,7 +98,7 @@ When you are ready to save the model into the database, simply call `save()` on 
 
 ```javascript
 newKing.save().then(() => {
-    // Model saved
+	// Model saved
 });
 ```
 
@@ -119,7 +119,7 @@ After modifying the models on the `DynamicCollection` instance and you want to s
 
 ```javascript
 myCollection.saveAll().then(() => {
-    // All models in collection saved to database
+	// All models in collection saved to database
 });
 ```
 
@@ -133,10 +133,7 @@ myCollection.saveAll().then(() => {
 	2. You can use the CLI tool manually with `node tools/cli.js init` to set up the environment as documented [above](#installation), or you can write the following to a `.env` file manually (changing value where appropriate)
 
 	```
-	database_host=mongodb://localhost:27017
-	database_name=dynamic_record
-	database_username=test_user
-	database_password=test_user
+	database_host=mongodb://test_user:test_password@localhost:27017/dynamic_record
 	```
 
 5. Run `npm test`
