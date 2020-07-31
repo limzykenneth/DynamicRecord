@@ -104,10 +104,10 @@ function cli(program){
 			if(regexResult === null){
 				throw new Error(`Invalid database server URL: ${response.server}`);
 			}else if(username.length > 0 && password.length > 0 && database.length > 0){
-				response.url = `${schema}://${username}:${password}@${host}${port}/${database}`;
+				response.url = `${schema}://${username}:${password}@${host}${port}/${database}?${regexResult.groups.options || ""}`;
 				response.databaseType = constants.databaseEnums[regexResult.groups.schema];
 			}else{
-				throw new Error(`Invalid database server URL: ${schema}://${username}:${password}@${host}:${port}/${database}`);
+				throw new Error(`Invalid database server URL: ${schema}://${username}:${password}@${host}${port}/${database}?${regexResult.groups.options || ""}`);
 			}
 
 			try{

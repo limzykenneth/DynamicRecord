@@ -89,9 +89,9 @@ function cli(program){
 				if(regexResult === null){
 					throw new Error(`Invalid database server URL: ${response.server}`);
 				}else if(username.length > 0 && password.length > 0 && database.length > 0){
-					response.url = `${schema}://${username}:${password}@${host}${port}/${database}`;
+					response.url = `${schema}://${username}:${password}@${host}${port}/${database}?${regexResult.groups.options || ""}`;
 				}else{
-					throw new Error(`Invalid database server URL: ${schema}://${username}:${password}@${host}${port}/${database}`);
+					throw new Error(`Invalid database server URL: ${schema}://${username}:${password}@${host}${port}/${database}?${regexResult.groups.options || ""}`);
 				}
 
 				// Create .env file if needed
