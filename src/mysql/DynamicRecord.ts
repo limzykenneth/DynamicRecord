@@ -50,9 +50,20 @@ class DynamicRecord extends DRBase{
 	async findBy(query: object): Promise<ModelBase>{
 		try{
 			const connect = await this._ready;
+			let condition = [];
+			let q = [];
 
-			// connect.execute(`SELECT * FROM ${connect.escapeId(this.schema.tableSlug, true)} WHERE ?=? ORDER BY id LIMIT 1`, []);
-			return null;
+			_.each(query, (val, key) => {
+				condition.push(`${connect.escapeId(key, true)}=?`);
+				q.push(val);
+			});
+
+			const [result] = await connect.execute(`SELECT * FROM ${connect.escapeId(this.schema.tableSlug, true)} WHERE ${condition.join(" AND ")} LIMIT 1`, q);
+			if(result.length > 0){
+				return new this.Model(result[0], true);
+			}else{
+				return null;
+			}
 		}catch(e){
 			return Promise.reject(e);
 		}

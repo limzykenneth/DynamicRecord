@@ -48,7 +48,8 @@ describe("DynamicRecord", function(){
 		const connection = await connect;
 		const fields = [];
 		const values = [];
-		testData.forEach((data) => {
+
+		for(const data of testData){
 			const keys = _.map(data, (val, key) => {
 				return key;
 			}).join(", ");
@@ -56,8 +57,8 @@ describe("DynamicRecord", function(){
 				return val;
 			});
 			const query = `INSERT INTO ${testSchema.$id} (${keys}) VALUES (${_.map(values, () => "?").join(", ")})`;
-			connection.execute(query, values);
-		});
+			await connection.execute(query, values);
+		}
 	});
 
 	afterEach(function(){
@@ -77,22 +78,22 @@ describe("DynamicRecord", function(){
 		it("should retrieve an entry from the database matching the query", async function(){
 			const model = await Random.findBy({"string": testData[0].string});
 			assert.equal(model.data.string, testData[0].string, "string property matches test data");
-			assert.equal(model.data.int, testData[0].int, "int property matches test data");
-			assert.equal(model.data.float, testData[0].float, "float property matches test data");
+			assert.equal(model.data.wholeNumber, testData[0].wholeNumber, "int property matches test data");
+			assert.equal(model.data.floatingPoint, testData[0].floatingPoint, "float property matches test data");
 		});
-	// 	it("should return a single object of type DynamicRecord.Model", async function(){
-	// 		const model = await Random.findBy({"string": testData[0].string});
-	// 		assert.instanceOf(model, Random.Model, "'model' is and instance of 'Random.Model'");
-	// 	});
-	// 	it("should return null if an entry is not found", async function(){
-	// 		const model = await Random.findBy({"string": "Not found"});
-	// 		assert.isNull(model, "object is not null");
-	// 	});
-	// 	it("should populate the _original property of the returned model", async function(){
-	// 		const model = await  Random.findBy({"string": testData[0].string});
-	// 		assert.isNotNull(model._original, "'model._original' is populated");
-	// 		assert.deepEqual(model.data, model._original, "'model._original' is a copy of 'model.data'");
-	// 	});
+		it("should return a single object of type DynamicRecord.Model", async function(){
+			const model = await Random.findBy({"string": testData[0].string});
+			assert.instanceOf(model, Random.Model, "'model' is and instance of 'Random.Model'");
+		});
+		it("should return null if an entry is not found", async function(){
+			const model = await Random.findBy({"string": "Not found"});
+			assert.isNull(model, "object is not null");
+		});
+		it("should populate the _original property of the returned model", async function(){
+			const model = await  Random.findBy({"string": testData[0].string});
+			assert.isNotNull(model._original, "'model._original' is populated");
+			assert.deepEqual(model.data, model._original, "'model._original' is a copy of 'model.data'");
+		});
 	});
 
 	// describe("where()", function(){

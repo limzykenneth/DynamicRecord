@@ -120,7 +120,10 @@ export abstract class Model {
 		 * @memberOf DynamicRecord.Model
 		 * @instance
 		 */
-		this.data = data || {};
+		this.data = {};
+		if(data){
+			_.assign(this.data, data);
+		}
 
 		if(_preserveOriginal){
 			this._original = _.cloneDeep(data);

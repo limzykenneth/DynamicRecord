@@ -73,8 +73,8 @@ describe("DynamicRecord", function(){
 		it("should retrieve an entry from the database matching the query", async function(){
 			const model = await Random.findBy({"string": testData[0].string});
 			assert.equal(model.data.string, testData[0].string, "string property matches test data");
-			assert.equal(model.data.int, testData[0].int, "int property matches test data");
-			assert.equal(model.data.float, testData[0].float, "float property matches test data");
+			assert.equal(model.data.wholeNumber, testData[0].wholeNumber, "int property matches test data");
+			assert.equal(model.data.floatingPoint, testData[0].floatingPoint, "float property matches test data");
 		});
 		it("should return a single object of type DynamicRecord.Model", async function(){
 			const model = await Random.findBy({"string": testData[0].string});
@@ -111,7 +111,7 @@ describe("DynamicRecord", function(){
 			assert.isEmpty(col.data, "collection data is empty");
 		});
 		it("should populate the _original property of all the returned models", async function(){
-			const col = await Random.where({"float": testData[1].float});
+			const col = await Random.where({"floatingPoint": testData[1].floatingPoint});
 			col.forEach((model) => {
 				assert.isNotNull(model._original, "'model._original' is populated");
 				assert.deepEqual(model.data, model._original, "'model._original' is a copy of 'model.data'");
