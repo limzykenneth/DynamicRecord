@@ -43,7 +43,7 @@ after(async function(){
 
 // ----------------- Tests --------------------
 describe("DynamicRecord", function(){
-	beforeEach(async function(){
+	before(async function(){
 		// Fill with dummy data
 		const connection = await connect;
 		const fields = [];
@@ -96,73 +96,73 @@ describe("DynamicRecord", function(){
 		});
 	});
 
-	// describe("where()", function(){
-	// 	it("should retrieve all entries from the database matching the query", async function(){
-	// 		const col = await Random.where({"wholeNumber": testData[0].wholeNumber});
-	// 		assert.deepInclude(col.data, testData[0], "collection data includes first test data");
-	// 		assert.deepInclude(col.data, testData[1], "collection data includes second test data");
-	// 		assert.notDeepInclude(col.data, testData[2], "collection data does not include third data");
-	// 	});
-	// 	it("should return an array descendent of type DynamicCollection", async function(){
-	// 		const col = await Random.where({"floatingPoint": testData[1].floatingPoint});
-	// 		assert.instanceOf(col, Array, "collection is an instance of Array");
-	// 		assert.instanceOf(col, DynamicCollection, "collection is an instance of DynamicCollection");
-	// 	});
-	// 	it("should return an empty array descendent if query returns nothing", async function(){
-	// 		const col = await Random.where({"string": "Not exist"});
-	// 		assert.instanceOf(col, Array, "collection is an instance of Array");
-	// 		assert.instanceOf(col, DynamicCollection, "collection is an instance of DynamicCollection");
-	// 		assert.isEmpty(col, "collection is empty");
-	// 		assert.isEmpty(col.data, "collection data is empty");
-	// 	});
-	// 	it("should populate the _original property of all the returned models", async function(){
-	// 		const col = await Random.where({"float": testData[1].float});
-	// 		col.forEach((model) => {
-	// 			assert.isNotNull(model._original, "'model._original' is populated");
-	// 			assert.deepEqual(model.data, model._original, "'model._original' is a copy of 'model.data'");
-	// 		});
-	// 	});
-	// });
+	describe("where()", function(){
+		it("should retrieve all entries from the database matching the query", async function(){
+			const col = await Random.where({"wholeNumber": testData[0].wholeNumber});
+			assert.deepInclude(col.data, testData[0], "collection data includes first test data");
+			assert.deepInclude(col.data, testData[1], "collection data includes second test data");
+			assert.notDeepInclude(col.data, testData[2], "collection data does not include third data");
+		});
+		it("should return an array descendent of type DynamicCollection", async function(){
+			const col = await Random.where({"floatingPoint": testData[1].floatingPoint});
+			assert.instanceOf(col, Array, "collection is an instance of Array");
+			assert.instanceOf(col, DynamicCollection, "collection is an instance of DynamicCollection");
+		});
+		it("should return an empty array descendent if query returns nothing", async function(){
+			const col = await Random.where({"string": "Not exist"});
+			assert.instanceOf(col, Array, "collection is an instance of Array");
+			assert.instanceOf(col, DynamicCollection, "collection is an instance of DynamicCollection");
+			assert.isEmpty(col, "collection is empty");
+			assert.isEmpty(col.data, "collection data is empty");
+		});
+		it("should populate the _original property of all the returned models", async function(){
+			const col = await Random.where({"floatingPoint": testData[1].floatingPoint});
+			col.forEach((model) => {
+				assert.isNotNull(model._original, "'model._original' is populated");
+				assert.deepEqual(model.data, model._original, "'model._original' is a copy of 'model.data'");
+			});
+		});
+	});
 
-	// describe("all()", function(){
-	// 	it("should retrieve all entries from the database", async function(){
-	// 		const col = await Random.all();
-	// 		assert.deepInclude(col.data, testData[0], "collection data includes first test data");
-	// 		assert.deepInclude(col.data, testData[1], "collection data includes second test data");
-	// 		assert.deepInclude(col.data, testData[2], "collection data includes third test data");
-	// 	});
-	// 	it("should return an array descendent of type DynamicCollection", async function(){
-	// 		const col = await Random.all();
-	// 		assert.instanceOf(col, Array, "collection is an instance of Array");
-	// 		assert.instanceOf(col, DynamicCollection, "collection is an instance of DynamicCollection");
-	// 	});
-	// 	it("should return an empty DynamicCollection if database is empty");
-	// 	it("should populate the _original property of all the returned models", async function(){
-	// 		const col = await Random.all();
-	// 		col.forEach((model) => {
-	// 			assert.isNotNull(model._original, "'model._original' is populated");
-	// 			assert.deepEqual(model.data, model._original, "'model._original' is a copy of 'model.data'");
-	// 		});
-	// 	});
-	// });
+	describe("all()", function(){
+		it("should retrieve all entries from the database", async function(){
+			const col = await Random.all();
+			assert.deepInclude(col.data, testData[0], "collection data includes first test data");
+			assert.deepInclude(col.data, testData[1], "collection data includes second test data");
+			assert.deepInclude(col.data, testData[2], "collection data includes third test data");
+		});
+		it("should return an array descendent of type DynamicCollection", async function(){
+			const col = await Random.all();
+			assert.instanceOf(col, Array, "collection is an instance of Array");
+			assert.instanceOf(col, DynamicCollection, "collection is an instance of DynamicCollection");
+		});
+		it("should return an empty DynamicCollection if database is empty");
+		it("should populate the _original property of all the returned models", async function(){
+			const col = await Random.all();
+			col.forEach((model) => {
+				assert.isNotNull(model._original, "'model._original' is populated");
+				assert.deepEqual(model.data, model._original, "'model._original' is a copy of 'model.data'");
+			});
+		});
+	});
 
-	// describe("first()", function(){
-	// 	it("should retrieve one latest entry from the database", async function(){
-	// 		const model = await Random.first();
-	// 		assert.deepEqual(model.data, testData[0], "model should equal testData");
-	// 	});
-	// 	it("should return a single object of type DynamicRecord.Model", async function(){
-	// 		const model = await Random.first();
-	// 		assert.instanceOf(model, Random.Model, "'model' is and instance of 'Random.Model'");
-	// 	});
-	// 	it("should return null if an entry is not found");
-	// 	it("should return n number of values when given n as a parameter", async function(){
-	// 		const col = await Random.first(2);
-	// 		assert.instanceOf(col, DynamicCollection, "resolves to an instance of DynamicCollection");
-	// 		assert.lengthOf(col, 2, "has a length of two");
-	// 		assert.deepInclude(col.data, testData[0], "retrieved first entry");
-	// 		assert.deepInclude(col.data, testData[1], "retrieved second entry");
-	// 		assert.notDeepInclude(col.data, testData[2], "not retrieved third entry");
-	// 	});
-	// });
+	describe("first()", function(){
+		it("should retrieve one latest entry from the database", async function(){
+			const model = await Random.first();
+			assert.deepEqual(model.data, testData[0], "model should equal testData");
+		});
+		it("should return a single object of type DynamicRecord.Model", async function(){
+			const model = await Random.first();
+			assert.instanceOf(model, Random.Model, "'model' is and instance of 'Random.Model'");
+		});
+		it("should return null if an entry is not found");
+		it("should return n number of values when given n as a parameter", async function(){
+			const col = await Random.first(2);
+			assert.instanceOf(col, DynamicCollection, "resolves to an instance of DynamicCollection");
+			assert.lengthOf(col, 2, "has a length of two");
+			assert.deepInclude(col.data, testData[0], "retrieved first entry");
+			assert.deepInclude(col.data, testData[1], "retrieved second entry");
+			assert.notDeepInclude(col.data, testData[2], "not retrieved third entry");
+		});
+	});
 });

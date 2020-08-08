@@ -70,15 +70,68 @@ class DynamicRecord extends DRBase{
 	}
 
 	async where(query: object, orderBy: string | Function): Promise<DynamicCollection>{
-		return null;
+		try{
+			const connect = await this._ready;
+			let condition = [];
+			let q = [];
+
+			_.each(query, (val, key) => {
+				condition.push(`${connect.escapeId(key, true)}=?`);
+				q.push(val);
+			});
+
+			const [result] = await connect.execute(`SELECT * FROM ${connect.escapeId(this.schema.tableSlug, true)} WHERE ${condition.join(" AND ")}`, q);
+
+			const ret = new DynamicCollection(this.Model, ...result);
+			ret.forEach((r) => {
+				r._original = _.cloneDeep(r.data);
+			});
+
+			return ret;
+		}catch(e){
+			return Promise.reject(e);
+		}
 	}
 
 	async all(): Promise<DynamicCollection>{
-		return null;
+		try{
+			const connect = await this._ready;
+
+			const [result] = await connect.execute(`SELECT * FROM ${connect.escapeId(this.schema.tableSlug, true)}`);
+
+			const ret = new DynamicCollection(this.Model, ...result);
+			ret.forEach((r) => {
+				r._original = _.cloneDeep(r.data);
+			});
+
+			return ret;
+		}catch(e){
+			return Promise.reject(e);
+		}
 	}
 
-	async first(n?:number): Promise<ModelBase|DynamicCollection>{
-		return null;
+	async first(n:number=1): Promise<ModelBase|DynamicCollection>{
+		try{
+			const connect = await this._ready;
+			const [result] = await connect.execute(`SELECT * FROM ${connect.escapeId(this.schema.tableSlug, true)} LIMIT ${n}`);
+
+			if(n === 1){
+				if(result.length > 0){
+					return new this.Model(result[0], true);
+				}else{
+					return null;
+				}
+			}else{
+				const ret = new DynamicCollection(this.Model, ...result);
+				ret.forEach((r) => {
+					r._original = _.cloneDeep(r.data);
+				});
+
+				return ret;
+			}
+		}catch(e){
+			return Promise.reject(e);
+		}
 	}
 }
 
