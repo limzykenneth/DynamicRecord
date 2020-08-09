@@ -57,7 +57,7 @@ utils.setupSuite = async function(connect){
 
 utils.cleanUpSuite = async function(connect){
 	const connection = await connect;
-	await connection.destroy();
+	await connection.end();
 };
 
 module.exports = utils;

@@ -12,6 +12,20 @@ class DynamicRecord extends DRBase{
 	private _databaseConnection: any;
 	private _ready: any;
 
+	static async closeConnection(){
+		await super.closeConnection();
+
+		try{
+			await connect.getConnection();
+			await connect.end();
+		}catch(err){
+			if(err.message !== "Pool is closed."){
+				console.error(err);
+				process.exit(1);
+			}
+		}
+	}
+
 	constructor(options){
 		super(options);
 		this._databaseConnection = connect;
@@ -75,7 +89,15 @@ class DynamicRecord extends DRBase{
 	}
 
 	async closeConnection(): Promise<any>{
-		return null;
+		try{
+			await connect.getConnection();
+			await connect.end();
+		}catch(err){
+			if(err.message !== "Pool is closed."){
+				console.error(err);
+				process.exit(1);
+			}
+		}
 	}
 
 	async findBy(query: object): Promise<ModelBase>{

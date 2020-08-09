@@ -35,9 +35,9 @@ before(async function(){
 });
 
 after(async function(){
-	await Random.closeConnection();
 	await utils.dropTestTable();
 	await utils.cleanUpSuite();
+	await DynamicRecord.closeConnection();
 });
 // --------------------------------------------
 
