@@ -123,6 +123,10 @@ describe("Model", function(){
 			// it("should end up with the right data at the end of concurrent saves");
 			// it("should have the right entry in database at the end of concurrent saves");
 		});
+
+		describe("Concurrent writes", function(){
+			it("should wait for model to save before trying to delete in concurrent situation");
+		});
 	});
 
 	// describe("destroy()", function(){
