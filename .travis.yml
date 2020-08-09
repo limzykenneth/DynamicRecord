@@ -30,7 +30,7 @@ jobs:
       - sleep 15
       - mysql -e 'CREATE DATABASE myapp_test;'
     env:
-      - database_host: mysql://root@127.0.0.1/myapp_test
+      - database_host: mysql://root:@127.0.0.1/myapp_test
 
   - services: mysql
     node_js: 14
@@ -38,7 +38,7 @@ jobs:
       - sleep 15
       - mysql -e 'CREATE DATABASE myapp_test;'
     env:
-      - database_host: mysql://root@127.0.0.1/myapp_test
+      - database_host: mysql://root:@127.0.0.1/myapp_test
 
 script:
   - npm test
