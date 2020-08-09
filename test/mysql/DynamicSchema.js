@@ -59,12 +59,11 @@ describe("Schema", async function(){
 			const table = new DynamicSchema();
 			await table.createTable(testSchema);
 
-			const [result] = await connection.execute("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_name=?", [testSchema.$id]);
-			const t = _.find(result, (entry) => {
-				return entry.TABLE_NAME === testSchema.$id;
+			const [result] = await connection.execute(`SHOW TABLES LIKE '${testSchema.$id}'`);
+			assert.lengthOf(result, 1, "only one relevant table created");
+			_.each(result[0], (name) => {
+				assert.equal(name, testSchema.$id, "table created with correct name");
 			});
-
-			assert.exists(t);
 		});
 		it("should create an empty table or collection with provided index", async function(){
 			const table = new DynamicSchema();
@@ -107,11 +106,8 @@ describe("Schema", async function(){
 		});
 		it("should drop the table itself", async function(){
 			await table.dropTable();
-			const [result] = await connection.execute("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_name=?", [testSchema.$id]);
-			const t = _.find(result, (entry) => {
-				return entry.TABLE_NAME === testSchema.$id;
-			});
-			assert.notExists(t, "table doesn't exist in database");
+			const [result] = await connection.execute(`SHOW TABLES LIKE '${testSchema.$id}'`);
+			assert.lengthOf(result, 0, "table doesn't exist in database");
 		});
 		it("should remove existing data from the instance", async function(){
 			await table.dropTable();
@@ -137,18 +133,14 @@ describe("Schema", async function(){
 		it("should rename the table in database and object instance", async function(){
 			await table.renameTable("test_table", "Test Table");
 
-			let [result] = await connection.execute("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_name=?", [testSchema.$id]);
-			let t = _.find(result, (entry) => {
-				return entry.TABLE_NAME === testSchema.$id;
-			});
-			assert.notExists(t, "table with old slug no longer exist in database");
+			let [result] = await connection.execute(`SHOW TABLES LIKE '${testSchema.$id}'`);
+			assert.lengthOf(result, 0, "table with old name no longer exist");
 
-			[result] = await connection.execute("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_name=?", ["test_table"]);
-			t = _.find(result, (entry) => {
-				return entry.TABLE_NAME === "test_table";
+			[result] = await connection.execute("SHOW TABLES LIKE 'test_table'");
+			assert.lengthOf(result, 1, "only one relevant table exist");
+			_.each(result[0], (name) => {
+				assert.equal(name, "test_table", "table renamed to new name");
 			});
-			assert.exists(t, "table exist with new slug");
-			assert.lengthOf(result, 1, "only one table with new slug exist in database");
 			assert.equal(table.tableSlug, "test_table", "slug is updated in object");
 			assert.equal(table.tableName, "Test Table", "name is updated in object");
 		});
