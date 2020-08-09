@@ -40,7 +40,7 @@ class DynamicRecord extends DRBase{
 						const q = [];
 						const conditions = [];
 
-						await connect.execute(`UPDATE ${connect.escapeId(tableSlug, true)} SET ${fields.join(", ")} WHERE `);
+						// await connect.execute(`UPDATE ${connect.escapeId(tableSlug, true)} SET ${fields.join(", ")} WHERE `);
 					}else{
 						// Insert new entry
 						// INSERT INTO table1 (field1, field2) VALUES (value1, value2);
@@ -55,6 +55,8 @@ class DynamicRecord extends DRBase{
 						});
 						await connect.execute(`INSERT INTO ${connect.escapeId(tableSlug, true)} (${fields.join(", ")}) VALUES (${q.join(", ")})`, values);
 					}
+
+					this._original = _.cloneDeep(this.data);
 
 					return this;
 				}catch(err){
