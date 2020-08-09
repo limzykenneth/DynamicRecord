@@ -67,15 +67,48 @@ describe("Model", function(){
 	});
 
 	describe("save()", function(){
-		beforeEach(function(){
+		beforeEach(async function(){
+			// Fill with dummy data
+			const connection = await connect;
+			const fields = [];
+			const values = [];
 
+			for(const data of testData){
+				const keys = _.map(data, (val, key) => {
+					return key;
+				}).join(", ");
+				const values = _.map(data, (val, key) => {
+					return val;
+				});
+				const query = `INSERT INTO ${testSchema.$id} (${keys}) VALUES (${_.map(values, () => "?").join(", ")})`;
+				await connection.execute(query, values);
+			}
 		});
 
-		afterEach(function(){
-
+		afterEach(async function(){
+			// Clear out dummy data
+			const connection = await connect;
+			const fields = [];
+			const values = [];
+			const query = `DELETE FROM ${testSchema.$id}`;
+			await connection.execute(query);
 		});
 
-		it("should insert the corresponding entry in the database if not exist");
+		it("should insert the corresponding entry in the database if not exist", async function(){
+			let model = new Random.Model({
+				"string": "Laborum non culpa.",
+				"wholeNumber": 27,
+				"floatingPoint": 6.2831853072
+			});
+			await model.save();
+
+			const connection = await connect;
+			const [result] = await connection.execute(`SELECT * FROM ${testSchema.$id} WHERE wholeNumber=27`);
+			assert.lengthOf(result, 1, "retuend result is not empty");
+			assert.equal(result[0].string, "Laborum non culpa.", "string entry is correct");
+			assert.equal(result[0].wholeNumber, 27, "wholeNumber entry is correct");
+			assert.equal(result[0].floatingPoint, 6.2831853072, "floatingPoint entry is correct");
+		});
 		it("should update the corresponding entry in the database if exist");
 		it("should update the deep copy of the data into _original", async function(){
 			let model = await Random.findBy({"wholeNumber": 10958});
@@ -83,43 +116,43 @@ describe("Model", function(){
 			model = await model.save();
 			assert.equal(model._original.string, "New string", "string of original is as defined");
 		});
-		it("should return a rejected Promise if the new model doesn't match the schema definition");
-		it("should return a rejected Promise if the updated data doesn't match the schema definition");
+		// it("should return a rejected Promise if the new model doesn't match the schema definition");
+		// it("should return a rejected Promise if the updated data doesn't match the schema definition");
 
 		describe("Concurrent saves", function(){
-			it("should end up with the right data at the end of concurrent saves");
-			it("should have the right entry in database at the end of concurrent saves");
+			// it("should end up with the right data at the end of concurrent saves");
+			// it("should have the right entry in database at the end of concurrent saves");
 		});
 	});
 
-	describe("destroy()", function(){
-		beforeEach(function(){
+	// describe("destroy()", function(){
+	// 	beforeEach(function(){
 
-		});
+	// 	});
 
-		afterEach(function(){
+	// 	afterEach(function(){
 
-		});
+	// 	});
 
-		it("should delete the corresponding entry in the database");
-		it("should clear remaining data in data and _original object", async function(){
-			let model = await Random.findBy({"string": "Delete me"});
-			await model.destroy();
-			assert.isNull(model.data, "data is null");
-			assert.isNull(model._original, "original is null");
-		});
-		it("should throw an error if an entry is not found in the database", function(done){
-			Random.findBy({"string": "Not exist"}).then((model) => {
-				return model.destroy();
-			}).then(() => {
-				done("expected function to throw an error.");
-			}).catch((err) => {
-				done();
-			});
-		});
+	// 	it("should delete the corresponding entry in the database");
+	// 	it("should clear remaining data in data and _original object", async function(){
+	// 		let model = await Random.findBy({"string": "Delete me"});
+	// 		await model.destroy();
+	// 		assert.isNull(model.data, "data is null");
+	// 		assert.isNull(model._original, "original is null");
+	// 	});
+	// 	it("should throw an error if an entry is not found in the database", function(done){
+	// 		Random.findBy({"string": "Not exist"}).then((model) => {
+	// 			return model.destroy();
+	// 		}).then(() => {
+	// 			done("expected function to throw an error.");
+	// 		}).catch((err) => {
+	// 			done();
+	// 		});
+	// 	});
 
-		describe("Concurrent writes", function(){
-			it("should wait for model to save before trying to delete in concurrent situation");
-		});
-	});
+	// 	describe("Concurrent writes", function(){
+	// 		it("should wait for model to save before trying to delete in concurrent situation");
+	// 	});
+	// });
 });

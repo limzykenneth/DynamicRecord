@@ -30,7 +30,36 @@ class DynamicRecord extends DRBase{
 			}
 
 			async save(): Promise<Model>{
-				return this;
+				try{
+					const connect = await _ready;
+					if(this._original){
+						// Update entry
+						// UPDATE table1 SET field1=new_value1 WHERE condition;
+						const fields = [];
+						const values = [];
+						const q = [];
+						const conditions = [];
+
+						await connect.execute(`UPDATE ${connect.escapeId(tableSlug, true)} SET ${fields.join(", ")} WHERE `);
+					}else{
+						// Insert new entry
+						// INSERT INTO table1 (field1, field2) VALUES (value1, value2);
+						const fields = [];
+						const values = [];
+						const q = [];
+
+						_.each(this.data, (val, key) => {
+							fields.push(connect.escapeId(key, true));
+							values.push(val);
+							q.push("?");
+						});
+						await connect.execute(`INSERT INTO ${connect.escapeId(tableSlug, true)} (${fields.join(", ")}) VALUES (${q.join(", ")})`, values);
+					}
+
+					return this;
+				}catch(err){
+					return Promise.reject(err);
+				}
 			}
 
 			async destroy(): Promise<Model>{
