@@ -99,6 +99,9 @@ describe("DynamicCollection", function(){
 			const client = await connect;
 			const db = client.db();
 			const res = await db.collection(testSchema.$id).find().toArray();
+			res.forEach((el) => {
+				delete el._id;
+			});
 
 			_.each(col.data, (el) => {
 				assert.deepInclude(res, el);

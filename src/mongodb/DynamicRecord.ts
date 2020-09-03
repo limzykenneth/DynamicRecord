@@ -49,25 +49,34 @@ class DynamicRecord extends DRBase {
 		});
 
 		const Model = this.Model = class Model extends ModelBase{
-			private _saveQueue: Array< Promise<any> >;
+			private _savePromise: Promise<Model>;
+			private _id: string;
 
 			constructor(data: any, _preserveOriginal: boolean){
+				let id = null;
+
+				// Preserve mongodb _id if exist for faster saving
 				if(_.has(data, "_id")){
+					id = data._id;
 					delete data._id;
 				}
+
 				super(data, _preserveOriginal);
-				this._saveQueue = [];
+				this._savePromise = null;
+				this._id = id;
 			}
 
 			async save(): Promise<Model>{
 				const saveData = async () => {
 					const col = await _ready;
-					if(this._original){
+					if(this._id){
+						// Update existing entry
 						await validateData(this.data);
-						await col.updateOne(this._original, {$set: this.data});
+						await col.updateOne({_id: this._id}, {$set: this.data});
 						this._original = _.cloneDeep(this.data);
 						return this;
 					}else{
+						// Create new entry
 						// Check if collection contains index that needs auto incrementing
 						return _db.collection("_counters").findOne({_$id: tableSlug}).then(async (res) => {
 							const promises = [];
@@ -82,10 +91,17 @@ class DynamicRecord extends DRBase {
 
 								await Promise.all(promises);
 							}
+
 							await validateData(this.data);
 
 							// Save data into the database
 							await col.insertOne(this.data);
+
+							if(_.has(this.data, "_id")){
+								this._id = this.data._id;
+								delete this.data._id;
+							}
+
 							this._original = _.cloneDeep(this.data);
 							return this;
 						}).catch(async (err) => {
@@ -113,12 +129,13 @@ class DynamicRecord extends DRBase {
 				};
 
 				// Wait for current queue of saves before continuing
-				return Promise.all(this._saveQueue).then(() => {
-					this._saveQueue = [];
-					const res = saveData();
-					this._saveQueue.push(res);
-					return res;
-				});
+				if(this._savePromise){
+					await this._savePromise;
+					this._savePromise = saveData();
+				}else{
+					this._savePromise = saveData();
+				}
+				return this._savePromise;
 
 				async function validateData(data){
 					const validate = await schemaValidator.compileAsync({$ref: _schema.tableSlug});
@@ -144,12 +161,13 @@ class DynamicRecord extends DRBase {
 				};
 
 				// Wait for current queue of saves before continuing
-				return Promise.all(this._saveQueue).then(() => {
-					this._saveQueue = [];
-					const res = destroyData();
-					this._saveQueue.push(res);
-					return res;
-				});
+				if(this._savePromise){
+					await this._savePromise;
+					this._savePromise = destroyData();
+				}else{
+					this._savePromise = destroyData();
+				}
+				return this._savePromise;
 			}
 
 			validate(schema): boolean{
@@ -184,13 +202,10 @@ class DynamicRecord extends DRBase {
 	}
 
 	async findBy(query: object): Promise<ModelBase>{
-		// CONSIDER: Possibly implement our own unique id system
 		const col = await this._ready;
 		const model = await col.findOne(query);
 
 		if(model !== null){
-			// Delete mongodb added "_id" field
-			delete model._id;
 			return new this.Model(model, true);
 		}else{
 			return null;
@@ -205,11 +220,6 @@ class DynamicRecord extends DRBase {
 			models = _.sortBy(models, orderBy);
 		}
 
-		// Delete mongodb added "_id" field
-		models.forEach((el) => {
-			delete el._id;
-		});
-
 		const results = new DynamicCollection(this.Model, ...models);
 
 		results.forEach((result) => {
@@ -222,10 +232,6 @@ class DynamicRecord extends DRBase {
 	async all(): Promise<DynamicCollection>{
 		const col = await this._ready;
 		let models = await col.find().toArray();
-		// Delete mongodb added "_id" field
-		models.forEach((el) => {
-			delete el._id;
-		});
 
 		const results = new DynamicCollection(this.Model, ...models);
 
@@ -241,18 +247,12 @@ class DynamicRecord extends DRBase {
 		if(typeof n === "undefined"){
 			const model = await col.findOne();
 			if(model !== null){
-				// Delete mongodb added "_id" field
-				delete model._id;
 				return new this.Model(model, true);
 			}else{
 				return null;
 			}
 		}else{
 			const models = await col.find({}).limit(n).toArray();
-			// Delete mongodb added "_id" field
-			models.forEach((el) => {
-				delete el._id;
-			});
 
 			return new DynamicCollection(this.Model, ...models);
 		}
