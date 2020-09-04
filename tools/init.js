@@ -24,7 +24,10 @@ function cli(program){
 					name: "server",
 					message: "Server address",
 					validate: function(value){
-						return value.length > 0 ? true : "Server address cannot be blank";
+						return value.trim().length > 0 ? true : "Server address cannot be blank";
+					},
+					filter: function(value){
+						return value.trim();
 					}
 				});
 			}else{
@@ -36,7 +39,15 @@ function cli(program){
 					type: "input",
 					name: "username",
 					message: "Username",
-					default: ""
+					validate: function(value){
+						return value.trim().length > 0 ? true : "Username cannot be blank";
+					},
+					filter: function(value){
+						return value.trim();
+					},
+					when: function(hash){
+						return _.isEmpty(constants.databaseRegex.exec(hash.server).groups.username);
+					}
 				});
 			}else{
 				response.username = cmd.username;
@@ -47,7 +58,10 @@ function cli(program){
 					type: "password",
 					name: "password",
 					message: "Password",
-					default: ""
+					default: "",
+					when: function(hash){
+						return _.isEmpty(constants.databaseRegex.exec(hash.server).groups.password);
+					}
 				});
 			}else{
 				response.password = cmd.password;
@@ -58,7 +72,15 @@ function cli(program){
 					type: "input",
 					name: "database",
 					message: "Database",
-					default: ""
+					validate: function(value){
+						return value.trim().length > 0 ? true : "Database name cannot be blank";
+					},
+					filter: function(value){
+						return value.trim();
+					},
+					when: function(hash){
+						return _.isEmpty(constants.databaseRegex.exec(hash.server).groups.database);
+					}
 				});
 			}else{
 				response.database = cmd.database;

@@ -60,7 +60,6 @@ export default abstract class DynamicCollection extends Array{
 	 * @instance
 	 * @return {Promise} - Return promise of this DynamicCollection instance
 	 */
-	// CONSIDER: Saving in series thus slow. Can consider assigning a block of counters at once
 	async saveAll(): Promise<DynamicCollection>{
 		await Bluebird.each(this, (model) => {
 			if(model.save){
