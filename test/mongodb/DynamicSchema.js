@@ -458,6 +458,16 @@ describe("Schema", function(){
 			});
 			assert.isUndefined(index, "index does not exist in database");
 		});
+		it("should update the schema entry in database", async function(){
+			const client = await connect;
+			const db = client.db();
+
+			await table.removeIndex("testIndex");
+
+			const data = await db.collection("_schema").findOne({"_$id": testSchema.$id});
+			assert.isNotOk(data.properties.testIndex.isIndex, "isIndex is falsy in schema entry");
+			assert.isNotOk(data.properties.testIndex.isUnique, "isUnique is falsy in schema entry");
+		});
 
 		describe("auto increment", function(){
 			beforeEach(function(){
@@ -475,6 +485,17 @@ describe("Schema", function(){
 
 				const m = await db.collection("_counters").findOne({"_$id": table.tableSlug});
 				assert.doesNotHaveAnyKeys(m.sequences, ["autoIncrement"], "index does not exist in _counters table");
+			});
+			it("should update the schema entry in database", async function(){
+				const client = await connect;
+				const db = client.db();
+
+				await table.removeIndex("testIndex");
+
+				const data = await db.collection("_schema").findOne({"_$id": testSchema.$id});
+				assert.isNotOk(data.properties.testIndex.isIndex, "isIndex is falsy in schema entry");
+				assert.isNotOk(data.properties.testIndex.isUnique, "isUnique is falsy in schema entry");
+				assert.isNotOk(data.properties.testIndex.isAutoIncrement, "isAutoIncrement is falsy in schema entry");
 			});
 		});
 	});

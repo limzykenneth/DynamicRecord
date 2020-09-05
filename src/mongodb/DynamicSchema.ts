@@ -184,27 +184,32 @@ class DynamicSchema extends Schema{
 		return this;
 	}
 
-	removeIndex(columnName:string): Promise<DynamicSchema>{
-		return connect.then((opts) => {
-			const db = opts.db;
-			return db.collection(this.tableSlug).dropIndex(columnName)
-				.then(() => {
-					return Promise.resolve(db);
-				});
-		}).then((db) => {
-			return db.collection("_counters").findOne({_$id: this.tableSlug}).then((counter) => {
-				delete counter.sequences[columnName];
-				return db.collection("_counters").findOneAndUpdate({_$id: this.tableSlug}, {
-					$set: {
-						sequences: counter.sequences
-					}
-				});
-			});
-		}).then(() => {
-			return Promise.resolve(this);
-		}).catch((err) => {
-			return Promise.reject(err);
+	async removeIndex(columnName:string): Promise<DynamicSchema>{
+		const {db} = await connect;
+		await db.collection(this.tableSlug).dropIndex(columnName);
+
+		const counter = await db.collection("_counters").findOne({_$id: this.tableSlug});
+		delete counter.sequences[columnName];
+
+		await db.collection("_counters").findOneAndUpdate({_$id: this.tableSlug}, {
+			$set: {
+				sequences: counter.sequences
+			}
 		});
+
+		// Update schema entry in database
+		const indexKey = `properties.${columnName}.isIndex`;
+		const uniqueKey = `properties.${columnName}.isUnique`;
+		const autoIncrementKey = `properties.${columnName}.isAutoIncrement`;
+		await db.collection("_schema").updateOne({_$id: this.tableSlug}, {
+			$set: {
+				[indexKey]: false,
+				[uniqueKey]: false,
+				[autoIncrementKey]: false
+			}
+		});
+
+		return this;
 	}
 
 	read(tableSlug:string): Promise<DynamicSchema>{
