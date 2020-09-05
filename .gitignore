@@ -103,3 +103,4 @@ test/test_db
 # Documentation
 docs/
 mysql-test.js
+gendocs/data.json
