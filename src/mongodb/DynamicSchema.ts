@@ -149,7 +149,7 @@ class DynamicSchema extends Schema{
 		});
 	}
 
-	addIndex(options:IndexOptions): Promise<DynamicSchema>{
+	async addIndex(options:IndexOptions): Promise<DynamicSchema>{
 		const columnName:string = options.name;
 		const isAutoIncrement:boolean = options.autoIncrement;
 		let unique:boolean = options.unique;
@@ -162,20 +162,26 @@ class DynamicSchema extends Schema{
 			unique = true;
 		}
 
-		return connect.then((opts) => {
-			const db = opts.db;
-			return db.collection(this.tableSlug).createIndex(columnName, {unique: unique, name: columnName});
-		}).then(() => {
-			if(isAutoIncrement){
-				return this._setCounter(this.tableSlug, columnName);
-			}else{
-				return Promise.resolve();
+		const {db} = await connect;
+		await db.collection(this.tableSlug).createIndex(columnName, {unique: unique, name: columnName});
+
+		if(isAutoIncrement){
+			await this._setCounter(this.tableSlug, columnName);
+		}
+
+		// Update schema entry in database
+		const indexKey = `properties.${columnName}.isIndex`;
+		const uniqueKey = `properties.${columnName}.isUnique`;
+		const autoIncrementKey = `properties.${columnName}.isAutoIncrement`;
+		await db.collection("_schema").updateOne({_$id: this.tableSlug}, {
+			$set: {
+				[indexKey]: true,
+				[uniqueKey]: !!unique,
+				[autoIncrementKey]: !!isAutoIncrement
 			}
-		}).then(() => {
-			return Promise.resolve(this);
-		}).catch((err) => {
-			return Promise.reject(err);
 		});
+
+		return this;
 	}
 
 	removeIndex(columnName:string): Promise<DynamicSchema>{

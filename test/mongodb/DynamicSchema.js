@@ -282,6 +282,18 @@ describe("Schema", function(){
 			});
 			assert.isNotOk(index.unique, "index is not marked as unique");
 		});
+		it("should update the schema entry in database", async function(){
+			const client = await connect;
+			const db = client.db();
+
+			await table.addIndex({
+				name: "testIndex"
+			});
+
+			const data = await db.collection("_schema").findOne({"_$id": testSchema.$id});
+			assert.isTrue(data.properties.testIndex.isIndex, "isIndex is set to true in schema entry");
+			assert.isTrue(data.properties.testIndex.isUnique, "isUnique is set to true in schema entry");
+		});
 
 		describe("auto increment", function(){
 			it("should create an entry in _counters collection if set as auto increment", async function(){
@@ -400,6 +412,20 @@ describe("Schema", function(){
 
 				res = await db.collection("_counters").findOne({_$id: testSchema.$id});
 				assert.equal(res.sequences.testIndex, 2);
+			});
+			it("should update the schema entry in database", async function(){
+				const client = await connect;
+				const db = client.db();
+
+				await table.addIndex({
+					name: "testIndex",
+					autoIncrement: true
+				});
+
+				const data = await db.collection("_schema").findOne({"_$id": testSchema.$id});
+				assert.isTrue(data.properties.testIndex.isIndex, "isIndex is set to true in schema entry");
+				assert.isTrue(data.properties.testIndex.isUnique, "isUnique is set to true in schema entry");
+				assert.isTrue(data.properties.testIndex.isAutoIncrement, "isAutoIncrement is set to true in schema entry");
 			});
 		});
 	});
