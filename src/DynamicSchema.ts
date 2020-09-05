@@ -199,13 +199,22 @@ export abstract class DynamicSchema{
 	 * Define the table's columns. Passed object must adhere to `properties`
 	 * attribute of [JSON Schema](https://json-schema.org/)'s definition.
 	 *
+	 * Optional `required` parameters define any of the columns as a required
+	 * field.
+	 *
+	 * Note that this function replaces any existing definition on the table.
+	 * If you want to edit individual columns, you should use other functions
+	 * instead.
+	 *
 	 * @method define
 	 * @memberOf DynamicSchema
 	 * @instance
 	 * @param {object} definition	Definition of the table columns
+	 * @param {Array} [required]	Array of column names that are required
+	 * fields
 	 * @return {Promise} - Return promise of DynamicSchema instance
 	 */
-	abstract define(def:SchemaDefinitions): Promise<DynamicSchema>;
+	abstract define(def:SchemaDefinitions, required?:Array<string>): Promise<DynamicSchema>;
 
 	/**
 	 * Add a single column to the table's schema definition. If the column name

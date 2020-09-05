@@ -238,7 +238,7 @@ class DynamicSchema extends Schema{
 		});
 	}
 
-	define(def:SchemaDefinitions): Promise<DynamicSchema>{
+	define(def:SchemaDefinitions, required:Array<string> = []): Promise<DynamicSchema>{
 		const oldDef:SchemaDefinitions = this.definition;
 		this.definition = def;
 
@@ -249,7 +249,8 @@ class DynamicSchema extends Schema{
 				_$id: this.tableSlug,
 			}, {
 				$set:{
-					properties: def
+					properties: def,
+					required: required
 				}
 			}, {
 				upsert: true

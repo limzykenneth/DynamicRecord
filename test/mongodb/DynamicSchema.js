@@ -547,6 +547,21 @@ describe("Schema", function(){
 			await table.define(testSchema.properties);
 			assert.deepEqual(table.definition, testSchema.properties, "object definition is set correctly");
 		});
+		it("should update the required field with provided values", async function(){
+			const client = await connect;
+			const db = client.db();
+
+			const emptyTestSchema = _.cloneDeep(testSchema);
+			emptyTestSchema.properties = {};
+			emptyTestSchema.required = [];
+
+			const table = new DynamicSchema();
+			await table.createTable(emptyTestSchema);
+			await table.define(testSchema.properties, testSchema.required);
+
+			const data = await db.collection("_schema").findOne({_$id: testSchema.$id});
+			assert.deepEqual(data.required, testSchema.required, "required field is updated");
+		});
 	});
 
 	describe("addColumn()", function(){
