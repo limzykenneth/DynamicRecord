@@ -155,9 +155,37 @@ describe("DynamicRecord", function(){
 			const col = await Random.first(2);
 			assert.instanceOf(col, DynamicCollection, "resolves to an instance of DynamicCollection");
 			assert.lengthOf(col, 2, "has a length of two");
-			assert.deepInclude(col.data, testData[0], "retrieved first entry");
-			assert.deepInclude(col.data, testData[1], "retrieved second entry");
+			assert.deepEqual(col.data[0], testData[0], "retrieved first entry");
+			assert.deepEqual(col.data[1], testData[1], "retrieved second entry");
 			assert.notDeepInclude(col.data, testData[2], "not retrieved third entry");
+		});
+	});
+
+	describe("last()", function(){
+		it("should retrieve one latest entry from the database", async function(){
+			const model = await Random.last();
+			assert.deepEqual(model.data, testData[2], "model is last item in testData");
+		});
+		it("should return a single object of type DynamicRecord.Model", async function(){
+			const model = await Random.last();
+			assert.instanceOf(model, Random.Model, "'model' is and instance of 'Random.Model'");
+		});
+		it("should return null if an entry is not found", async function(){
+			const client = await connect;
+			const db = client.db();
+
+			await db.collection(testSchema.$id).deleteMany({});
+
+			const model = await Random.last();
+			assert.isNull(model, "'model' is null");
+		});
+		it("should return n number of values when given n as a parameter", async function(){
+			const col = await Random.last(2);
+			assert.instanceOf(col, DynamicCollection, "resolves to an instance of DynamicCollection");
+			assert.lengthOf(col, 2, "has a length of two");
+			assert.deepEqual(col.data[0], testData[2], "retrieved third entry");
+			assert.deepEqual(col.data[1], testData[1], "retrieved second entry");
+			assert.notDeepInclude(col.data, testData[0], "not retrieved first entry");
 		});
 	});
 });

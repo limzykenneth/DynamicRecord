@@ -55,6 +55,10 @@ class DynamicRecord extends DRBase{
 	async first(n?:number): Promise<ModelBase|DynamicCollection>{
 		return null;
 	}
+
+	async last(n?:number): Promise<ModelBase|DynamicCollection>{
+		return null;
+	}
 }
 
 module.exports = DynamicRecord;

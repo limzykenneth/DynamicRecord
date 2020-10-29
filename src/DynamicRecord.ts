@@ -80,7 +80,7 @@ export abstract class DynamicRecord {
 	/**
 	 * Return the first entry in the table. If provided with an integer
 	 * argument n, it will return the first nth entry in the database wrapped
-	 * in a Promise of DynamicCollection.
+	 * in a Promise of DynamicCollection from first inserted forward.
 	 *
 	 * @method first
 	 * @memberOf DynamicRecord
@@ -90,6 +90,20 @@ export abstract class DynamicRecord {
 	 * DynamicCollection instance, or null
 	 */
 	abstract first(n?:number): Promise<Model|DynamicCollection>;
+
+	/**
+	 * Return the last entry in the table. If provided with an integer
+	 * argument n, it will return the last nth entry in the database wrapped
+	 * in a Promise of DynamicCollection from last inserted backward.
+	 *
+	 * @method last
+	 * @memberOf DynamicRecord
+	 * @instance
+	 * @param {number} [n]	The number of records to return
+	 * @return {Promise} - Return promise of DynamicRecord.Model instance,
+	 * DynamicCollection instance, or null
+	 */
+	abstract last(n?:number): Promise<Model|DynamicCollection>;
 }
 
 export abstract class Model {

@@ -257,6 +257,24 @@ class DynamicRecord extends DRBase {
 			return new DynamicCollection(this.Model, ...models);
 		}
 	}
+
+	async last(n?:number): Promise<ModelBase|DynamicCollection>{
+		const col = await this._ready;
+		if(typeof n === "undefined"){
+			const model = await col.findOne({}, {sort: {
+				_id: -1
+			}});
+			if(model !== null){
+				return new this.Model(model, true);
+			}else{
+				return null;
+			}
+		}else{
+			const models = await col.find({}).sort({_id: -1}).limit(n).toArray();
+
+			return new DynamicCollection(this.Model, ...models);
+		}
+	}
 }
 
 module.exports = DynamicRecord;
