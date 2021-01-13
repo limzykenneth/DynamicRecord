@@ -23,9 +23,9 @@ class DynamicSchema extends Schema{
 
 			// Create the collection, ensuring that is doesn't already exist
 			// in the database
-			return db.createCollection(tableSlug, {strict: true}).then(() => {
+			return db.createCollection(tableSlug).then(() => {
 				return new Promise((resolve, reject) => {
-					db.collection("_counters", {strict: true}, (err, col) => {
+					db.collection("_counters", (err, col) => {
 						if(err) return reject(err);
 
 						col.insertOne({
