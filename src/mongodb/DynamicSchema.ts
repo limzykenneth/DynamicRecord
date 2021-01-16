@@ -9,48 +9,36 @@ class DynamicSchema extends Schema{
 		super();
 	}
 
-	createTable(schemaInput:TableSchema): Promise<DynamicSchema>{
+	async createTable(schemaInput:TableSchema): Promise<DynamicSchema>{
 		const schema = _.cloneDeep(schemaInput);
 		const tableSlug:string = schema.$id;
 		const tableName:string = schema.title || schema.$id;
 		const columns:SchemaDefinitions = schema.properties;
 		const required = _.cloneDeep(schema.required) || [];
 		const description = schema.description || "";
-		let db;
+		const {db} = await connect;
 
-		return connect.then((opts) => {
-			db = opts.db;
-
+		try{
 			// Create the collection, ensuring that is doesn't already exist
 			// in the database
-			return db.createCollection(tableSlug).then(() => {
-				return new Promise((resolve, reject) => {
-					db.collection("_counters", (err, col) => {
-						if(err) return reject(err);
-
-						col.insertOne({
-							_$id: tableSlug,
-							sequences: {}
-						}).then(() => {
-							resolve();
-						});
-					});
-				});
-			}).then(() => {
-				const databaseInsert = schema;
-				schema._$schema = schema.$schema;
-				schema._$id = schema.$id;
-
-				delete schema.$schema;
-				delete schema.$id;
-
-				return db.collection("_schema").insertOne(databaseInsert);
-			}).then(() => {
-				this.definition = columns;
-				return this._writeSchema();
+			await db.createCollection(tableSlug);
+			const col = await db.collection("_counters");
+			await col.insertOne({
+				_$id: tableSlug,
+				sequences: {}
 			});
 
-		}).then(() => {
+			const databaseInsert = schema;
+			schema._$schema = schema.$schema;
+			schema._$id = schema.$id;
+
+			delete schema.$schema;
+			delete schema.$id;
+
+			await db.collection("_schema").insertOne(databaseInsert);
+			this.definition = columns;
+			await this._writeSchema();
+
 			this.tableName = tableName;
 			this.tableSlug = tableSlug;
 			this.required = required;
@@ -75,12 +63,11 @@ class DynamicSchema extends Schema{
 				}
 			});
 
-			return Promise.all(promises);
+			await Promise.all(promises);
 
-		}).then(() => {
-			return Promise.resolve(this);
+			return this;
 
-		}).catch((err) => {
+		} catch(err) {
 			this.tableName = null;
 			this.tableSlug = null;
 			this.required = [];
@@ -100,30 +87,27 @@ class DynamicSchema extends Schema{
 			}).catch((e) => {
 				return Promise.reject(e);
 			});
-		});
+		}
 	}
 
-	dropTable(): Promise<DynamicSchema>{
-		return connect.then((opts) => {
-			const db = opts.db;
-			return db.collection("_schema").deleteOne({"_$id": this.tableSlug}).then((result) => {
-				return db.collection(this.tableSlug).drop();
-			}).then(() => {
-				return db.collection("_counters").deleteOne({"_$id": this.tableSlug});
-			}).then(() => {
-				this.tableName = null;
-				this.tableSlug = null;
-				this.definition = {};
-				return Promise.resolve(this);
-			});
-		}).catch((err) => {
+	async dropTable(): Promise<DynamicSchema>{
+		try{
+			const {db} = await connect;
+			await db.collection("_schema").deleteOne({"_$id": this.tableSlug});
+			await db.collection(this.tableSlug).drop();
+			await db.collection("_counters").deleteOne({"_$id": this.tableSlug});
+			this.tableName = null;
+			this.tableSlug = null;
+			this.definition = {};
+			return this;
+		} catch(err) {
 			return Promise.reject(err);
-		});
+		}
 	}
 
-	renameTable(newSlug:string, newName?:string): Promise<DynamicSchema>{
-		return connect.then((opts) => {
-			const db = opts.db;
+	async renameTable(newSlug:string, newName?:string): Promise<DynamicSchema>{
+		try{
+			const {db} = await connect;
 			const promises = [];
 
 			promises.push(db.collection("_schema").findOneAndUpdate({"_$id": this.tableSlug}, {
@@ -139,14 +123,14 @@ class DynamicSchema extends Schema{
 			}));
 			promises.push(db.renameCollection(this.tableSlug, newSlug));
 
-			return Promise.all(promises);
-		}).then(() => {
+			await Promise.all(promises);
+
 			this.tableSlug = newSlug;
 			this.tableName = newName || newSlug;
-			return Promise.resolve(this);
-		}).catch((err) => {
+			return this;
+		} catch(err) {
 			return Promise.reject(err);
-		});
+		}
 	}
 
 	async addIndex(options:IndexOptions): Promise<DynamicSchema>{
@@ -162,61 +146,68 @@ class DynamicSchema extends Schema{
 			unique = true;
 		}
 
-		const {db} = await connect;
-		await db.collection(this.tableSlug).createIndex(columnName, {unique: unique, name: columnName});
+		try{
+			const {db} = await connect;
+			await db.collection(this.tableSlug).createIndex(columnName, {unique: unique, name: columnName});
 
-		if(isAutoIncrement){
-			await this._setCounter(this.tableSlug, columnName);
-		}
-
-		// Update schema entry in database
-		const indexKey = `properties.${columnName}.isIndex`;
-		const uniqueKey = `properties.${columnName}.isUnique`;
-		const autoIncrementKey = `properties.${columnName}.isAutoIncrement`;
-		await db.collection("_schema").updateOne({_$id: this.tableSlug}, {
-			$set: {
-				[indexKey]: true,
-				[uniqueKey]: !!unique,
-				[autoIncrementKey]: !!isAutoIncrement
+			if(isAutoIncrement){
+				await this._setCounter(this.tableSlug, columnName);
 			}
-		});
 
-		return this;
+			// Update schema entry in database
+			const indexKey = `properties.${columnName}.isIndex`;
+			const uniqueKey = `properties.${columnName}.isUnique`;
+			const autoIncrementKey = `properties.${columnName}.isAutoIncrement`;
+			await db.collection("_schema").updateOne({_$id: this.tableSlug}, {
+				$set: {
+					[indexKey]: true,
+					[uniqueKey]: !!unique,
+					[autoIncrementKey]: !!isAutoIncrement
+				}
+			});
+
+			return this;
+		} catch(err) {
+			return Promise.reject(err);
+		}
 	}
 
 	async removeIndex(columnName:string): Promise<DynamicSchema>{
-		const {db} = await connect;
-		await db.collection(this.tableSlug).dropIndex(columnName);
+		try{
+			const {db} = await connect;
+			await db.collection(this.tableSlug).dropIndex(columnName);
 
-		const counter = await db.collection("_counters").findOne({_$id: this.tableSlug});
-		delete counter.sequences[columnName];
+			const counter = await db.collection("_counters").findOne({_$id: this.tableSlug});
+			delete counter.sequences[columnName];
 
-		await db.collection("_counters").findOneAndUpdate({_$id: this.tableSlug}, {
-			$set: {
-				sequences: counter.sequences
-			}
-		});
+			await db.collection("_counters").findOneAndUpdate({_$id: this.tableSlug}, {
+				$set: {
+					sequences: counter.sequences
+				}
+			});
 
-		// Update schema entry in database
-		const indexKey = `properties.${columnName}.isIndex`;
-		const uniqueKey = `properties.${columnName}.isUnique`;
-		const autoIncrementKey = `properties.${columnName}.isAutoIncrement`;
-		await db.collection("_schema").updateOne({_$id: this.tableSlug}, {
-			$set: {
-				[indexKey]: false,
-				[uniqueKey]: false,
-				[autoIncrementKey]: false
-			}
-		});
+			// Update schema entry in database
+			const indexKey = `properties.${columnName}.isIndex`;
+			const uniqueKey = `properties.${columnName}.isUnique`;
+			const autoIncrementKey = `properties.${columnName}.isAutoIncrement`;
+			await db.collection("_schema").updateOne({_$id: this.tableSlug}, {
+				$set: {
+					[indexKey]: false,
+					[uniqueKey]: false,
+					[autoIncrementKey]: false
+				}
+			});
 
-		return this;
+			return this;
+		} catch(err) {
+			return Promise.reject(err);
+		}
 	}
 
-	read(tableSlug:string): Promise<DynamicSchema>{
-		return connect.then((opts) => {
-			const db = opts.db;
-			return db.collection("_schema").findOne({_$id: tableSlug});
-		}).then((data) => {
+	async read(tableSlug:string): Promise<DynamicSchema>{
+		try{
+			const {db} = await connect;
+			const data = await db.collection("_schema").findOne({_$id: tableSlug});
 			if(data){
 				this.tableName = data.title;
 				this.tableSlug = data._$id;
@@ -232,20 +223,20 @@ class DynamicSchema extends Schema{
 				this.jsonSchema = jsonSchema;
 			}
 
-			return Promise.resolve(this);
-		}).catch((err) => {
+			return this;
+		} catch(err) {
 			return Promise.reject(err);
-		});
+		}
 	}
 
-	define(def:SchemaDefinitions, required:Array<string> = []): Promise<DynamicSchema>{
-		const oldDef:SchemaDefinitions = this.definition;
+	async define(def:SchemaDefinitions, required:Array<string> = []): Promise<DynamicSchema>{
+		const oldDef:SchemaDefinitions = _.cloneDeep(this.definition);
 		this.definition = def;
 
 		// Create schema in RMDB, do nothing in NoSQL
-		return connect.then((opts) => {
-			const db = opts.db;
-			return db.collection("_schema").findOneAndUpdate({
+		try{
+			const {db} = await connect;
+			await db.collection("_schema").findOneAndUpdate({
 				_$id: this.tableSlug,
 			}, {
 				$set:{
@@ -255,128 +246,123 @@ class DynamicSchema extends Schema{
 			}, {
 				upsert: true
 			});
-		}).then(() => {
-			return Promise.resolve();
-		}).catch((err) => {
+			
+			return this;
+		} catch(err) {
 			this.definition = oldDef;
 			return Promise.reject(err);
-		});
+		}
 	}
 
-	renameColumn(name:string, newName:string): Promise<DynamicSchema>{
+	async renameColumn(name:string, newName:string): Promise<DynamicSchema>{
 		this.definition[newName] = _.cloneDeep(this.definition[name]);
 		delete this.definition[name];
 
-		return connect.then((opts) => {
-			const db = opts.db;
-			return this._writeSchema().then(() => {
-				return db.collection("_counters").findOne({"_$id": this.tableSlug});
-			}).then((entry) => {
-				if(entry){
-					const sequences = _.cloneDeep(entry.sequences);
-					sequences[newName] = sequences[name];
-					delete sequences[name];
-					return db.collection("_counters").findOneAndUpdate({"_$id": this.tableSlug},
-						{
-							$set: {
-								sequences: sequences
-							}
+		try{
+			const {db} = await connect;
+			await this._writeSchema();
+			const entry = await db.collection("_counters").findOne({"_$id": this.tableSlug});
+			
+			if(entry){
+				const sequences = _.cloneDeep(entry.sequences);
+				sequences[newName] = sequences[name];
+				delete sequences[name];
+				await db.collection("_counters").findOneAndUpdate({"_$id": this.tableSlug},
+					{
+						$set: {
+							sequences: sequences
 						}
-					);
-				}else{
-					return Promise.resolve();
-				}
-			}).then(() => {
-				return Promise.resolve(this);
-			}).catch((err) => {
-				this.definition[name] = _.cloneDeep(this.definition[newName]);
-				delete this.definition[newName];
-				return Promise.reject(err);
-			});
-		});
+					}
+				);
+			}
+
+			return this;
+
+		} catch(err) {
+			this.definition[name] = _.cloneDeep(this.definition[newName]);
+			delete this.definition[newName];
+			return Promise.reject(err);
+		}
 	}
 
 	// Utils --------------------------------------------------------
-	_writeSchema(): Promise<DynamicSchema>{
-		return connect.then((opts) => {
-			const db = opts.db;
-			return db.collection("_schema").findOneAndUpdate({_$id: this.tableSlug}, {
+	async _writeSchema(): Promise<DynamicSchema>{
+		try{
+			const {db} = await connect;
+			await db.collection("_schema").findOneAndUpdate({_$id: this.tableSlug}, {
 				$set: {
 					properties: this.definition
 				}
 			});
-		}).then(() => {
-			return Promise.resolve(this);
-		}).catch((err) => {
+		
+			return this;
+		} catch(err) {
 			return Promise.reject(err);
-		});
+		}
 	}
 
-	private _setCounter(collection:string, columnLabel:string): Promise<DynamicSchema>{
-		return connect.then((opts) => {
-			const db = opts.db;
+	private async _setCounter(collection:string, columnLabel:string): Promise<DynamicSchema>{
+		try{
+			const {db} = await connect;
 			const sequenceKey = `sequences.${columnLabel}`;
 
-			return db.collection("_counters").findOneAndUpdate({
+			await db.collection("_counters").findOneAndUpdate({
 				_$id: collection
 			}, {
 				$set: {
 					[sequenceKey]: 0
 				}
 			});
-		}).then(() => {
-			return Promise.resolve(this);
-		}).catch((err) => {
+
+			return this;
+		} catch(err) {
 			return Promise.reject(err);
-		});
+		}
 	}
 
-	_incrementCounter(collection:string, columnLabel:string): Promise<number>{
-		return connect.then((opts) => {
-			const db = opts.db;
-			return db.collection("_counters").findOne({
+	async _incrementCounter(collection:string, columnLabel:string): Promise<number>{
+		try{
+			const {db} = await connect;
+			const result = await db.collection("_counters").findOne({
 				_$id: collection
-			}).then((result) => {
-				const newSequence = result.sequences[columnLabel] + 1;
-				const sequenceKey = `sequences.${columnLabel}`;
-
-				return db.collection("_counters").findOneAndUpdate({
-					_$id: collection
-				}, {
-					$set: {
-						[sequenceKey]: newSequence
-					}
-				}).then(() => {
-					return Promise.resolve(newSequence);
-				});
 			});
-		}).catch((err) => {
+			const newSequence = result.sequences[columnLabel] + 1;
+			const sequenceKey = `sequences.${columnLabel}`;
+
+			await db.collection("_counters").findOneAndUpdate({
+				_$id: collection
+			}, {
+				$set: {
+					[sequenceKey]: newSequence
+				}
+			});
+
+			return newSequence;
+		} catch(err) {
 			return Promise.reject(err);
-		});
+		}
 	}
 
-	_decrementCounter(collection:string, columnLabel:string): Promise<number>{
-		return connect.then((opts) => {
-			const db = opts.db;
-			return db.collection("_counters").findOne({
+	async _decrementCounter(collection:string, columnLabel:string): Promise<number>{
+		try{
+			const {db} = await connect;
+			const result = await db.collection("_counters").findOne({
 				_$id: collection
-			}).then((result) => {
-				const newSequence = result.sequences[columnLabel] - 1;
-				const sequenceKey = `sequences.${columnLabel}`;
-
-				return db.collection("_counters").findOneAndUpdate({
-					_$id: collection
-				}, {
-					$set: {
-						[sequenceKey]: newSequence
-					}
-				}).then(() => {
-					return Promise.resolve(newSequence);
-				});
 			});
-		}).catch((err) => {
+			const newSequence = result.sequences[columnLabel] - 1;
+			const sequenceKey = `sequences.${columnLabel}`;
+
+			await db.collection("_counters").findOneAndUpdate({
+				_$id: collection
+			}, {
+				$set: {
+					[sequenceKey]: newSequence
+				}
+			});
+			return newSequence;
+		} catch(err) {
 			return Promise.reject(err);
-		});
+		}
 	}
 }
 
