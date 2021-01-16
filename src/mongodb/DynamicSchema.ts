@@ -37,13 +37,13 @@ class DynamicSchema extends Schema{
 
 			await db.collection("_schema").insertOne(databaseInsert);
 			this.definition = columns;
-			await this._writeSchema();
-
 			this.tableName = tableName;
 			this.tableSlug = tableSlug;
 			this.required = required;
 			this.description = description;
 			this.jsonSchema = schema;
+
+			await this._writeSchema();
 
 			// Handle index columns
 			let promises = [];
