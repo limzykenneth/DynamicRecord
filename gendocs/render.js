@@ -1,4 +1,4 @@
-const Handlebars = require("Handlebars");
+const Handlebars = require("handlebars");
 const marked = require("marked");
 const fs = require("fs");
 const fsp = fs.promises;
