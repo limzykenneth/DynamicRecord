@@ -81,35 +81,47 @@ export abstract class DynamicRecord {
 	 * @instance
 	 * @return {Promise} - Return promise of DynamicCollection instance
 	 */
-	abstract all(options: QueryOptions): Promise<DynamicCollection>;
+	abstract all(): Promise<DynamicCollection>;
 
 	/**
-	 * Return the first entry in the table. If provided with an integer
-	 * argument n, it will return the first nth entry in the database wrapped
+	 * Return the first entry in the table. If provided query option
+	 * 'limit', it will return the first nth entry in the database wrapped
 	 * in a Promise of DynamicCollection from first inserted forward.
 	 *
 	 * @method first
 	 * @memberOf DynamicRecord
 	 * @instance
-	 * @param {number} [n]	The number of records to return
+	 * @param {object} [options]	Query options object
+	 * @param {number} [options.limit]	Specify the number of entries to return. If not
+	 * defined, defaults to 1.
+	 * @param {number} [options.offset]	Number of entries to offset by before starting query
+	 * @param {object} [options.sort]	Sorting order of returned entries. Defined by
+	 * providing the column to sort by as key and "ASC" "DESC" as value for ascending
+	 * and descending respectively.
 	 * @return {Promise} - Return promise of DynamicRecord.Model instance,
 	 * DynamicCollection instance, or null
 	 */
-	abstract first(n?:number): Promise<Model|DynamicCollection>;
+	abstract first(options?: QueryOptions): Promise<Model|DynamicCollection>;
 
 	/**
-	 * Return the last entry in the table. If provided with an integer
-	 * argument n, it will return the last nth entry in the database wrapped
+	 * Return the last entry in the table. If provided query option
+	 * 'limit', it will return the last nth entry in the database wrapped
 	 * in a Promise of DynamicCollection from last inserted backward.
 	 *
 	 * @method last
 	 * @memberOf DynamicRecord
 	 * @instance
-	 * @param {number} [n]	The number of records to return
+	 * @param {object} [options]	Query options object
+	 * @param {number} [options.limit]	Specify the number of entries to return. If not
+	 * defined, defaults to 1.
+	 * @param {number} [options.offset]	Number of entries to offset by before starting query
+	 * @param {object} [options.sort]	Sorting order of returned entries. Defined by
+	 * providing the column to sort by as key and "ASC" "DESC" as value for ascending
+	 * and descending respectively.
 	 * @return {Promise} - Return promise of DynamicRecord.Model instance,
 	 * DynamicCollection instance, or null
 	 */
-	abstract last(n?:number): Promise<Model|DynamicCollection>;
+	abstract last(options?: QueryOptions): Promise<Model|DynamicCollection>;
 }
 
 export abstract class Model {

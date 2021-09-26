@@ -49,15 +49,15 @@ class DynamicRecord extends DRBase{
 		return null;
 	}
 
-	async all(options: QueryOptions): Promise<DynamicCollection>{
+	async all(): Promise<DynamicCollection>{
 		return null;
 	}
 
-	async first(n?:number): Promise<ModelBase|DynamicCollection>{
+	async first(options?: QueryOptions): Promise<ModelBase|DynamicCollection>{
 		return null;
 	}
 
-	async last(n?:number): Promise<ModelBase|DynamicCollection>{
+	async last(options?: QueryOptions): Promise<ModelBase|DynamicCollection>{
 		return null;
 	}
 }

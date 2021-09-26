@@ -238,7 +238,7 @@ class DynamicRecord extends DRBase {
 		return results;
 	}
 
-	async all(options: QueryOptions): Promise<DynamicCollection>{
+	async all(): Promise<DynamicCollection>{
 		const col = await this._ready;
 		let models = await col.find().toArray();
 
@@ -251,36 +251,62 @@ class DynamicRecord extends DRBase {
 		return results;
 	}
 
-	async first(n?:number): Promise<ModelBase|DynamicCollection>{
+	async first(options?: QueryOptions): Promise<ModelBase|DynamicCollection>{
 		const col = await this._ready;
-		if(typeof n === "undefined"){
-			const model = await col.findOne();
-			if(model !== null){
-				return new this.Model(model, true);
-			}else{
-				return null;
-			}
-		}else{
-			const models = await col.find({}).limit(n).toArray();
+		const models = await col.find({})
+			.limit(options?.limit || 1)
+			.skip(options?.offset || 0)
+			.sort(_.assign(
+				_.mapValues(options?.sort, (val) => {
+					if(val === "ASC"){
+						return 1;
+					}else if(val === "DESC"){
+						return -1;
+					}else{
+						return 0;
+					}
+				}),
+				{
+					_id: 1
+				}
+			))
+			.toArray();
 
+		if(models.length === 0){
+			return null;
+		}else if(models.length === 1 && _.isUndefined(options?.limit)){
+			return new this.Model(models[0], true);
+		}else{
 			return new DynamicCollection(this.Model, ...models);
 		}
 	}
 
-	async last(n?:number): Promise<ModelBase|DynamicCollection>{
+	async last(options?: QueryOptions): Promise<ModelBase|DynamicCollection>{
 		const col = await this._ready;
-		if(typeof n === "undefined"){
-			const model = await col.findOne({}, {sort: {
-				_id: -1
-			}});
-			if(model !== null){
-				return new this.Model(model, true);
-			}else{
-				return null;
-			}
-		}else{
-			const models = await col.find({}).sort({_id: -1}).limit(n).toArray();
+		const models = await col.find({})
+			.limit(options?.limit || 1)
+			.skip(options?.offset || 0)
+			.sort(_.assign(
+				_.mapValues(options?.sort, (val) => {
+					if(val === "ASC"){
+						return 1;
+					}else if(val === "DESC"){
+						return -1;
+					}else{
+						return 0;
+					}
+				}),
+				{
+					_id: -1
+				}
+			))
+			.toArray();
 
+		if(models.length === 0){
+			return null;
+		}else if(models.length === 1 && _.isUndefined(options?.limit)){
+			return new this.Model(models[0], true);
+		}else{
 			return new DynamicCollection(this.Model, ...models);
 		}
 	}

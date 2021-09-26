@@ -192,8 +192,8 @@ describe("DynamicRecord", function(){
 			const model = await Random.first();
 			assert.isNull(model, "'model' is null");
 		});
-		it("should return n number of values when given n as a parameter", async function(){
-			const col = await Random.first(2);
+		it("should return n number of values query option 'limit' is provided", async function(){
+			const col = await Random.first({limit: 2});
 			assert.instanceOf(col, DynamicCollection, "resolves to an instance of DynamicCollection");
 			assert.lengthOf(col, 2, "has a length of two");
 			assert.deepEqual(col.data[0], testData[0], "retrieved first entry");
@@ -220,8 +220,8 @@ describe("DynamicRecord", function(){
 			const model = await Random.last();
 			assert.isNull(model, "'model' is null");
 		});
-		it("should return n number of values when given n as a parameter", async function(){
-			const col = await Random.last(2);
+		it("should return n number of values query option 'limit' is provided", async function(){
+			const col = await Random.last({limit: 2});
 			assert.instanceOf(col, DynamicCollection, "resolves to an instance of DynamicCollection");
 			assert.lengthOf(col, 2, "has a length of two");
 			assert.deepEqual(col.data[0], testData[2], "retrieved third entry");
