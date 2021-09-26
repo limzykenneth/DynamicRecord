@@ -117,6 +117,31 @@ describe("DynamicRecord", function(){
 				assert.deepEqual(model.data, model._original, "'model._original' is a copy of 'model.data'");
 			});
 		});
+		it("should return maximum of specified number of entries when 'limit' query option is supplied", async function(){
+			const col = await Random.where({"wholeNumber": testData[0].wholeNumber}, {limit: 1});
+			assert.lengthOf(col, 1, "collection only contains 1 entry");
+		});
+		it("should offset the starting query position if 'offset' query option is specified", async function(){
+			const col = await Random.where({"wholeNumber": testData[0].wholeNumber}, {offset: 1});
+			assert.deepEqual(col.data[0], testData[1], "collection data is offset by 1");
+		});
+		it("should return entries sorted according to provided 'sort' query option", async function(){
+			let col = await Random.where({"wholeNumber": testData[0].wholeNumber}, {
+				sort: {
+					floatingPoint: "ASC"
+				}
+			});
+			assert.deepEqual(col.data[0], testData[1], "collection order matches expected order");
+			assert.deepEqual(col.data[1], testData[0], "collection order matches expected order");
+
+			col = await Random.where({"floatingPoint": testData[1].floatingPoint}, {
+				sort: {
+					wholeNumber: "DESC"
+				}
+			});
+			assert.deepEqual(col.data[0], testData[2], "collection order matches expected order");
+			assert.deepEqual(col.data[1], testData[1], "collection order matches expected order");
+		});
 	});
 
 	describe("all()", function(){

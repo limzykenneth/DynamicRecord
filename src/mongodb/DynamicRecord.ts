@@ -3,6 +3,7 @@ import {Model as ModelBase, DynamicRecord as DRBase} from "../DynamicRecord";
 import DynamicCollection from "./DynamicCollection";
 import DynamicSchema from "./DynamicSchema";
 import connect from "./connection";
+import {QueryOptions} from "../interfaces/DynamicRecord";
 const schemaValidator = new (require("./schemaValidation.js"))(connect);
 
 class DynamicRecord extends DRBase {
@@ -212,13 +213,21 @@ class DynamicRecord extends DRBase {
 		}
 	}
 
-	async where(query: object, orderBy: string | Function): Promise<DynamicCollection>{
+	async where(query: object, options: QueryOptions): Promise<DynamicCollection>{
 		const col = await this._ready;
-		let models = await col.find(query).toArray();
-
-		if(orderBy){
-			models = _.sortBy(models, orderBy);
-		}
+		let models = await col.find(query)
+			.limit(options?.limit || 0)
+			.skip(options?.offset || 0)
+			.sort(_.mapValues(options?.sort, (val) => {
+				if(val === "ASC"){
+					return 1;
+				}else if(val === "DESC"){
+					return -1;
+				}else{
+					return 0;
+				}
+			}))
+			.toArray();
 
 		const results = new DynamicCollection(this.Model, ...models);
 
@@ -229,7 +238,7 @@ class DynamicRecord extends DRBase {
 		return results;
 	}
 
-	async all(): Promise<DynamicCollection>{
+	async all(options: QueryOptions): Promise<DynamicCollection>{
 		const col = await this._ready;
 		let models = await col.find().toArray();
 

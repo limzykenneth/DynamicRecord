@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import DynamicCollection from "./DynamicCollection";
+import {QueryOptions} from "./interfaces/DynamicRecord";
 
 export abstract class DynamicRecord {
 	// Instance specific constructors
@@ -62,10 +63,15 @@ export abstract class DynamicRecord {
 	 * @memberOf DynamicRecord
 	 * @instance
 	 * @param {object} query	A key value pair that will be used to match for entries
-	 * @param {string|function} orderBy	The key to sort by or a sorting function
+	 * @param {object} [options]	Query options object
+	 * @param {number} [options.limit]	Limit the number of maximum returned entries
+	 * @param {number} [options.offset]	Number of entries to offset by before starting query
+	 * @param {object} [options.sort]	Sorting order of returned entries. Defined by
+	 * providing the column to sort by as key and "ASC" "DESC" as value for ascending
+	 * and descending respectively.
 	 * @return {Promise} - Return promise of DynamicCollection instance
 	 */
-	abstract where(query: object, orderBy: string | Function): Promise<DynamicCollection>;
+	abstract where(query: object, options: QueryOptions): Promise<DynamicCollection>;
 
 	/**
 	 * Return all entries from the table.
@@ -75,7 +81,7 @@ export abstract class DynamicRecord {
 	 * @instance
 	 * @return {Promise} - Return promise of DynamicCollection instance
 	 */
-	abstract all(): Promise<DynamicCollection>;
+	abstract all(options: QueryOptions): Promise<DynamicCollection>;
 
 	/**
 	 * Return the first entry in the table. If provided with an integer

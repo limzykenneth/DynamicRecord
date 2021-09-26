@@ -2,6 +2,7 @@ import * as _ from "lodash";
 import {Model as ModelBase, DynamicRecord as DRBase} from "../DynamicRecord";
 import DynamicCollection from "./DynamicCollection";
 import connect from "./connection";
+import {QueryOptions} from "../interfaces/DynamicRecord";
 
 class DynamicRecord extends DRBase{
 	// Static constructors for their own separate use
@@ -44,11 +45,11 @@ class DynamicRecord extends DRBase{
 		return null;
 	}
 
-	async where(query: object, orderBy: string | Function): Promise<DynamicCollection>{
+	async where(query: object, options: QueryOptions): Promise<DynamicCollection>{
 		return null;
 	}
 
-	async all(): Promise<DynamicCollection>{
+	async all(options: QueryOptions): Promise<DynamicCollection>{
 		return null;
 	}
 
