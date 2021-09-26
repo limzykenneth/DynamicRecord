@@ -213,7 +213,7 @@ class DynamicRecord extends DRBase {
 		}
 	}
 
-	async where(query: object, options: QueryOptions): Promise<DynamicCollection>{
+	async where(query: object, options?: QueryOptions): Promise<DynamicCollection>{
 		const col = await this._ready;
 		let models = await col.find(query)
 			.limit(options?.limit || 0)

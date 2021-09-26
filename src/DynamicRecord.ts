@@ -71,7 +71,7 @@ export abstract class DynamicRecord {
 	 * and descending respectively.
 	 * @return {Promise} - Return promise of DynamicCollection instance
 	 */
-	abstract where(query: object, options: QueryOptions): Promise<DynamicCollection>;
+	abstract where(query: object, options?: QueryOptions): Promise<DynamicCollection>;
 
 	/**
 	 * Return all entries from the table.

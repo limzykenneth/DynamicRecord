@@ -45,7 +45,7 @@ class DynamicRecord extends DRBase{
 		return null;
 	}
 
-	async where(query: object, options: QueryOptions): Promise<DynamicCollection>{
+	async where(query: object, options?: QueryOptions): Promise<DynamicCollection>{
 		return null;
 	}
 
