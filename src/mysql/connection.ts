@@ -22,5 +22,11 @@ if(!regexResult.options){
 }
 
 const url = `${regexResult.schema}://${regexResult.username}:${regexResult.password}@${regexResult.host}:${regexResult.port}/${regexResult.database}?${regexResult.options}`;
-const connection = mysql.createPool(url);
+const connection = mysql.createPool({
+	host: regexResult.host,
+	port: parseInt(regexResult.port),
+	user: regexResult.username,
+	password: regexResult.password,
+	database: regexResult.database
+});
 export default connection;
