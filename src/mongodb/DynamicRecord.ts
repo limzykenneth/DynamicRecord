@@ -272,7 +272,7 @@ class DynamicRecord extends DRBase {
 			))
 			.toArray();
 
-		if(models.length === 0){
+		if(models.length === 0 && _.isUndefined(options?.limit)){
 			return null;
 		}else if(models.length === 1 && _.isUndefined(options?.limit)){
 			return new this.Model(models[0], true);
@@ -302,7 +302,7 @@ class DynamicRecord extends DRBase {
 			))
 			.toArray();
 
-		if(models.length === 0){
+		if(models.length === 0 && _.isUndefined(options?.limit)){
 			return null;
 		}else if(models.length === 1 && _.isUndefined(options?.limit)){
 			return new this.Model(models[0], true);
