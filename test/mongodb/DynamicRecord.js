@@ -200,6 +200,7 @@ describe("DynamicRecord", function(){
 			assert.deepEqual(col.data[1], testData[1], "retrieved second entry");
 			assert.notDeepInclude(col.data, testData[2], "not retrieved third entry");
 		});
+		// TODO: "offset" and "sort" query options test
 	});
 
 	describe("last()", function(){
@@ -228,6 +229,7 @@ describe("DynamicRecord", function(){
 			assert.deepEqual(col.data[1], testData[1], "retrieved second entry");
 			assert.notDeepInclude(col.data, testData[0], "not retrieved first entry");
 		});
+		// TODO: "offset" and "sort" query options test
 	});
 });
 // --------------------------------------------
