@@ -22,9 +22,7 @@ if(!regexResult.options){
 
 const url = `${regexResult.schema}://${regexResult.username}:${regexResult.password}@${regexResult.host}${regexResult.port || ""}/${regexResult.database}?${regexResult.options}`;
 const client = new MongoClient(url, {
-	poolSize: 10,
-	useNewUrlParser: true,
-	useUnifiedTopology: true
+	maxPoolSize: 10
 });
 const connection = client.connect();
 
