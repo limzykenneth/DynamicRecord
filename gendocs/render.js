@@ -8,7 +8,7 @@ const path = require("path");
 const pjson = require("../package.json");
 
 Handlebars.registerHelper("markdown", (content) => {
-	return new Handlebars.SafeString(marked(content));
+	return new Handlebars.SafeString(marked.parse(content));
 });
 
 Handlebars.registerHelper("ifNotEmpty", (context, options) => {
