@@ -19,7 +19,6 @@
   "bugs": "https://github.com/limzykenneth/DynamicRecord/issues",
   "repository": "https://github.com/limzykenneth/DynamicRecord.git",
   "main": "build/main.js",
-  "types": "build/main.d.ts",
   "files": [
     "build/**",
     "tools/**"
