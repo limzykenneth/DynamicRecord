@@ -30,6 +30,10 @@ export interface TableSchema{
 	required?:Array<string>
 }
 
+export type DynamicSchemaConstructor = {
+	new(): DynamicSchema;
+}
+
 export abstract class DynamicSchema{
 	tableName:string;
 	tableSlug:string;

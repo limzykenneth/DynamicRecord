@@ -1,4 +1,9 @@
 import * as Bluebird from "bluebird";
+import {ModelConstructor} from "./DynamicRecord";
+
+export type DynamicCollectionConstructor = {
+	new(model: ModelConstructor, ...data: object[]): DynamicCollection
+}
 
 export default abstract class DynamicCollection extends Array{
 	/**

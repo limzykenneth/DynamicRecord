@@ -1,6 +1,13 @@
 import * as _ from "lodash";
-import DynamicCollection from "./DynamicCollection";
+import DynamicCollection, {DynamicCollectionConstructor} from "./DynamicCollection";
+import {DynamicSchemaConstructor} from "./DynamicSchema";
 import {QueryOptions} from "./interfaces/DynamicRecord";
+
+export type DynamicRecordConstructor = {
+	new(options: object): DynamicRecord;
+	DynamicCollection: DynamicCollectionConstructor;
+	DynamicSchema: DynamicSchemaConstructor;
+};
 
 export abstract class DynamicRecord {
 	// Instance specific constructors
@@ -122,6 +129,10 @@ export abstract class DynamicRecord {
 	 * DynamicCollection instance, or null
 	 */
 	abstract last(options?: QueryOptions): Promise<Model|DynamicCollection>;
+}
+
+export type ModelConstructor = {
+	new(data: object, _preserveOriginal?: boolean): Model
 }
 
 export abstract class Model {
