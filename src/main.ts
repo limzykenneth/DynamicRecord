@@ -1,10 +1,14 @@
 import {DynamicRecord} from "./DynamicRecord";
+import DynamicCollection from "./DynamicCollection";
+import {DynamicSchema} from "./DynamicSchema";
 
 const databaseURIRegex = /^(?<schema>.+?):\/\/(?:(?<username>.+?)(?::(?<password>.+))?@)?(?<host>.+?)(?::(?<port>\d+?))?(?:\/(?<database>.+?))?(?:\?(?<options>.+?))?$/;
 const regexResult = process.env.database_host.match(databaseURIRegex);
 
 type DynamicRecordConstructor = {
 	new(options: object): DynamicRecord;
+	DynamicCollection: DynamicCollection;
+	DynamicSchema: DynamicSchema;
 };
 
 let DR: DynamicRecordConstructor;
