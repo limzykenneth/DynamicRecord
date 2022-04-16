@@ -1,18 +1,55 @@
 import * as _ from "lodash";
-import DynamicCollection, {DynamicCollectionConstructor} from "./DynamicCollection";
-import {DynamicSchemaConstructor} from "./DynamicSchema";
+import {MongoClient} from "mongodb";
+import * as mysql from "mysql2/promise";
+import {DynamicCollection} from "./DynamicCollection";
 import {QueryOptions} from "./interfaces/DynamicRecord";
 
-export type DynamicRecordConstructor = {
-	new(options: object): DynamicRecord;
-	DynamicCollection: DynamicCollectionConstructor;
-	DynamicSchema: DynamicSchemaConstructor;
-};
+interface DRConnection {
+	type: string
+	interface: any
+}
+
+export async function createConnection(url: string): Promise<DRConnection> {
+	const databaseURIRegex = /^(?<protocol>.+?):\/\/(?:(?<username>.+?)(?::(?<password>.+))?@)?(?<host>.+?)(?::(?<port>\d+?))?(?:\/(?<database>.+?))?(?:\?(?<options>.+?))?$/;
+	const regexResult = url.match(databaseURIRegex);
+
+	switch(regexResult.groups.protocol){
+		case "mongodb":
+		case "mongodb+srv": {
+			const client = new MongoClient(url, {
+				maxPoolSize: 10
+			});
+			const connection = client.connect();
+
+			return connection.then((client) => {
+				const db = client.db();
+				return Promise.resolve({
+					type: "mongodb",
+					interface: {db, client}
+				});
+			});
+		}
+
+		case "mysql": {
+			const connection = mysql.createPool({
+				host: regexResult.groups.host,
+				port: parseInt(regexResult.groups.port),
+				user: regexResult.groups.username,
+				password: regexResult.groups.password,
+				database: regexResult.groups.database
+			});
+			return {
+				type: "mysql",
+				interface: connection
+			};
+		}
+
+		default:
+			throw new Error("URL protocol provided is not supported");
+	}
+}
 
 export abstract class DynamicRecord {
-	static DynamicSchema;
-	static DynamicCollection;
-
 	// Instance specific constructors
 	Model: any;
 	// Instance specific Schema object
@@ -37,7 +74,7 @@ export abstract class DynamicRecord {
 	 * @param {string} options.tableSlug	The slug of the table. Must be lowercase only
 	 * and not containing any whitespace
 	 */
-	constructor(options: {tableSlug: string}){}
+	constructor(options: {tableSlug: string, connection: DRConnection}){}
 
 	/**
 	 * Close the connection to the database server. Only used to terminate

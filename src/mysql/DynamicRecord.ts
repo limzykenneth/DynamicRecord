@@ -1,10 +1,10 @@
 import * as _ from "lodash";
 import {Model as ModelBase, DynamicRecord as DRBase} from "../DynamicRecord";
-import DynamicCollection from "./DynamicCollection";
-import connect from "./connection";
+import {DynamicCollection} from "./DynamicCollection";
+// import connect from "./connection";
 import {QueryOptions} from "../interfaces/DynamicRecord";
 
-class DynamicRecord extends DRBase{
+export class DynamicRecord extends DRBase{
 	// Static constructors for their own separate use
 	// static DynamicSchema = DynamicSchema(connect);
 	static DynamicCollection = DynamicCollection;
@@ -14,7 +14,7 @@ class DynamicRecord extends DRBase{
 
 	constructor(options){
 		super(options);
-		this._databaseConnection = connect;
+		this._databaseConnection = options.connection.interface;
 		const tableSlug = options.tableSlug;
 
 		// const _ready = this._ready = connect.execute("");
@@ -61,5 +61,3 @@ class DynamicRecord extends DRBase{
 		return null;
 	}
 }
-
-module.exports = DynamicRecord;

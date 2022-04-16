@@ -1,15 +1,14 @@
 import * as _ from "lodash";
 import {Model as ModelBase, DynamicRecord as DRBase} from "../DynamicRecord";
-import DynamicCollection from "./DynamicCollection";
-import {default as DynamicSchema, DynamicSchema as DS} from "./DynamicSchema";
-import {createConnection} from "./connection";
+import {DynamicCollection} from "./DynamicCollection";
+import {DynamicSchema} from "./DynamicSchema";
+// import {createConnection} from "./connection";
 import {QueryOptions} from "../interfaces/DynamicRecord";
 import SchemaValidator from "./schemaValidation";
-const connect = createConnection(process.env.database_host);
 
-class DynamicRecord extends DRBase {
+export class DynamicRecord extends DRBase {
 	// Static constructors for their own separate use
-	static DynamicSchema = DynamicSchema(connect);
+	static DynamicSchema = DynamicSchema;
 	static DynamicCollection = DynamicCollection;
 
 	private _databaseConnection: any;
@@ -18,19 +17,19 @@ class DynamicRecord extends DRBase {
 	private _client: any;
 	private _schemaValidator: any;
 
-	static async closeConnection(){
-		await super.closeConnection();
-		const opts = await connect;
-		await opts.client.close();
-	}
+	// static async closeConnection(){
+	// 	await super.closeConnection();
+	// 	const opts = await connect;
+	// 	await opts.client.close();
+	// }
 
-	static createConnection = createConnection;
+	// static createConnection = createConnection;
 
-	constructor(options: {tableSlug: string}){
+	constructor(options: {tableSlug: string, connection: any}){
 		super(options);
-		this._databaseConnection = connect;
+		const connect = this._databaseConnection = options.connection.interface;
 		const _schemaValidator = this._schemaValidator = SchemaValidator(this._databaseConnection);
-		const _schema = this.schema = new (DynamicSchema(this._databaseConnection))();
+		const _schema = this.schema = new DynamicSchema({connection: this._databaseConnection});
 		const tableSlug = options.tableSlug;
 		let _db;
 		let _client;
@@ -316,5 +315,3 @@ class DynamicRecord extends DRBase {
 		}
 	}
 }
-
-module.exports = DynamicRecord;

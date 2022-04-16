@@ -3,9 +3,9 @@ import {TableSchema, SchemaDefinitions, IndexOptions, DynamicSchema as Schema} f
 
 let connect;
 
-class DynamicSchema extends Schema{
-	constructor(){
-		super();
+export class DynamicSchema extends Schema{
+	constructor({connection}){
+		super({connection});
 	}
 
 	async createTable(schemaInput:TableSchema): Promise<DynamicSchema>{
@@ -141,9 +141,4 @@ class DynamicSchema extends Schema{
 	async _writeSchema(): Promise<DynamicSchema>{
 		return this;
 	}
-}
-
-export default function(connection){
-	connect = connection;
-	return DynamicSchema;
 }

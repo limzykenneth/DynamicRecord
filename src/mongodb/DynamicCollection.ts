@@ -1,6 +1,6 @@
-import Collection from "../DynamicCollection";
+import {DynamicCollection as Collection} from "../DynamicCollection";
 
-export default class DynamicCollection extends Collection{
+export class DynamicCollection extends Collection{
 	constructor(Model, ...data){
 		super(Model, ...data);
 	}
