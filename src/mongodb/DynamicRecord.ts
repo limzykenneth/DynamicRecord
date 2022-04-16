@@ -1,10 +1,11 @@
 import * as _ from "lodash";
 import {Model as ModelBase, DynamicRecord as DRBase} from "../DynamicRecord";
 import DynamicCollection from "./DynamicCollection";
-import DynamicSchema from "./DynamicSchema";
-import connect from "./connection";
+import {default as DynamicSchema, DynamicSchema as DS} from "./DynamicSchema";
+import {createConnection} from "./connection";
 import {QueryOptions} from "../interfaces/DynamicRecord";
-const schemaValidator = new (require("./schemaValidation.js"))(connect);
+import SchemaValidator from "./schemaValidation";
+const connect = createConnection(process.env.database_host);
 
 class DynamicRecord extends DRBase {
 	// Static constructors for their own separate use
@@ -15,6 +16,7 @@ class DynamicRecord extends DRBase {
 	private _ready: any;
 	private _db: any;
 	private _client: any;
+	private _schemaValidator: any;
 
 	static async closeConnection(){
 		await super.closeConnection();
@@ -22,9 +24,12 @@ class DynamicRecord extends DRBase {
 		await opts.client.close();
 	}
 
-	constructor(options){
+	static createConnection = createConnection;
+
+	constructor(options: {tableSlug: string}){
 		super(options);
 		this._databaseConnection = connect;
+		const _schemaValidator = this._schemaValidator = SchemaValidator(this._databaseConnection);
 		const _schema = this.schema = new (DynamicSchema(this._databaseConnection))();
 		const tableSlug = options.tableSlug;
 		let _db;
@@ -139,11 +144,11 @@ class DynamicRecord extends DRBase {
 				return this._savePromise;
 
 				async function validateData(data){
-					const validate = await schemaValidator.compileAsync({$ref: _schema.tableSlug});
+					const validate = await _schemaValidator.compileAsync({$ref: _schema.tableSlug});
 					if(validate(data)){
 						return Promise.resolve();
 					}else{
-						return Promise.reject(new Error(validate.errors));
+						return Promise.reject(new Error(JSON.stringify(validate.errors, null, 2)));
 					}
 				}
 			}

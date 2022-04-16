@@ -1,5 +1,4 @@
 // Test dependencies
-require("dotenv").config();
 const Promise = require("bluebird");
 const _ = require("lodash");
 const utility = require("../utils.js");

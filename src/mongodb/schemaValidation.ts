@@ -28,7 +28,7 @@ async function loadSchema(tableSlug){
 	return schema;
 }
 
-module.exports = function(connection){
+export default function(connection){
 	connect = connection;
 	return ajv;
-};
+}

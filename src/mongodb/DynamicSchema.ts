@@ -2,9 +2,8 @@ import * as _ from "lodash";
 import {TableSchema, SchemaDefinitions, IndexOptions, DynamicSchema as Schema} from "../DynamicSchema";
 
 let connect;
-const schemaValidator = new (require("./schemaValidation.js"))(connect);
 
-class DynamicSchema extends Schema{
+export class DynamicSchema extends Schema{
 	constructor(){
 		super();
 	}

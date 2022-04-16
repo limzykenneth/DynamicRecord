@@ -10,6 +10,9 @@ export type DynamicRecordConstructor = {
 };
 
 export abstract class DynamicRecord {
+	static DynamicSchema;
+	static DynamicCollection;
+
 	// Instance specific constructors
 	Model: any;
 	// Instance specific Schema object
@@ -34,7 +37,7 @@ export abstract class DynamicRecord {
 	 * @param {string} options.tableSlug	The slug of the table. Must be lowercase only
 	 * and not containing any whitespace
 	 */
-	constructor(options: object){}
+	constructor(options: {tableSlug: string}){}
 
 	/**
 	 * Close the connection to the database server. Only used to terminate
