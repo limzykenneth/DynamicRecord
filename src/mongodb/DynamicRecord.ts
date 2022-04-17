@@ -27,30 +27,25 @@ export class DynamicRecord extends DRBase {
 
 	constructor(options: {tableSlug: string, connection: any}){
 		super(options);
-		const connect = this._databaseConnection = options.connection.interface;
+		const connect = this._databaseConnection = options.connection;
 		const _schemaValidator = this._schemaValidator = SchemaValidator(this._databaseConnection);
 		const _schema = this.schema = new DynamicSchema({connection: this._databaseConnection});
 		const tableSlug = options.tableSlug;
-		let _db;
-		let _client;
+		const _db = this._db = connect.interface.db;
+		const _client = this._client = connect.interface.client;
 
 		// Initialize database connection and populate schema instance
-		const _ready = this._ready = connect.then((opts) => {
-			const db = _db = this._db = opts.db;
-			_client = this._client = opts.client;
+		// Collection must already exist in database
+		const _ready = this._ready = this.schema.read(tableSlug).then((schema) => {
+			if(schema.tableSlug === "") return Promise.reject(`Table with name ${tableSlug} does not exist`);
 
-			// Collection must already exist in database
-			return this.schema.read(tableSlug).then((schema) => {
-				if(schema.tableSlug === "") return Promise.reject(`Table with name ${tableSlug} does not exist`);
+			const col = _db.collection(tableSlug);
 
-				const col = db.collection(tableSlug);
-
-				if(col){
-					return Promise.resolve(col);
-				}else{
-					return Promise.reject(`Table with name ${tableSlug} does not exist`);
-				}
-			});
+			if(col){
+				return Promise.resolve(col);
+			}else{
+				return Promise.reject(`Table with name ${tableSlug} does not exist`);
+			}
 		});
 
 		const Model = this.Model = class Model extends ModelBase{

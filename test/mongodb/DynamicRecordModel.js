@@ -5,9 +5,12 @@ const utility = require("../utils.js");
 const url = utility.url;
 const chai = require("chai");
 const assert = chai.assert;
-const DynamicRecord = require("../../build/main.js");
-const DynamicCollection = DynamicRecord.DynamicCollection;
-const DynamicSchema = DynamicRecord.DynamicSchema;
+const {
+	createConnection,
+	createInstance,
+	createSchemaInstance,
+	createCollection
+} = require("../../build/main.js");
 
 // Database specific dependencies
 const MongoClient = require("mongodb").MongoClient;
@@ -23,7 +26,7 @@ const utils = new utility.utils(connect);
 const testSchema = Object.freeze(require("../random_table.schema.json"));
 const testData = utility.testData;
 
-let Random;
+let Random, connection;
 
 // ------------------ Setups ------------------
 // Clear table and insert dummy data
@@ -31,14 +34,14 @@ before(async function(){
 	await utils.resetTestTables();
 	await utils.setupSuite();
 
-	Random = new DynamicRecord({
-		tableSlug: testSchema.$id
-	});
+	connection = await createConnection(process.env.database_host);
+
+	Random = createInstance(connection, testSchema.$id);
 });
 
 // Close all database connections
 after(async function(){
-	// await DynamicRecord.closeConnection();
+	await connection.interface.client.close();
 	await utils.dropTestTable();
 	await utils.cleanUpSuite();
 });

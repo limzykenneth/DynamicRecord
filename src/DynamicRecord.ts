@@ -23,10 +23,10 @@ export async function createConnection(url: string): Promise<DRConnection> {
 
 			return connection.then((client) => {
 				const db = client.db();
-				return Promise.resolve({
+				return {
 					type: "mongodb",
 					interface: {db, client}
-				});
+				};
 			});
 		}
 

@@ -5,9 +5,12 @@ const utility = require("../utils.js");
 const url = utility.url;
 const chai = require("chai");
 const assert = chai.assert;
-const DynamicRecord = require("../../build/main.js");
-const DynamicCollection = DynamicRecord.DynamicCollection;
-const DynamicSchema = DynamicRecord.DynamicSchema;
+const {
+	createConnection,
+	createInstance,
+	createSchemaInstance,
+	createCollection
+} = require("../../build/main.js");
 
 // Database specific dependencies
 const MongoClient = require("mongodb").MongoClient;
@@ -23,7 +26,7 @@ const utils = new utility.utils(connect);
 const testSchema = Object.freeze(require("../random_table.schema.json"));
 const testData = utility.testData;
 
-let Random;
+let Random, connection;
 
 // ------------------ Setups ------------------
 // Clear table and insert dummy data
@@ -31,14 +34,14 @@ before(async function(){
 	await utils.resetTestTables();
 	await utils.setupSuite();
 
-	Random = new DynamicRecord({
-		tableSlug: testSchema.$id
-	});
+	connection = await createConnection(process.env.database_host);
+
+	Random = createInstance(connection, testSchema.$id);
 });
 
 // Close all database connections
 after(async function(){
-	// await DynamicRecord.closeConnection();
+	await connection.interface.client.close();
 	await utils.dropTestTable();
 	await utils.cleanUpSuite();
 });
@@ -59,7 +62,7 @@ describe("Schema", function(){
 			const client = await connect;
 			const db = client.db();
 
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 			await table.createTable(testSchema);
 
 			// List all collections and find the newly created collection
@@ -77,7 +80,7 @@ describe("Schema", function(){
 			const client = await connect;
 			const db = client.db();
 
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 			await table.createTable(testSchema);
 
 			const res = await db.collection(testSchema.$id).indexExists("wholeNumber");
@@ -87,7 +90,7 @@ describe("Schema", function(){
 			const client = await connect;
 			const db = client.db();
 
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 			await table.createTable(testSchema);
 
 			const res = await db.collection("_counters").findOne({_$id: testSchema.$id});
@@ -95,7 +98,7 @@ describe("Schema", function(){
 			assert.equal(res.sequences.wholeNumber, 0, "auto incrementing field is initialized to be 0");
 		});
 		it("should populate its properties according to schema provided", async function(){
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 			await table.createTable(testSchema);
 			assert.equal(table.tableSlug, testSchema.$id, "tableSlug is the same as $id");
 			assert.equal(table.tableName, testSchema.title, "tableName is the same as title");
@@ -109,7 +112,7 @@ describe("Schema", function(){
 
 		beforeEach(async function(){
 			await utils.resetTestTables();
-			table = new DynamicSchema();
+			table = createSchemaInstance(connection);
 			await table.createTable(testSchema);
 		});
 
@@ -158,7 +161,7 @@ describe("Schema", function(){
 
 		beforeEach(async function(){
 			await utils.resetTestTables();
-			table = new DynamicSchema();
+			table = createSchemaInstance(connection);
 			await table.createTable(testSchema);
 		});
 
@@ -233,7 +236,7 @@ describe("Schema", function(){
 
 		beforeEach(async function(){
 			await utils.resetTestTables();
-			table = new DynamicSchema();
+			table = createSchemaInstance(connection);
 			await table.createTable(testSchema);
 		});
 
@@ -434,7 +437,7 @@ describe("Schema", function(){
 
 		beforeEach(async function(){
 			await utils.resetTestTables();
-			table = new DynamicSchema();
+			table = createSchemaInstance(connection);
 			await table.createTable(testSchema);
 			await table.addIndex({
 				name: "testIndex",
@@ -510,7 +513,7 @@ describe("Schema", function(){
 		});
 
 		it("should read the schema entry from the database correctly", async function(){
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 			await table.read(testSchema.$id);
 			assert.equal(table.tableSlug, testSchema.$id, "object slug is equal to testSchema.$id");
 			assert.deepEqual(table.definition, testSchema.properties, "object definition is as defined");
@@ -534,7 +537,7 @@ describe("Schema", function(){
 			const emptyTestSchema = _.cloneDeep(testSchema);
 			emptyTestSchema.properties = {};
 
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 			await table.createTable(emptyTestSchema);
 			await table.define(testSchema.properties);
 
@@ -542,7 +545,7 @@ describe("Schema", function(){
 			assert.deepEqual(data.properties, testSchema.properties, "database entry has correct definition");
 		});
 		it("should set the correct definition", async function(){
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 			await table.define(testSchema.properties);
 			assert.deepEqual(table.definition, testSchema.properties, "object definition is set correctly");
 		});
@@ -554,7 +557,7 @@ describe("Schema", function(){
 			emptyTestSchema.properties = {};
 			emptyTestSchema.required = [];
 
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 			await table.createTable(emptyTestSchema);
 			await table.define(testSchema.properties, testSchema.required);
 
@@ -577,7 +580,7 @@ describe("Schema", function(){
 			const client = await connect;
 			const db = client.db();
 
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 			await table.read(testSchema.$id);
 			assert.isDefined(table.tableSlug);
 			assert.isDefined(table.definition);
@@ -599,7 +602,7 @@ describe("Schema", function(){
 			}, "database entry include new column");
 		});
 		it("should return a rejected promise if the column already exist", function(done){
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 			table.read(testSchema.$id).then(() => {
 				return table.addColumn("string", "string", "Should already exist");
 			}).then(() => {
@@ -628,7 +631,7 @@ describe("Schema", function(){
 			const client = await connect;
 			const db = client.db();
 
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 			await table.read(testSchema.$id);
 			await table.addColumns({
 				"test_column_1": {
@@ -654,7 +657,7 @@ describe("Schema", function(){
 			}, "database entry include new columns");
 		});
 		it("should return a rejected promise if any columns already exist", function(done){
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 			table.read(testSchema.$id).then(() => {
 				return table.addColumns({
 					"string": {
@@ -692,7 +695,7 @@ describe("Schema", function(){
 			const client = await connect;
 			const db = client.db();
 
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 
 			await table.read(testSchema.$id);
 			assert.isDefined(table.tableSlug);
@@ -729,7 +732,7 @@ describe("Schema", function(){
 			const client = await connect;
 			const db = client.db();
 
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 
 			await table.createTable(testSchema);
 			assert.isDefined(table.tableSlug);
@@ -780,7 +783,7 @@ describe("Schema", function(){
 			const client = await connect;
 			const db = client.db();
 
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 
 			await table.createTable(testSchema);
 			assert.isDefined(table.tableSlug);
@@ -806,7 +809,7 @@ describe("Schema", function(){
 			const client = await connect;
 			const db = client.db();
 
-			const table = new DynamicSchema();
+			const table = createSchemaInstance(connection);
 
 			await table.createTable(testSchema);
 			assert.isDefined(table.tableSlug);

@@ -11,7 +11,7 @@ const ajv = new Ajv({
 ajv.addSchema(countersSchema, "countersSchema");
 
 async function loadSchema(tableSlug){
-	const {db} = await connect;
+	const {db} = connect.interface;
 	const schema = await db.collection("_schema").findOne({"_$id": tableSlug});
 
 	// Restore keys starting with "$" and delete ObjectID field
