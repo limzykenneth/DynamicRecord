@@ -3,7 +3,7 @@ import {DynamicCollection} from "./DynamicCollection";
 import {QueryOptions} from "./interfaces/DynamicRecord";
 import {DRConnection} from "./interfaces/connection";
 
-export abstract class DynamicRecord {
+export abstract class DynamicRecord<DataObject extends object> {
 	// Instance specific constructors
 	Model: any;
 	// Instance specific Schema object
@@ -41,7 +41,7 @@ export abstract class DynamicRecord {
 	 * in the database
 	 * @return {Promise} - Return promise of DynamicRecord.Model instance or null
 	 */
-	abstract findBy(query: object): Promise<Model>;
+	abstract findBy(query: object): Promise<Model<DataObject>>;
 
 	/**
 	 * Find all the entries in the table that match the query.
@@ -92,7 +92,7 @@ export abstract class DynamicRecord {
 	 * @return {Promise} - Return promise of DynamicRecord.Model instance,
 	 * DynamicCollection instance, or null
 	 */
-	abstract first(options?: QueryOptions): Promise<Model|DynamicCollection>;
+	abstract first(options?: QueryOptions): Promise<Model<DataObject>|DynamicCollection>;
 
 	/**
 	 * Return the last entry in the table. If provided query option
@@ -112,16 +112,12 @@ export abstract class DynamicRecord {
 	 * @return {Promise} - Return promise of DynamicRecord.Model instance,
 	 * DynamicCollection instance, or null
 	 */
-	abstract last(options?: QueryOptions): Promise<Model|DynamicCollection>;
+	abstract last(options?: QueryOptions): Promise<Model<DataObject>|DynamicCollection>;
 }
 
-export type ModelConstructor = {
-	new(data: object, _preserveOriginal?: boolean): Model
-}
-
-export abstract class Model {
-	data: any;
-	_original: any;
+export abstract class Model<DataObject extends object> {
+	data: DataObject;
+	_original: DataObject;
 
 	/**
 	 * Create a new DynamicRecord.Model instance.
@@ -133,7 +129,7 @@ export abstract class Model {
 	 * @param {object} data	Object containing data for this instance of
 	 * DynamicRecord.Model
 	 */
-	constructor(data: any, _preserveOriginal: boolean){
+	constructor(data: DataObject, _preserveOriginal: boolean){
 		/**
 		 * The data contained in this instance. It is not kept in sync with
 		 * the database automatically.
@@ -147,7 +143,7 @@ export abstract class Model {
 		 * @memberOf DynamicRecord.Model
 		 * @instance
 		 */
-		this.data = data || {};
+		this.data = data || Object.create(null);
 
 		if(_preserveOriginal){
 			this._original = _.cloneDeep(data);
@@ -169,7 +165,7 @@ export abstract class Model {
 	 * @instance
 	 * @return {Promise} - Return promise of this DynamicRecord.Model instance
 	 */
-	abstract save(): Promise<Model>;
+	abstract save(): Promise<Model<DataObject>>;
 
 	/**
 	 * Delete the entry this instance links to. Clear the data property
@@ -180,7 +176,7 @@ export abstract class Model {
 	 * @instance
 	 * @return {Promise} - Return promise of this DynamicRecord.Model instance
 	 */
-	abstract destroy(): Promise<Model>;
+	abstract destroy(): Promise<Model<DataObject>>;
 
 	/**
 	 * Validate the data in this instance conform to its schema.

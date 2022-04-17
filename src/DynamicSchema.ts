@@ -1,4 +1,5 @@
 import * as _ from "lodash";
+import {DRConnection} from "./interfaces/connection";
 
 export interface Definition{
 	description:string;
@@ -45,7 +46,7 @@ export abstract class DynamicSchema{
 	 * @name DynamicSchema
 	 * @class
 	 */
-	constructor({connection}){
+	constructor({connection}: {connection: DRConnection}){
 		/**
 		 * The name of the table.
 		 *

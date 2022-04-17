@@ -47,7 +47,7 @@ export {DynamicRecord} from "./DynamicRecord";
 import {DynamicRecord as DRMongoDB} from "./mongodb/DynamicRecord";
 import {DynamicRecord as DRMySQL} from "./mysql/DynamicRecord";
 
-export function createInstance(connection, tableSlug): DynamicRecord {
+export function createInstance(connection, tableSlug): DynamicRecord<object> {
 	if(connection.type === "mongodb"){
 		return new DRMongoDB({tableSlug, connection});
 	}else if(connection.type === "mysql"){
@@ -77,7 +77,7 @@ import {DynamicCollection} from "./DynamicCollection";
 import {DynamicCollection as DRCMongoDB} from "./mongodb/DynamicCollection";
 import {DynamicCollection as DRCMySQL} from "./mysql/DynamicCollection";
 
-export function createCollection(connection, Model, ...data): DynamicCollection{
+export function createCollection(connection, Model, ...data): DynamicCollection {
 	if(connection.type === "mongodb"){
 		return new DRCMongoDB(Model, ...data);
 	}else if(connection.type === "mysql"){

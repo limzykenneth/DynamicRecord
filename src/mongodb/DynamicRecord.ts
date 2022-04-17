@@ -5,7 +5,11 @@ import {DynamicSchema} from "./DynamicSchema";
 import {QueryOptions} from "../interfaces/DynamicRecord";
 import SchemaValidator from "./schemaValidation";
 
-export class DynamicRecord extends DRBase {
+interface MongoDBObject extends Object {
+	_id: string
+}
+
+export class DynamicRecord<DataObject extends MongoDBObject> extends DRBase<DataObject> {
 	private _databaseConnection: any;
 	private _ready: any;
 	private _db: any;
@@ -35,8 +39,8 @@ export class DynamicRecord extends DRBase {
 			}
 		});
 
-		const Model = this.Model = class Model extends ModelBase{
-			private _savePromise: Promise<Model>;
+		const Model = this.Model = class Model<DataObject extends MongoDBObject> extends ModelBase<DataObject> {
+			private _savePromise: Promise<Model<DataObject>>;
 			private _id: string;
 
 			constructor(data: any, _preserveOriginal: boolean){
@@ -53,7 +57,7 @@ export class DynamicRecord extends DRBase {
 				this._id = id;
 			}
 
-			async save(): Promise<Model>{
+			async save(): Promise<Model<DataObject>>{
 				const saveData = async () => {
 					const col = await _ready;
 					if(this._id){
@@ -134,7 +138,7 @@ export class DynamicRecord extends DRBase {
 				}
 			}
 
-			async destroy(): Promise<Model>{
+			async destroy(): Promise<Model<DataObject>>{
 				const col = await _ready;
 				const destroyData = async () => {
 					if(this._original){
@@ -177,7 +181,7 @@ export class DynamicRecord extends DRBase {
 		};
 	}
 
-	async closeConnection(): Promise<any>{
+	async closeConnection(): Promise<void>{
 		// Should only ever be called to terminate the node process
 		try{
 			await this._ready;
@@ -188,7 +192,7 @@ export class DynamicRecord extends DRBase {
 		}
 	}
 
-	async findBy(query: object): Promise<ModelBase>{
+	async findBy(query: object): Promise<ModelBase<DataObject>>{
 		const col = await this._ready;
 		const model = await col.findOne(query);
 
@@ -237,7 +241,7 @@ export class DynamicRecord extends DRBase {
 		return results;
 	}
 
-	async first(options?: QueryOptions): Promise<ModelBase|DynamicCollection>{
+	async first(options?: QueryOptions): Promise<ModelBase<DataObject>|DynamicCollection>{
 		const col = await this._ready;
 		const models = await col.find({})
 			.limit(options?.limit || 1)
@@ -267,7 +271,7 @@ export class DynamicRecord extends DRBase {
 		}
 	}
 
-	async last(options?: QueryOptions): Promise<ModelBase|DynamicCollection>{
+	async last(options?: QueryOptions): Promise<ModelBase<DataObject>|DynamicCollection>{
 		const col = await this._ready;
 		const models = await col.find({})
 			.limit(options?.limit || 1)

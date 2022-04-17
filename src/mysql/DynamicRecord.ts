@@ -3,7 +3,7 @@ import {Model as ModelBase, DynamicRecord as DRBase} from "../DynamicRecord";
 import {DynamicCollection} from "./DynamicCollection";
 import {QueryOptions} from "../interfaces/DynamicRecord";
 
-export class DynamicRecord extends DRBase{
+export class DynamicRecord<DataObject extends object> extends DRBase<DataObject> {
 	private _databaseConnection: any;
 	private _ready: any;
 
@@ -13,16 +13,16 @@ export class DynamicRecord extends DRBase{
 		const tableSlug = options.tableSlug;
 
 		// const _ready = this._ready = connect.execute("");
-		const Model = this.Model = class Model extends ModelBase{
+		const Model = this.Model = class Model<DataObject extends object> extends ModelBase<DataObject> {
 			constructor(data, _preserveOriginal){
 				super(data, _preserveOriginal);
 			}
 
-			async save(): Promise<Model>{
+			async save(): Promise<Model<DataObject>>{
 				return this;
 			}
 
-			async destroy(): Promise<Model>{
+			async destroy(): Promise<Model<DataObject>>{
 				return this;
 			}
 
@@ -36,11 +36,11 @@ export class DynamicRecord extends DRBase{
 		return null;
 	}
 
-	async findBy(query: object): Promise<ModelBase>{
+	async findBy(query: object): Promise<ModelBase<DataObject>>{
 		return null;
 	}
 
-	async where(query: object, options?: QueryOptions): Promise<DynamicCollection>{
+	async where(query: object, options?: QueryOptions): Promise<DynamicCollection> {
 		return null;
 	}
 
@@ -48,11 +48,11 @@ export class DynamicRecord extends DRBase{
 		return null;
 	}
 
-	async first(options?: QueryOptions): Promise<ModelBase|DynamicCollection>{
+	async first(options?: QueryOptions): Promise<ModelBase<DataObject>|DynamicCollection>{
 		return null;
 	}
 
-	async last(options?: QueryOptions): Promise<ModelBase|DynamicCollection>{
+	async last(options?: QueryOptions): Promise<ModelBase<DataObject>|DynamicCollection>{
 		return null;
 	}
 }

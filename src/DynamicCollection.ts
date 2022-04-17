@@ -1,5 +1,4 @@
 import * as Bluebird from "bluebird";
-import {ModelConstructor} from "./DynamicRecord";
 
 export abstract class DynamicCollection extends Array{
 	/**
