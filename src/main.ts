@@ -1,29 +1,47 @@
-// import {DynamicRecordConstructor} from "./DynamicRecord";
-// import DynamicCollection from "./DynamicCollection";
-// import {DynamicSchema} from "./DynamicSchema";
+import {MongoClient} from "mongodb";
+import * as mysql from "mysql2/promise";
+import {DRConnection} from "./interfaces/connection";
 
-// const databaseURIRegex = /^(?<schema>.+?):\/\/(?:(?<username>.+?)(?::(?<password>.+))?@)?(?<host>.+?)(?::(?<port>\d+?))?(?:\/(?<database>.+?))?(?:\?(?<options>.+?))?$/;
-// const regexResult = process.env.database_host.match(databaseURIRegex);
+export async function createConnection(url: string): Promise<DRConnection> {
+	const databaseURIRegex = /^(?<protocol>.+?):\/\/(?:(?<username>.+?)(?::(?<password>.+))?@)?(?<host>.+?)(?::(?<port>\d+?))?(?:\/(?<database>.+?))?(?:\?(?<options>.+?))?$/;
+	const regexResult = url.match(databaseURIRegex);
 
-// let DR: DynamicRecordConstructor;
+	switch(regexResult.groups.protocol){
+		case "mongodb":
+		case "mongodb+srv": {
+			const client = new MongoClient(url, {
+				maxPoolSize: 10
+			});
+			const connection = client.connect();
 
-// switch(regexResult.groups.schema){
-// 	case "mongodb":
-// 	case "mongodb+srv":
-// 		DR = require("./mongodb/DynamicRecord.js");
-// 		break;
+			return connection.then((client) => {
+				const db = client.db();
+				return {
+					type: "mongodb",
+					interface: {db, client}
+				};
+			});
+		}
 
-// 	case "mysql":
-// 		DR = require("./mysql/DynamicRecord.js");
-// 		break;
+		case "mysql": {
+			const connection = mysql.createPool({
+				host: regexResult.groups.host,
+				port: parseInt(regexResult.groups.port),
+				user: regexResult.groups.username,
+				password: regexResult.groups.password,
+				database: regexResult.groups.database
+			});
+			return {
+				type: "mysql",
+				interface: connection
+			};
+		}
 
-// 	default:
-// 		throw new Error("Environment not set up correctly");
-// }
+		default:
+			throw new Error("URL protocol provided is not supported");
+	}
+}
 
-// export = DR;
-
-export {createConnection} from "./DynamicRecord";
 import {DynamicRecord} from "./DynamicRecord";
 export {DynamicRecord} from "./DynamicRecord";
 import {DynamicRecord as DRMongoDB} from "./mongodb/DynamicRecord";

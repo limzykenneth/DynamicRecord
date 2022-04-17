@@ -365,8 +365,3 @@ export class DynamicSchema extends Schema{
 		}
 	}
 }
-
-// export default function(connection){
-// 	connect = connection;
-// 	return DynamicSchema;
-// }

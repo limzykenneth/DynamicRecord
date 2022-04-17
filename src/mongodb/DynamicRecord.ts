@@ -2,28 +2,15 @@ import * as _ from "lodash";
 import {Model as ModelBase, DynamicRecord as DRBase} from "../DynamicRecord";
 import {DynamicCollection} from "./DynamicCollection";
 import {DynamicSchema} from "./DynamicSchema";
-// import {createConnection} from "./connection";
 import {QueryOptions} from "../interfaces/DynamicRecord";
 import SchemaValidator from "./schemaValidation";
 
 export class DynamicRecord extends DRBase {
-	// Static constructors for their own separate use
-	static DynamicSchema = DynamicSchema;
-	static DynamicCollection = DynamicCollection;
-
 	private _databaseConnection: any;
 	private _ready: any;
 	private _db: any;
 	private _client: any;
 	private _schemaValidator: any;
-
-	// static async closeConnection(){
-	// 	await super.closeConnection();
-	// 	const opts = await connect;
-	// 	await opts.client.close();
-	// }
-
-	// static createConnection = createConnection;
 
 	constructor(options: {tableSlug: string, connection: any}){
 		super(options);

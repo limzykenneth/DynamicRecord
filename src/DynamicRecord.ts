@@ -1,69 +1,13 @@
 import * as _ from "lodash";
-import {MongoClient} from "mongodb";
-import * as mysql from "mysql2/promise";
 import {DynamicCollection} from "./DynamicCollection";
 import {QueryOptions} from "./interfaces/DynamicRecord";
-
-interface DRConnection {
-	type: string
-	interface: any
-}
-
-export async function createConnection(url: string): Promise<DRConnection> {
-	const databaseURIRegex = /^(?<protocol>.+?):\/\/(?:(?<username>.+?)(?::(?<password>.+))?@)?(?<host>.+?)(?::(?<port>\d+?))?(?:\/(?<database>.+?))?(?:\?(?<options>.+?))?$/;
-	const regexResult = url.match(databaseURIRegex);
-
-	switch(regexResult.groups.protocol){
-		case "mongodb":
-		case "mongodb+srv": {
-			const client = new MongoClient(url, {
-				maxPoolSize: 10
-			});
-			const connection = client.connect();
-
-			return connection.then((client) => {
-				const db = client.db();
-				return {
-					type: "mongodb",
-					interface: {db, client}
-				};
-			});
-		}
-
-		case "mysql": {
-			const connection = mysql.createPool({
-				host: regexResult.groups.host,
-				port: parseInt(regexResult.groups.port),
-				user: regexResult.groups.username,
-				password: regexResult.groups.password,
-				database: regexResult.groups.database
-			});
-			return {
-				type: "mysql",
-				interface: connection
-			};
-		}
-
-		default:
-			throw new Error("URL protocol provided is not supported");
-	}
-}
+import {DRConnection} from "./interfaces/connection";
 
 export abstract class DynamicRecord {
 	// Instance specific constructors
 	Model: any;
 	// Instance specific Schema object
 	schema: any;
-
-	/**
-	 * Close the connection to the database server. Only used to terminate
-	 * the running node instance.
-	 *
-	 * @method closeConnection
-	 * @memberOf DynamicRecord
-	 * @static
-	 */
-	static closeConnection(){}
 
 	/**
 	 * Creates a new DynamicRecord instance.
