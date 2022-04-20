@@ -40,19 +40,19 @@ export class DynamicRecord<DataObject extends object> extends DRBase<DataObject>
 		return null;
 	}
 
-	async where(query: object, options?: QueryOptions): Promise<DynamicCollection> {
+	async where(query: object, options?: QueryOptions): Promise< DynamicCollection<DataObject> > {
 		return null;
 	}
 
-	async all(): Promise<DynamicCollection>{
+	async all(): Promise< DynamicCollection<DataObject> >{
 		return null;
 	}
 
-	async first(options?: QueryOptions): Promise< ModelBase<DataObject>|DynamicCollection >{
+	async first(options?: QueryOptions): Promise< ModelBase<DataObject>|DynamicCollection<DataObject> >{
 		return null;
 	}
 
-	async last(options?: QueryOptions): Promise< ModelBase<DataObject>|DynamicCollection >{
+	async last(options?: QueryOptions): Promise< ModelBase<DataObject>|DynamicCollection<DataObject> >{
 		return null;
 	}
 }

@@ -62,7 +62,7 @@ export abstract class DynamicRecord<DataObject extends object> {
 	 * and descending respectively.
 	 * @return {Promise} - Return promise of DynamicCollection instance
 	 */
-	abstract where(query: object, options?: QueryOptions): Promise<DynamicCollection>;
+	abstract where(query: object, options?: QueryOptions): Promise< DynamicCollection<DataObject> >;
 
 	/**
 	 * Return all entries from the table.
@@ -72,7 +72,7 @@ export abstract class DynamicRecord<DataObject extends object> {
 	 * @instance
 	 * @return {Promise} - Return promise of DynamicCollection instance
 	 */
-	abstract all(): Promise<DynamicCollection>;
+	abstract all(): Promise< DynamicCollection<DataObject> >;
 
 	/**
 	 * Return the first entry in the table. If provided query option
@@ -92,7 +92,7 @@ export abstract class DynamicRecord<DataObject extends object> {
 	 * @return {Promise} - Return promise of DynamicRecord.Model instance,
 	 * DynamicCollection instance, or null
 	 */
-	abstract first(options?: QueryOptions): Promise< Model<DataObject>|DynamicCollection >;
+	abstract first(options?: QueryOptions): Promise< Model<DataObject>|DynamicCollection<DataObject> >;
 
 	/**
 	 * Return the last entry in the table. If provided query option
@@ -112,8 +112,11 @@ export abstract class DynamicRecord<DataObject extends object> {
 	 * @return {Promise} - Return promise of DynamicRecord.Model instance,
 	 * DynamicCollection instance, or null
 	 */
-	abstract last(options?: QueryOptions): Promise< Model<DataObject>|DynamicCollection >;
+	abstract last(options?: QueryOptions): Promise< Model<DataObject>|DynamicCollection<DataObject> >;
 }
+
+export type ModelConstructor
+	= new<DataObject extends object>(data: DataObject, _preserveOriginal?: boolean) => Model<DataObject>;
 
 export abstract class Model<DataObject extends object> {
 	data: DataObject;
@@ -129,7 +132,7 @@ export abstract class Model<DataObject extends object> {
 	 * @param {object} data	Object containing data for this instance of
 	 * DynamicRecord.Model
 	 */
-	constructor(data: DataObject, _preserveOriginal: boolean){
+	constructor(data: DataObject, _preserveOriginal?: boolean){
 		/**
 		 * The data contained in this instance. It is not kept in sync with
 		 * the database automatically.

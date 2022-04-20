@@ -1,6 +1,7 @@
 import * as Bluebird from "bluebird";
+import {ModelConstructor} from "./DynamicRecord";
 
-export abstract class DynamicCollection extends Array{
+export abstract class DynamicCollection<DataObject extends object> extends Array{
 	/**
 	 * Creates a new DynamicCollection instance.
 	 *
@@ -13,12 +14,12 @@ export abstract class DynamicCollection extends Array{
 	 * @param {DynamicRecord.Model} Model	The Model constructor to use for
 	 *                              this collection
 	 */
-	constructor(Model, ...data){
+	constructor(Model: ModelConstructor, ...data: DataObject[]){
 		super();
 
 		const models = [];
 		data.forEach((d) => {
-			this.push(new Model(d));
+			this.push(new Model<DataObject>(d));
 		});
 	}
 
@@ -29,8 +30,8 @@ export abstract class DynamicCollection extends Array{
 	 * @memberOf DynamicCollection
 	 * @type Array
 	 */
-	get data(): Array<any>{
-		const result = [];
+	get data(): Array<DataObject>{
+		const result: DataObject[] = [];
 		this.forEach((el, i) => {
 			result.push(el.data);
 		});
@@ -60,7 +61,7 @@ export abstract class DynamicCollection extends Array{
 	 * @instance
 	 * @return {Promise} - Return promise of this DynamicCollection instance
 	 */
-	async saveAll(): Promise<DynamicCollection>{
+	async saveAll(): Promise< DynamicCollection<DataObject> >{
 		await Bluebird.each(this, (model) => {
 			if(model.save){
 				return model.save();
@@ -79,7 +80,7 @@ export abstract class DynamicCollection extends Array{
 	 * @instance
 	 * @return {Promise} - Return promise of this DynamicCollection instance
 	 */
-	async dropAll(): Promise<DynamicCollection>{
+	async dropAll(): Promise< DynamicCollection<DataObject> >{
 		const promises = [];
 		this.forEach((model) => {
 			if(model.destroy){

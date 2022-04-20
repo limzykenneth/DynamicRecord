@@ -199,7 +199,7 @@ export class DynamicRecord<DataObject extends {_id?: string}> extends DRBase<Dat
 		}
 	}
 
-	async where(query: object, options?: QueryOptions): Promise<DynamicCollection>{
+	async where(query: object, options?: QueryOptions): Promise< DynamicCollection<DataObject> >{
 		const col = await this._ready;
 		let models = await col.find(query)
 			.limit(options?.limit || 0)
@@ -215,7 +215,7 @@ export class DynamicRecord<DataObject extends {_id?: string}> extends DRBase<Dat
 			}))
 			.toArray();
 
-		const results = new DynamicCollection(this.Model, ...models);
+		const results = new DynamicCollection<DataObject>(this.Model, ...models);
 
 		results.forEach((result) => {
 			result._original = _.cloneDeep(result.data);
@@ -224,11 +224,11 @@ export class DynamicRecord<DataObject extends {_id?: string}> extends DRBase<Dat
 		return results;
 	}
 
-	async all(): Promise<DynamicCollection>{
+	async all(): Promise< DynamicCollection<DataObject> >{
 		const col = await this._ready;
 		let models = await col.find().toArray();
 
-		const results = new DynamicCollection(this.Model, ...models);
+		const results = new DynamicCollection<DataObject>(this.Model, ...models);
 
 		results.forEach((result) => {
 			result._original = _.cloneDeep(result.data);
@@ -237,7 +237,7 @@ export class DynamicRecord<DataObject extends {_id?: string}> extends DRBase<Dat
 		return results;
 	}
 
-	async first(options?: QueryOptions): Promise< ModelBase<DataObject>|DynamicCollection >{
+	async first(options?: QueryOptions): Promise< ModelBase<DataObject>|DynamicCollection<DataObject> >{
 		const col = await this._ready;
 		const models = await col.find({})
 			.limit(options?.limit || 1)
@@ -263,11 +263,11 @@ export class DynamicRecord<DataObject extends {_id?: string}> extends DRBase<Dat
 		}else if(models.length === 1 && _.isUndefined(options?.limit)){
 			return new this.Model(models[0], true);
 		}else{
-			return new DynamicCollection(this.Model, ...models);
+			return new DynamicCollection<DataObject>(this.Model, ...models);
 		}
 	}
 
-	async last(options?: QueryOptions): Promise< ModelBase<DataObject>|DynamicCollection >{
+	async last(options?: QueryOptions): Promise< ModelBase<DataObject>|DynamicCollection<DataObject> >{
 		const col = await this._ready;
 		const models = await col.find({})
 			.limit(options?.limit || 1)
@@ -293,7 +293,7 @@ export class DynamicRecord<DataObject extends {_id?: string}> extends DRBase<Dat
 		}else if(models.length === 1 && _.isUndefined(options?.limit)){
 			return new this.Model(models[0], true);
 		}else{
-			return new DynamicCollection(this.Model, ...models);
+			return new DynamicCollection<DataObject>(this.Model, ...models);
 		}
 	}
 }

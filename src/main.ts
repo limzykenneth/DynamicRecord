@@ -78,11 +78,11 @@ import {DynamicCollection} from "./DynamicCollection";
 import {DynamicCollection as DRCMongoDB} from "./mongodb/DynamicCollection";
 import {DynamicCollection as DRCMySQL} from "./mysql/DynamicCollection";
 
-export function createCollection(connection, Model, ...data): DynamicCollection {
+export function createCollection<DataObject extends object>(connection, Model, ...data): DynamicCollection<DataObject> {
 	if(connection.type === "mongodb"){
-		return new DRCMongoDB(Model, ...data);
+		return new DRCMongoDB<DataObject>(Model, ...data);
 	}else if(connection.type === "mysql"){
-		return new DRCMySQL(Model, ...data);
+		return new DRCMySQL<DataObject>(Model, ...data);
 	}else{
 		throw new Error("Connection object provided is not valid");
 	}
