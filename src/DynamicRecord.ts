@@ -41,7 +41,7 @@ export abstract class DynamicRecord<DataObject extends object> {
 	 * in the database
 	 * @return {Promise} - Return promise of DynamicRecord.Model instance or null
 	 */
-	abstract findBy(query: object): Promise<Model<DataObject>>;
+	abstract findBy(query: object): Promise< Model<DataObject> >;
 
 	/**
 	 * Find all the entries in the table that match the query.
@@ -92,7 +92,7 @@ export abstract class DynamicRecord<DataObject extends object> {
 	 * @return {Promise} - Return promise of DynamicRecord.Model instance,
 	 * DynamicCollection instance, or null
 	 */
-	abstract first(options?: QueryOptions): Promise<Model<DataObject>|DynamicCollection>;
+	abstract first(options?: QueryOptions): Promise< Model<DataObject>|DynamicCollection >;
 
 	/**
 	 * Return the last entry in the table. If provided query option
@@ -112,7 +112,7 @@ export abstract class DynamicRecord<DataObject extends object> {
 	 * @return {Promise} - Return promise of DynamicRecord.Model instance,
 	 * DynamicCollection instance, or null
 	 */
-	abstract last(options?: QueryOptions): Promise<Model<DataObject>|DynamicCollection>;
+	abstract last(options?: QueryOptions): Promise< Model<DataObject>|DynamicCollection >;
 }
 
 export abstract class Model<DataObject extends object> {
@@ -165,7 +165,7 @@ export abstract class Model<DataObject extends object> {
 	 * @instance
 	 * @return {Promise} - Return promise of this DynamicRecord.Model instance
 	 */
-	abstract save(): Promise<Model<DataObject>>;
+	abstract save(): Promise< Model<DataObject> >;
 
 	/**
 	 * Delete the entry this instance links to. Clear the data property
@@ -176,7 +176,7 @@ export abstract class Model<DataObject extends object> {
 	 * @instance
 	 * @return {Promise} - Return promise of this DynamicRecord.Model instance
 	 */
-	abstract destroy(): Promise<Model<DataObject>>;
+	abstract destroy(): Promise< Model<DataObject> >;
 
 	/**
 	 * Validate the data in this instance conform to its schema.

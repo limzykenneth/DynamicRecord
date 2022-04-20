@@ -5,11 +5,7 @@ import {DynamicSchema} from "./DynamicSchema";
 import {QueryOptions} from "../interfaces/DynamicRecord";
 import SchemaValidator from "./schemaValidation";
 
-interface MongoDBObject extends Object {
-	_id: string
-}
-
-export class DynamicRecord<DataObject extends MongoDBObject> extends DRBase<DataObject> {
+export class DynamicRecord<DataObject extends {_id?: string}> extends DRBase<DataObject> {
 	private _databaseConnection: any;
 	private _ready: any;
 	private _db: any;
@@ -39,8 +35,8 @@ export class DynamicRecord<DataObject extends MongoDBObject> extends DRBase<Data
 			}
 		});
 
-		const Model = this.Model = class Model<DataObject extends MongoDBObject> extends ModelBase<DataObject> {
-			private _savePromise: Promise<Model<DataObject>>;
+		const Model = this.Model = class Model<DataObject extends {_id?: string}> extends ModelBase<DataObject> {
+			private _savePromise: Promise< Model<DataObject> >;
 			private _id: string;
 
 			constructor(data: any, _preserveOriginal: boolean){
@@ -57,7 +53,7 @@ export class DynamicRecord<DataObject extends MongoDBObject> extends DRBase<Data
 				this._id = id;
 			}
 
-			async save(): Promise<Model<DataObject>>{
+			async save(): Promise< Model<DataObject> >{
 				const saveData = async () => {
 					const col = await _ready;
 					if(this._id){
@@ -138,7 +134,7 @@ export class DynamicRecord<DataObject extends MongoDBObject> extends DRBase<Data
 				}
 			}
 
-			async destroy(): Promise<Model<DataObject>>{
+			async destroy(): Promise< Model<DataObject> >{
 				const col = await _ready;
 				const destroyData = async () => {
 					if(this._original){
@@ -192,7 +188,7 @@ export class DynamicRecord<DataObject extends MongoDBObject> extends DRBase<Data
 		}
 	}
 
-	async findBy(query: object): Promise<ModelBase<DataObject>>{
+	async findBy(query: object): Promise< ModelBase<DataObject> >{
 		const col = await this._ready;
 		const model = await col.findOne(query);
 
@@ -241,7 +237,7 @@ export class DynamicRecord<DataObject extends MongoDBObject> extends DRBase<Data
 		return results;
 	}
 
-	async first(options?: QueryOptions): Promise<ModelBase<DataObject>|DynamicCollection>{
+	async first(options?: QueryOptions): Promise< ModelBase<DataObject>|DynamicCollection >{
 		const col = await this._ready;
 		const models = await col.find({})
 			.limit(options?.limit || 1)
@@ -271,7 +267,7 @@ export class DynamicRecord<DataObject extends MongoDBObject> extends DRBase<Data
 		}
 	}
 
-	async last(options?: QueryOptions): Promise<ModelBase<DataObject>|DynamicCollection>{
+	async last(options?: QueryOptions): Promise< ModelBase<DataObject>|DynamicCollection >{
 		const col = await this._ready;
 		const models = await col.find({})
 			.limit(options?.limit || 1)

@@ -36,7 +36,7 @@ export class DynamicRecord<DataObject extends object> extends DRBase<DataObject>
 		return null;
 	}
 
-	async findBy(query: object): Promise<ModelBase<DataObject>>{
+	async findBy(query: object): Promise< ModelBase<DataObject> >{
 		return null;
 	}
 
@@ -48,11 +48,11 @@ export class DynamicRecord<DataObject extends object> extends DRBase<DataObject>
 		return null;
 	}
 
-	async first(options?: QueryOptions): Promise<ModelBase<DataObject>|DynamicCollection>{
+	async first(options?: QueryOptions): Promise< ModelBase<DataObject>|DynamicCollection >{
 		return null;
 	}
 
-	async last(options?: QueryOptions): Promise<ModelBase<DataObject>|DynamicCollection>{
+	async last(options?: QueryOptions): Promise< ModelBase<DataObject>|DynamicCollection >{
 		return null;
 	}
 }

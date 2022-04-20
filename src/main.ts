@@ -46,12 +46,13 @@ import {DynamicRecord} from "./DynamicRecord";
 export {DynamicRecord} from "./DynamicRecord";
 import {DynamicRecord as DRMongoDB} from "./mongodb/DynamicRecord";
 import {DynamicRecord as DRMySQL} from "./mysql/DynamicRecord";
+import {DataObject} from "./interfaces/DynamicRecord";
 
-export function createInstance(connection, tableSlug): DynamicRecord<object> {
+export function createInstance<DataObject extends object>(connection, tableSlug): DynamicRecord<DataObject> {
 	if(connection.type === "mongodb"){
-		return new DRMongoDB({tableSlug, connection});
+		return new DRMongoDB<DataObject>({tableSlug, connection});
 	}else if(connection.type === "mysql"){
-		return new DRMySQL({tableSlug, connection});
+		return new DRMySQL<DataObject>({tableSlug, connection});
 	}else{
 		throw new Error("Connection object provided is not valid");
 	}
