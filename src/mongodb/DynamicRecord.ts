@@ -1,18 +1,21 @@
 import * as _ from "lodash";
+import {Ajv} from "ajv";
+import {Db, MongoClient} from "mongodb";
 import {Model as ModelBase, DynamicRecord as DRBase} from "../DynamicRecord";
 import {DynamicCollection} from "./DynamicCollection";
 import {DynamicSchema} from "./DynamicSchema";
 import {QueryOptions} from "../interfaces/DynamicRecord";
+import {DRConnection} from "../interfaces/connection";
 import SchemaValidator from "./schemaValidation";
 
 export class DynamicRecord<DataObject extends {_id?: string}> extends DRBase<DataObject> {
-	private _databaseConnection: any;
+	private _databaseConnection: DRConnection;
 	private _ready: any;
-	private _db: any;
-	private _client: any;
-	private _schemaValidator: any;
+	private _db: Db;
+	private _client: MongoClient;
+	private _schemaValidator: Ajv;
 
-	constructor(options: {tableSlug: string, connection: any}){
+	constructor(options: {tableSlug: string, connection: DRConnection}){
 		super(options);
 		const connect = this._databaseConnection = options.connection;
 		const _schemaValidator = this._schemaValidator = SchemaValidator(this._databaseConnection);
@@ -39,7 +42,7 @@ export class DynamicRecord<DataObject extends {_id?: string}> extends DRBase<Dat
 			private _savePromise: Promise< Model<DataObject> >;
 			private _id: string;
 
-			constructor(data: any, _preserveOriginal: boolean){
+			constructor(data: DataObject, _preserveOriginal: boolean){
 				let id = null;
 
 				// Preserve mongodb _id if exist for faster saving

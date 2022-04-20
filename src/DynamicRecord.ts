@@ -29,7 +29,7 @@ export abstract class DynamicRecord<DataObject extends object> {
 	 * @instance
 	 */
 	// Should only ever be called to terminate the node process
-	abstract closeConnection(): Promise<any>;
+	abstract closeConnection(): Promise<void>;
 
 	/**
 	 * Find the latest entry in the table that match the query.
