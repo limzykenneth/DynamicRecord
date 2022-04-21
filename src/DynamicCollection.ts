@@ -49,7 +49,7 @@ export abstract class DynamicCollection<DataObject extends object> extends Array
 	 * @return {DynamicCollection}
 	 */
 	// ABSTRACT STATIC METHOD
-	static fromArray(arr: Array<any>, Model){}
+	static fromArray<DataObject extends object>(arr: Array<DataObject>, Model: ModelConstructor){}
 
 	/**
 	 * Save all the model instances in the DynamicCollection.

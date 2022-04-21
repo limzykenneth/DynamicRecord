@@ -6,11 +6,11 @@ export class DynamicCollection<DataObject extends object> extends Collection<Dat
 		super(Model, ...data);
 	}
 
-	static fromArray(arr: Array<any>, Model): DynamicCollection<object> {
+	static fromArray<DataObject extends object>(arr: Array<DataObject>, Model: ModelConstructor): DynamicCollection<DataObject> {
 		const result = arr.reduce((acc, el) => {
-			acc.push(new Model(el));
+			acc.push(new Model<DataObject>(el));
 			return acc;
-		}, new DynamicCollection(Model));
+		}, new DynamicCollection<DataObject>(Model));
 
 		return result;
 	}

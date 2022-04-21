@@ -1,13 +1,14 @@
 import * as _ from "lodash";
 import {DynamicCollection} from "./DynamicCollection";
+import {DynamicSchema} from "./DynamicSchema";
 import {QueryOptions} from "./interfaces/DynamicRecord";
 import {DRConnection} from "./interfaces/connection";
 
 export abstract class DynamicRecord<DataObject extends object> {
 	// Instance specific constructors
-	Model: any;
+	Model: ModelConstructor;
 	// Instance specific Schema object
-	schema: any;
+	schema: DynamicSchema;
 
 	/**
 	 * Creates a new DynamicRecord instance.
