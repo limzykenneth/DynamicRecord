@@ -28,34 +28,36 @@ const testData = utility.testData;
 
 let Random, connection;
 
-// ------------------ Setups ------------------
-// Clear table and insert dummy data
-before(async function(){
-	await utils.resetTestTables();
-	await utils.setupSuite();
-
-	connection = await createConnection(process.env.database_host);
-
-	Random = createInstance(connection, testSchema.$id);
-});
-
-// Close all database connections
-after(async function(){
-	await connection.interface.client.close();
-	await utils.dropTestTable();
-	await utils.cleanUpSuite();
-});
-// --------------------------------------------
-
 // ----------------- Tests --------------------
 describe("Schema", function(){
+	// ------------------ Setups ------------------
+	// Clear table and insert dummy data
+	before(async function(){
+		await utils.resetTestTables();
+		await utils.setupSuite();
+
+		connection = createConnection(process.env.database_host);
+
+		Random = createInstance(connection, testSchema.$id);
+
+		await connection.interface;
+	});
+
+	// Close all database connections
+	after(async function(){
+		(await connection.interface).client.close();
+		await utils.dropTestTable();
+		await utils.cleanUpSuite();
+	});
+	// --------------------------------------------
+
 	describe("createTable()", function(){
-		beforeEach(function(){
-			return utils.resetTestTables();
+		beforeEach(async function(){
+			await utils.resetTestTables();
 		});
 
-		after(function(){
-			return utils.dropTestTable();
+		after(async function(){
+			await utils.dropTestTable();
 		});
 
 		it("should create an empty table or collection in the database", async function(){
@@ -116,8 +118,8 @@ describe("Schema", function(){
 			await table.createTable(testSchema);
 		});
 
-		after(function(){
-			return utils.dropTestTable();
+		after(async function(){
+			await utils.dropTestTable();
 		});
 
 		it("should remove the table's entry in the _schema table", async function(){
@@ -165,8 +167,8 @@ describe("Schema", function(){
 			await table.createTable(testSchema);
 		});
 
-		after(function(){
-			return utils.dropTestTable();
+		after(async function(){
+			await utils.dropTestTable();
 		});
 
 		it("should rename the table in database and object instance", async function(){
@@ -240,8 +242,8 @@ describe("Schema", function(){
 			await table.createTable(testSchema);
 		});
 
-		after(function(){
-			return utils.dropTestTable();
+		after(async function(){
+			await utils.dropTestTable();
 		});
 
 		it("should create a new index", async function(){
@@ -444,8 +446,8 @@ describe("Schema", function(){
 			});
 		});
 
-		after(function(){
-			return utils.dropTestTable();
+		after(async function(){
+			await utils.dropTestTable();
 		});
 
 		it("should remove the column from the index list", async function(){
@@ -508,8 +510,8 @@ describe("Schema", function(){
 			await utils.setupSuite();
 		});
 
-		after(function(){
-			return utils.dropTestTable();
+		after(async function(){
+			await utils.dropTestTable();
 		});
 
 		it("should read the schema entry from the database correctly", async function(){
@@ -522,12 +524,12 @@ describe("Schema", function(){
 	});
 
 	describe("define()", function(){
-		beforeEach(function(){
-			return utils.resetTestTables();
+		beforeEach(async function(){
+			await utils.resetTestTables();
 		});
 
-		after(function(){
-			return utils.dropTestTable();
+		after(async function(){
+			await utils.dropTestTable();
 		});
 
 		it("should write the schema definition to the database", async function(){
@@ -572,8 +574,8 @@ describe("Schema", function(){
 			await utils.setupSuite();
 		});
 
-		after(function(){
-			return utils.dropTestTable();
+		after(async function(){
+			await utils.dropTestTable();
 		});
 
 		it("should add a column entry to the definition and database", async function(){
@@ -623,8 +625,8 @@ describe("Schema", function(){
 			await utils.setupSuite();
 		});
 
-		after(function(){
-			return utils.dropTestTable();
+		after(async function(){
+			await utils.dropTestTable();
 		});
 
 		it("should add multiple columns to the definition and database", async function(){
@@ -687,8 +689,8 @@ describe("Schema", function(){
 			await utils.setupSuite();
 		});
 
-		after(function(){
-			return utils.dropTestTable();
+		after(async function(){
+			await utils.dropTestTable();
 		});
 
 		it("should remove a specified column entry from the definition", async function(){
@@ -720,12 +722,12 @@ describe("Schema", function(){
 	});
 
 	describe("renameColumn()", function(){
-		beforeEach(function(){
-			return utils.resetTestTables();
+		beforeEach(async function(){
+			await utils.resetTestTables();
 		});
 
-		after(function(){
-			return utils.dropTestTable();
+		after(async function(){
+			await utils.dropTestTable();
 		});
 
 		it("should rename a specified column entry in the definition", async function(){
@@ -797,12 +799,12 @@ describe("Schema", function(){
 	});
 
 	describe("changeColumnType()", function(){
-		beforeEach(function(){
-			return utils.resetTestTables();
+		beforeEach(async function(){
+			await utils.resetTestTables();
 		});
 
-		after(function(){
-			return utils.dropTestTable();
+		after(async function(){
+			await utils.dropTestTable();
 		});
 
 		it("should change the specified column type in the definition", async function(){

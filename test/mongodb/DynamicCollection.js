@@ -29,27 +29,27 @@ const testData = utility.testData;
 
 let Random, connection;
 
-// ------------------ Setups ------------------
-// Clear table and insert dummy data
-before(async function(){
-	await utils.resetTestTables();
-	await utils.setupSuite();
-
-	connection = await createConnection(process.env.database_host);
-
-	Random = createInstance(connection, testSchema.$id);
-});
-
-// Close all database connections
-after(async function(){
-	await connection.interface.client.close();
-	await utils.dropTestTable();
-	await utils.cleanUpSuite();
-});
-// --------------------------------------------
-
 // ----------------- Tests --------------------
 describe("DynamicCollection", function(){
+	// ------------------ Setups ------------------
+	// Clear table and insert dummy data
+	before(async function(){
+		await utils.resetTestTables();
+		await utils.setupSuite();
+
+		connection = createConnection(process.env.database_host);
+
+		Random = createInstance(connection, testSchema.$id);
+	});
+
+	// Close all database connections
+	after(async function(){
+		(await connection.interface).client.close();
+		await utils.dropTestTable();
+		await utils.cleanUpSuite();
+	});
+	// --------------------------------------------
+
 	let col;
 	beforeEach(function(){
 		col = createCollection(connection);
@@ -87,13 +87,14 @@ describe("DynamicCollection", function(){
 	describe("saveAll()", function(){
 		let col;
 
-		beforeEach(function(){
+		beforeEach(async function(){
+			const {db} = await connection.interface;
 			const data = _.cloneDeep(testData);
 			col = createCollection(connection, Random.Model, ...data);
 		});
 
-		afterEach(function(){
-			return utils.resetTestTables();
+		afterEach(async function(){
+			await utils.resetTestTables();
 		});
 
 		it("should call save function of all the models in the collection", async function(){
@@ -158,8 +159,8 @@ describe("DynamicCollection", function(){
 			col = createCollection(connection, Random.Model, ...data);
 		});
 
-		afterEach(function(){
-			return utils.resetTestTables();
+		afterEach(async function(){
+			await utils.resetTestTables();
 		});
 
 		it("should call destroy function of all the models in the collection", async function(){

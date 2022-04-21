@@ -28,30 +28,30 @@ const testData = utility.testData;
 
 let Random, connection;
 
-// ------------------ Setups ------------------
-// Clear table and insert dummy data
-before(async function(){
-	await utils.resetTestTables();
-	await utils.setupSuite();
-
-	connection = await createConnection(process.env.database_host);
-
-	Random = createInstance(connection, testSchema.$id);
-});
-
-// Close all database connections
-after(async function(){
-	await connection.interface.client.close();
-	await utils.dropTestTable();
-	await utils.cleanUpSuite();
-});
-// --------------------------------------------
-
 // ----------------- Tests --------------------
 //--------------------------------------------------------------------//
 // Model describes an individual entry in an dynamic record instance  //
 //--------------------------------------------------------------------//
 describe("Model", function(){
+	// ------------------ Setups ------------------
+	// Clear table and insert dummy data
+	before(async function(){
+		await utils.resetTestTables();
+		await utils.setupSuite();
+
+		connection = createConnection(process.env.database_host);
+
+		Random = createInstance(connection, testSchema.$id);
+	});
+
+	// Close all database connections
+	after(async function(){
+		await utils.dropTestTable();
+		await utils.cleanUpSuite();
+		(await connection.interface).client.close();
+	});
+	// --------------------------------------------
+
 	describe("Constructor", function(){
 		it("should set the data object according to the object passed in", function(){
 			let model = new Random.Model(testData[0]);

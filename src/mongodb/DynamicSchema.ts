@@ -10,13 +10,13 @@ export class DynamicSchema extends Schema{
 	}
 
 	async createTable(schemaInput:TableSchema): Promise<DynamicSchema>{
+		const {db} = await connect;
 		const schema = _.cloneDeep(schemaInput);
 		const tableSlug:string = schema.$id;
 		const tableName:string = schema.title || schema.$id;
 		const columns:SchemaDefinitions = schema.properties;
 		const required = _.cloneDeep(schema.required) || [];
 		const description = schema.description || "";
-		const {db} = await connect;
 
 		try{
 			// Create the collection, ensuring that is doesn't already exist
@@ -134,6 +134,7 @@ export class DynamicSchema extends Schema{
 	}
 
 	async addIndex(options:IndexOptions): Promise<DynamicSchema>{
+		const {db} = await connect;
 		const columnName:string = options.name;
 		const isAutoIncrement:boolean = options.autoIncrement;
 		let unique:boolean = options.unique;
@@ -147,7 +148,6 @@ export class DynamicSchema extends Schema{
 		}
 
 		try{
-			const {db} = await connect;
 			await db.collection(this.tableSlug).createIndex(columnName, {unique: unique, name: columnName});
 
 			if(isAutoIncrement){
@@ -230,12 +230,12 @@ export class DynamicSchema extends Schema{
 	}
 
 	async define(def:SchemaDefinitions, required:Array<string> = []): Promise<DynamicSchema>{
+		const {db} = await connect;
 		const oldDef:SchemaDefinitions = _.cloneDeep(this.definition);
 		this.definition = def;
 
 		// Create schema in RMDB, do nothing in NoSQL
 		try{
-			const {db} = await connect;
 			await db.collection("_schema").findOneAndUpdate({
 				_$id: this.tableSlug,
 			}, {
@@ -255,11 +255,11 @@ export class DynamicSchema extends Schema{
 	}
 
 	async renameColumn(name:string, newName:string): Promise<DynamicSchema>{
+		const {db} = await connect;
 		this.definition[newName] = _.cloneDeep(this.definition[name]);
 		delete this.definition[name];
 
 		try{
-			const {db} = await connect;
 			await this._writeSchema();
 			const entry = await db.collection("_counters").findOne({"_$id": this.tableSlug});
 			

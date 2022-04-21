@@ -29,27 +29,27 @@ const testData = utility.testData;
 
 let Random, connection;
 
-// ------------------ Setups ------------------
-// Clear table and insert dummy data
-before(async function(){
-	await utils.resetTestTables();
-	await utils.setupSuite();
-
-	connection = await createConnection(process.env.database_host);
-
-	Random = createInstance(connection, testSchema.$id);
-});
-
-// Close all database connections
-after(async function(){
-	await connection.interface.client.close();
-	await utils.dropTestTable();
-	await utils.cleanUpSuite();
-});
-// --------------------------------------------
-
 // ----------------- Tests --------------------
 describe("DynamicRecord", function(){
+	// ------------------ Setups ------------------
+	// Clear table and insert dummy data
+	before(async function(){
+		await utils.resetTestTables();
+		await utils.setupSuite();
+
+		connection = createConnection(process.env.database_host);
+
+		Random = createInstance(connection, testSchema.$id);
+	});
+
+	// Close all database connections
+	after(async function(){
+		(await connection.interface).client.close();
+		await utils.dropTestTable();
+		await utils.cleanUpSuite();
+	});
+	// --------------------------------------------
+
 	beforeEach(async function(){
 		// Fill with dummy data
 		const client = await connect;
@@ -65,10 +65,12 @@ describe("DynamicRecord", function(){
 
 	// Tests
 	describe("Constructor", function(){
-		it("should retrieve the specified table or collection from the database", function(){
-			assert.equal(Random.schema.tableSlug, testSchema.$id);
-			assert.equal(Random.schema.tableName, testSchema.title);
-			assert.deepEqual(Random.schema.definition, testSchema.properties);
+		it("should retrieve the specified table or collection from the database", async function(){
+			const schema = await Random.schema;
+
+			assert.equal(schema.tableSlug, testSchema.$id);
+			assert.equal(schema.tableName, testSchema.title);
+			assert.deepEqual(schema.definition, testSchema.properties);
 		});
 	});
 

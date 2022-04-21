@@ -1,6 +1,7 @@
 import * as _ from "lodash";
 import * as Ajv from "ajv";
 import * as countersSchema from "../schemas/_counters.schema.json";
+import {DRConnection} from "../interfaces/connection";
 
 let connect;
 
@@ -11,7 +12,7 @@ const ajv = new Ajv({
 ajv.addSchema(countersSchema, "countersSchema");
 
 async function loadSchema(tableSlug){
-	const {db} = connect.interface;
+	const {db} = await connect.interface;
 	const schema = await db.collection("_schema").findOne({"_$id": tableSlug});
 
 	// Restore keys starting with "$" and delete ObjectID field
@@ -28,7 +29,7 @@ async function loadSchema(tableSlug){
 	return schema;
 }
 
-export default function(connection){
+export default function(connection: DRConnection){
 	connect = connection;
 	return ajv;
 }

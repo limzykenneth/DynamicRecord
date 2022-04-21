@@ -9,6 +9,8 @@ import {DRConnection} from "../interfaces/connection";
 import SchemaValidator from "./schemaValidation";
 
 export class DynamicRecord<DataObject extends {_id?: string}> extends DRBase<DataObject> {
+	schema: Promise<DynamicSchema>;
+
 	private _databaseConnection: DRConnection;
 	private _ready: any;
 	private _db: Db;
@@ -17,18 +19,29 @@ export class DynamicRecord<DataObject extends {_id?: string}> extends DRBase<Dat
 
 	constructor(options: {tableSlug: string, connection: DRConnection}){
 		super(options);
+
+		let _db, _client;
 		const connect = this._databaseConnection = options.connection;
 		const _schemaValidator = this._schemaValidator = SchemaValidator(this._databaseConnection);
-		const _schema = this.schema = new DynamicSchema({connection: this._databaseConnection});
 		const tableSlug = options.tableSlug;
-		const _db = this._db = connect.interface.db;
-		const _client = this._client = connect.interface.client;
+
+		const _schema: Promise<DynamicSchema> = this.schema = connect.interface.then(({db}) => {
+			return new DynamicSchema({connection: this._databaseConnection});
+		}).then((schema) => {
+			return schema.read(tableSlug);
+		}).then((schema) => {
+			if(schema.tableSlug === null) return Promise.reject(`Table with name ${tableSlug} does not exist`);
+			return schema;
+		});
 
 		// Initialize database connection and populate schema instance
 		// Collection must already exist in database
-		const _ready = this._ready = this.schema.read(tableSlug).then((schema) => {
-			if(schema.tableSlug === "") return Promise.reject(`Table with name ${tableSlug} does not exist`);
+		const _ready = this._ready = connect.interface.then(({db, client}) => {
+			_db = this._db = db;
+			_client = this._client = client;
 
+			return this.schema;
+		}).then((schema) => {
 			const col = _db.collection(tableSlug);
 
 			if(col){
@@ -57,6 +70,8 @@ export class DynamicRecord<DataObject extends {_id?: string}> extends DRBase<Dat
 			}
 
 			async save(): Promise< Model<DataObject> >{
+				await _ready;
+
 				const saveData = async () => {
 					const col = await _ready;
 					if(this._id){
@@ -73,9 +88,11 @@ export class DynamicRecord<DataObject extends {_id?: string}> extends DRBase<Dat
 							if(res !== null){
 								// Auto incrementing index exist
 								_.each(res.sequences, (el, columnLabel) => {
-									promises.push(_schema._incrementCounter(tableSlug, columnLabel).then((newSequence) => {
-										this.data[columnLabel] = newSequence;
-										return Promise.resolve(newSequence);
+									promises.push(_schema.then((schema) => {
+										return schema._incrementCounter(tableSlug, columnLabel).then((newSequence) => {
+											this.data[columnLabel] = newSequence;
+											return Promise.resolve(newSequence);
+										});
 									}));
 								});
 
@@ -103,7 +120,9 @@ export class DynamicRecord<DataObject extends {_id?: string}> extends DRBase<Dat
 										const promises = [];
 										if(res){
 											_.each(res.sequences, (el, columnLabel) => {
-												promises.push(_schema._decrementCounter(tableSlug, columnLabel));
+												promises.push(_schema.then((schema) => {
+													return schema._decrementCounter(tableSlug, columnLabel);
+												}));
 											});
 										}
 
@@ -128,7 +147,8 @@ export class DynamicRecord<DataObject extends {_id?: string}> extends DRBase<Dat
 				return this._savePromise;
 
 				async function validateData(data){
-					const validate = await _schemaValidator.compileAsync({$ref: _schema.tableSlug});
+					const schema = await _schema;
+					const validate = await _schemaValidator.compileAsync({$ref: schema.tableSlug});
 					if(validate(data)){
 						return Promise.resolve();
 					}else{

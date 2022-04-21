@@ -8,7 +8,7 @@ export abstract class DynamicRecord<DataObject extends object> {
 	// Instance specific constructors
 	Model: ModelConstructor;
 	// Instance specific Schema object
-	schema: DynamicSchema;
+	schema: Promise<DynamicSchema>;
 
 	/**
 	 * Creates a new DynamicRecord instance.

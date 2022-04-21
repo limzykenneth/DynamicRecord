@@ -158,6 +158,8 @@ async function init(url, isPreview=false, quiet=false){
 				return Promise.resolve();
 			});
 		}
+	}else{
+		throw new Error("Unsupported database type");
 	}
 }
 

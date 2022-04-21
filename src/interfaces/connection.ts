@@ -1,4 +1,4 @@
 export interface DRConnection {
 	type: string
-	interface: any
+	interface: Promise<any>
 }
