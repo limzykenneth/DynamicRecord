@@ -20,8 +20,8 @@ jobs:
         uses: supercharge/mongodb-github-action@1.7.0
         with:
           mongodb-version: "5.0"
-          mongodb-username: test
-          mongodb-password: test
+          mongodb-username: test_user
+          mongodb-password: test_user
           mongodb-db: dynamic_record
 
       - name: Install dependencies
