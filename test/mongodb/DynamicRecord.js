@@ -37,6 +37,7 @@ describe("DynamicRecord", function(){
 		await utils.resetTestTables();
 		await utils.setupSuite();
 
+		console.log(process.env.database_host);
 		connection = createConnection(process.env.database_host);
 
 		Random = createInstance(connection, testSchema.$id);
