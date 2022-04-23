@@ -49,6 +49,7 @@ export function createConnection(url: string): DRConnection {
 
 import {DynamicRecord} from "./DynamicRecord";
 export {DynamicRecord} from "./DynamicRecord";
+export {Model as DynamicModel} from "./DynamicRecord";
 import {DynamicRecord as DRMongoDB} from "./mongodb/DynamicRecord";
 import {DynamicRecord as DRMySQL} from "./mysql/DynamicRecord";
 import {DataObject} from "./interfaces/DynamicRecord";
