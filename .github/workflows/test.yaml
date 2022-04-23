@@ -23,15 +23,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      # - name: Start MongoDB
-      #   uses: supercharge/mongodb-github-action@1.7.0
-      #   with:
-      #     mongodb-version: "5.0"
-      #     mongodb-username: root
-      #     mongodb-password: root
-      #     mongodb-db: admin
-
-      - run: mongo dynamic_record --eval 'db.createUser({user:"test_user",pwd:"test_user",roles:["readWrite"]});'
+      - name: Add database user
+        run: mongo dynamic_record --eval 'db.createUser({user:"test_user",pwd:"test_user",roles:["readWrite"]});'
 
       - name: Install dependencies
         run: npm install
