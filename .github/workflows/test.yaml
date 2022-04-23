@@ -7,6 +7,13 @@ jobs:
     strategy:
       matrix:
         node-version: [12.x, 14.x, 16.x]
+
+    services:
+      mongodb:
+        image: mongo
+        ports:
+        - 27017:27017
+
     steps:
       - name: Git checkout
         uses: actions/checkout@v2
@@ -16,15 +23,15 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.7.0
-        with:
-          mongodb-version: "5.0"
-          mongodb-username: root
-          mongodb-password: root
-          mongodb-db: admin
+      # - name: Start MongoDB
+      #   uses: supercharge/mongodb-github-action@1.7.0
+      #   with:
+      #     mongodb-version: "5.0"
+      #     mongodb-username: root
+      #     mongodb-password: root
+      #     mongodb-db: admin
 
-      - run: mongo --ssl dynamic_record -u root -p root --authenticationDatabase admin --eval 'db.createUser({user:"test_user",pwd:"test_user",roles:["readWrite"]});'
+      - run: mongo dynamic_record --eval 'db.createUser({user:"test_user",pwd:"test_user",roles:["readWrite"]});'
 
       - name: Install dependencies
         run: npm install
@@ -32,4 +39,4 @@ jobs:
       - name: Run test
         run: npm test
         env: 
-          database_host: "mongodbs://test_user:test_user@localhost:27017/dynamic_record"
+          database_host: "mongodb://test_user:test_user@localhost:27017/dynamic_record"
