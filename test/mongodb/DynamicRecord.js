@@ -34,10 +34,10 @@ describe("DynamicRecord", function(){
 	// ------------------ Setups ------------------
 	// Clear table and insert dummy data
 	before(async function(){
+		console.log(process.env.database_host);
 		await utils.resetTestTables();
 		await utils.setupSuite();
 
-		console.log(process.env.database_host);
 		connection = createConnection(process.env.database_host);
 
 		Random = createInstance(connection, testSchema.$id);
