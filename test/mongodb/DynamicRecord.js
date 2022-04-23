@@ -34,7 +34,6 @@ describe("DynamicRecord", function(){
 	// ------------------ Setups ------------------
 	// Clear table and insert dummy data
 	before(async function(){
-		console.log(process.env.database_host);
 		await utils.resetTestTables();
 		await utils.setupSuite();
 
