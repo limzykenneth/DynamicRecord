@@ -24,7 +24,7 @@ jobs:
           mongodb-password: root
           mongodb-db: admin
 
-      - run: mongo mongo_test_db --eval 'db.createUser({user:"travis",pwd:"test",roles:["readWrite"]});'
+      - run: mongo dynamic_record -u root -p root --authenticationDatabase admin --eval 'db.createUser({user:"test_user",pwd:"test_user",roles:["readWrite"]});'
 
       - name: Install dependencies
         run: npm install
