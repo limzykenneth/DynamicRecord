@@ -15,7 +15,6 @@ function cli(program){
 		.option("-u, --username <username>", "Username of the database server's user, user must have read write access to the database it will be accessing")
 		.option("-p, --password <password>", "Password of the database server's user")
 		.option("-d, --database <database name>", "Name of the database to use")
-		.option("-e, --env", "Create .env file", false)
 		.option("--preview", "Dry run tasks without writing anything to file or database", false)
 		.action(async function(cmd){
 			if(typeof cmd.server === "undefined"){
@@ -86,12 +85,6 @@ function cli(program){
 				response.database = cmd.database;
 			}
 
-			if(cmd.env === false){
-				response.env = false;
-			}else{
-				response.env = true;
-			}
-
 			// Use Inquirer to ask for missing info
 			const answer = await inquirer.prompt(questions);
 
@@ -114,22 +107,6 @@ function cli(program){
 					response.url = `${schema}://${username}:${password}@${host}${port}/${database}?${regexResult.groups.options || ""}`;
 				}else{
 					throw new Error(`Invalid database server URL: ${schema}://${username}:${password}@${host}${port}/${database}?${regexResult.groups.options || ""}`);
-				}
-
-				// Create .env file if needed
-				if(response.env){
-					const data = `database_host=${response.url}`;
-					console.log("Writing to .env ... ");
-
-					if(!cmd.preview){
-						fs.appendFile("./.env", `\n${data}`).then(() => {
-							console.log("Written .env file");
-						});
-					}
-				}else{
-					const data = `database_host=${response.url}`;
-					console.log("Please set the following in your environment vairables:");
-					console.log(data);
 				}
 
 				await init(response.url, cmd.preview);
