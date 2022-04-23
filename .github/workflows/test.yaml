@@ -24,7 +24,7 @@ jobs:
           mongodb-password: root
           mongodb-db: admin
 
-      - run: mongo dynamic_record -u root -p root --authenticationDatabase admin --eval 'db.createUser({user:"test_user",pwd:"test_user",roles:["readWrite"]});'
+      - run: mongo --ssl dynamic_record -u root -p root --authenticationDatabase admin --eval 'db.createUser({user:"test_user",pwd:"test_user",roles:["readWrite"]});'
 
       - name: Install dependencies
         run: npm install
@@ -32,4 +32,4 @@ jobs:
       - name: Run test
         run: npm test
         env: 
-          database_host: "mongodb://test_user:test_user@localhost:27017/dynamic_record"
+          database_host: "mongodbs://test_user:test_user@localhost:27017/dynamic_record"
