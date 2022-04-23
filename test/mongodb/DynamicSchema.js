@@ -39,8 +39,6 @@ describe("Schema", function(){
 		connection = createConnection(process.env.database_host);
 
 		Random = createInstance(connection, testSchema.$id);
-
-		await connection.interface;
 	});
 
 	// Close all database connections
@@ -300,6 +298,12 @@ describe("Schema", function(){
 		});
 
 		describe("auto increment", function(){
+			before(async function(){
+				await utils.resetTestTables();
+				await utils.setupSuite();
+				Random = createInstance(connection, testSchema.$id);
+			});
+
 			it("should create an entry in _counters collection if set as auto increment", async function(){
 				const client = await connect;
 				const db = client.db();
