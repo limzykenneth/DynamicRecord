@@ -41,6 +41,8 @@ export abstract class DynamicSchema{
 	jsonSchema:TableSchema;
 
 	/**
+	 * **(DEPRECATED - Use `createSchemaInstance()` instead)**
+	 *
 	 * Create an new DynamicSchema instance
 	 *
 	 * @name DynamicSchema

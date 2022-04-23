@@ -2,6 +2,13 @@ import {MongoClient} from "mongodb";
 import * as mysql from "mysql2/promise";
 import {DRConnection} from "./interfaces/connection";
 
+/**
+ * Create a connection object that can be used by DynamicRecord instances.
+ *
+ * @method createConnection
+ * @param {string} url	Full connection URL for the database in question
+ * @return {object} - Return the created connection object
+ */
 export function createConnection(url: string): DRConnection {
 	const databaseURIRegex = /^(?<protocol>.+?):\/\/(?:(?<username>.+?)(?::(?<password>.+))?@)?(?<host>.+?)(?::(?<port>\d+?))?(?:\/(?<database>.+?))?(?:\?(?<options>.+?))?$/;
 	const regexResult = url.match(databaseURIRegex);
@@ -54,6 +61,14 @@ import {DynamicRecord as DRMongoDB} from "./mongodb/DynamicRecord";
 import {DynamicRecord as DRMySQL} from "./mysql/DynamicRecord";
 import {DataObject} from "./interfaces/DynamicRecord";
 
+/**
+ * Create an instance of DynamicRecord that uses established connection.
+ *
+ * @method createInstance
+ * @param {object} connection	Connection object created with `createConnection()`
+ * @param {string} tableSlug	Identifier for the table to use with this instance
+ * @return {DynamicRecord} - Return the created DynamicRecord instance
+ */
 export function createInstance<DataObject extends object>(connection: DRConnection, tableSlug): DynamicRecord<DataObject> {
 	if(connection.type === "mongodb"){
 		return new DRMongoDB<DataObject>({tableSlug, connection});
@@ -69,6 +84,13 @@ import {DynamicSchema} from "./DynamicSchema";
 import {DynamicSchema as DRSMongoDB} from "./mongodb/DynamicSchema";
 import {DynamicSchema as DRSMySQL} from "./mysql/DynamicSchema";
 
+/**
+ * Create an instance of DynamicSchema that uses established connection.
+ *
+ * @method createSchemaInstance
+ * @param {object} connection	Connection object created with `createConnection()`
+ * @return {DynamicSchema} - Return the created DynamicSchema instance
+ */
 export function createSchemaInstance(connection: DRConnection): DynamicSchema {
 	if(connection.type === "mongodb"){
 		return new DRSMongoDB({connection});
@@ -84,6 +106,14 @@ import {DynamicCollection} from "./DynamicCollection";
 import {DynamicCollection as DRCMongoDB} from "./mongodb/DynamicCollection";
 import {DynamicCollection as DRCMySQL} from "./mysql/DynamicCollection";
 
+/**
+ * Create an instance of DynamicCollection that uses established connection.
+ *
+ * @method createCollection
+ * @param {object} connection	Connection object created with `createConnection()`
+ * @param {object} Model	The Model constructor to use for this collection
+ * @return {DynamicCollection} - Return the created DynamicCollection instance
+ */
 export function createCollection<DataObject extends object>(connection: DRConnection, Model, ...data): DynamicCollection<DataObject> {
 	if(connection.type === "mongodb"){
 		return new DRCMongoDB<DataObject>(Model, ...data);

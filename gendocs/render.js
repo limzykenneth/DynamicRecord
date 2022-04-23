@@ -19,6 +19,14 @@ Handlebars.registerHelper("ifNotEmpty", (context, options) => {
 	}
 });
 
+Handlebars.registerHelper("ifIsDefined", (context, options) => {
+	if(!_.isUndefined(context)){
+		return options.fn(context);
+	}else{
+		return "";
+	}
+});
+
 Handlebars.registerHelper("ifEquals", (a, b, options) => {
 	if (a == b) {
 		return options.fn(this);
@@ -89,7 +97,19 @@ module.exports = async function(data){
 		await fsp.writeFile(path.join(__dirname, `../docs/${name}.html`), result);
 	});
 
-	_.each(data.globals, (glb) => {
+	_.each(data.globals, async (glb) => {
+		const page = renderPage("item", {
+			data: glb
+		});
 
+		const result = template({
+			title: "DynamicRecord",
+			version: pjson.version,
+			body: page,
+			data: data,
+			selected: glb.name
+		});
+
+		await fsp.writeFile(path.join(__dirname, `../docs/${glb.name}.html`), result);
 	});
 };

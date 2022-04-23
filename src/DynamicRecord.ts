@@ -11,6 +11,8 @@ export abstract class DynamicRecord<DataObject extends object> {
 	schema: Promise<DynamicSchema>;
 
 	/**
+	 * **(DEPRECATED - Use `createInstance()` instead)**
+	 *
 	 * Creates a new DynamicRecord instance.
 	 *
 	 * @name DynamicRecord

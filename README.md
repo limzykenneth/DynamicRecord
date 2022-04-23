@@ -14,7 +14,6 @@ Dynamic Record is a database abstraction package for node.js that is inspired by
 2. Ensure you have your database running and you have the appropriate credentials to be used with the app. (You will need read/write permissions)
 3. Run the initialization script with `npx dynamic-record init`.
 4. Follow the steps in the wizard and everything will be setup correctly for you. Or you can run `npx dynamic-record init` by providing flags and arguments that can be found using `npx dynamic-record init --help`.
-5. Environment variable `database_host` needs to be set in the format of `[schema]://[username]:[password]@[host]:[port]/[database]` (eg. `mongodb://username:password@localhost:27017/my_blog`) when running DynamicRecord. You can pass a `-e` flag to `npx dynamic-record init` to automatically write this setting to a `.env` file which you can read in your app with [`dotenv`](https://www.npmjs.com/package/dotenv).
 
 ## Usage
 Although the API is more or less as how we wanted it to be, changes can still occur. Documentation of the API is available at [https://dynamic-record.js.org/](https://dynamic-record.js.org/)
@@ -29,7 +28,7 @@ Next we look at Dynamic Record in a bit more detail. Dynamic Record is split int
 
 Before diving into the individual parts, we need to explain a few concepts.
 
-First is that for each table (or collection if you are using MongoDB) in your database, you will create an instance of [`DynamicRecord`](#dynamicrecord) and it will be responsible for handling all read write operations to the database. Dynamic Record uses a single pooled connection to the database for the moment.
+First is that for each table (or collection if you are using MongoDB) in your database, you will create an instance of [`DynamicRecord`](#dynamicrecord) and it will be responsible for handling all read write operations to the database.
 
 Next is the idea of models and collections. If you have used an MVC framework such as Backbone before, you will be familiar with this concept. We are borrowing quite directly from the concept in Backbone where models are wrapped data objects and collections are an array-like object that contains multiple entries of models. This corresponds to [`DynamicRecord.Model`](#dynamicrecordmodel) and [`DynamicCollection`](#dynamiccollection) respectively. These instances handle write operations to the database.
 
@@ -37,14 +36,19 @@ Finally for each table in the database they will have their own schema defined w
 
 
 ---
+#### **Database connection**
+We will need to create a database connection that can be passed to create DynamicRecord instances. These database connection can be reused across multiple instances of DynamicRecord, DynamicSchema, or DynamicCollection objects. You can also create multiple database connection each connecting to a different database server and instantiate DynamicRecord objects with them.
+```javascript
+const connection = require("dynamic-record").createConnection(database_url);
+```
 
 #### **`DynamicSchema`**
 Before creating any entries in the database with Dynamic Record, you will first need to define the tables that are going to be used.
 
 In your app, you can create an instance of `DynamicSchema` as follow.
 ```javascript
-const DynamicSchema = require("dynamic-record").DynamicSchema;
-const mySchema = new DynamicSchema();
+const createSchemaInstance = require("dynamic-record").createSchemaInstance;
+const mySchema = createSchemaInstance(connection);
 ```
 
 This will create an empty instance of `DynamicSchema` but it will do nothing else. To create a table in the database with a set schema, call `createTable()` on the instance and provide to it a parameter in the form of a [JSON Schema](https://json-schema.org/) object.
@@ -61,9 +65,9 @@ monarchSchema.createTable(monarchSchema).then(() => {
 This is the main entry point to the ORM. You can initialize an instance of `DynamicRecord` with the following snippet.
 
 ```javascript
-const DynamicRecord = require("dynamic-record");
+const createInstance = require("dynamic-record").createInstance;
 
-const myTable = new DynamicRecord({tableSlug: "myTableSlug"});
+const myTable = createInstance(connection, "myTableSlug");
 ```
 
 With the created instance you can fetch a particular entry from the database by providing a query object to match with `findBy()`.
@@ -78,8 +82,8 @@ myTable.findBy({name: "Henry V"}).then((entry) => {
 `DynamicRecord.Model` is a wrapper for the objects returned by any query function under [`DynamicRecord`](#dynamicrecord), it is also used to create new models to be inserted into the database. To create a new instance of `DynamicRecord.Model` use the following snippet.
 
 ```javascript
-const DynamicRecord = require("dynamic-record");
-const myTable = new DynamicRecord({tableSlug: "myTableSlug"});
+const createInstance = require("dynamic-record").createInstance;
+const myTable = createInstance(connection, "myTableSlug");
 
 const newKing = new myTable.Model({
 	name: "Henry VI",
@@ -106,9 +110,9 @@ newKing.save().then(() => {
 `DynamicCollection` is usually returned by query functions of a `DynamicRecord` instance that returns more than one entry such as `where()`. You can also create your own `DynamicCollection` instance for easy manipulation of a series of models.
 
 ```javascript
-const DynamicCollection = require("dynamic-record").DynamicCollection;
+const createCollection = require("dynamic-record").createCollection;
 
-const myCollection = new DynamicCollection();
+const myCollection = createCollection(connection, Model, ...data);
 ```
 
 `DynamicCollection` extends the native Javascript Array object and thus inherits all of the array functions including `push()`, `forEach()` and `map()`. The difference is that you should only store `DynamicRecord.Model` instances in a `DynamicCollection`.
@@ -130,7 +134,8 @@ myCollection.saveAll().then(() => {
 3. To build the library, run `npm run build`
 4. To run the test:
 	1. Make sure you have a database server running and a database already setup with the right user permission.
-	2. You can use the CLI tool manually with `node tools/cli.js init` to set up the environment as documented [above](#installation), or you can write the following to a `.env` file manually (changing value where appropriate)
+	2. You can use the CLI tool manually with `node tools/cli.js init` to set up the environment as documented [above](#installation).
+	3. Set the following value in a `.env` file in the root of the project, adapting value as appropriate. Note this is only needed for automated tests of this repo.
 
 	```
 	database_host=mongodb://test_user:test_password@localhost:27017/dynamic_record

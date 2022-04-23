@@ -3,6 +3,8 @@ import {ModelConstructor} from "./DynamicRecord";
 
 export abstract class DynamicCollection<DataObject extends object> extends Array{
 	/**
+	 * **(DEPRECATED - Use `createCollection()` instead)**
+	 *
 	 * Creates a new DynamicCollection instance.
 	 *
 	 * DynamicCollection is an extension of the native Array object thus
