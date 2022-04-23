@@ -20,14 +20,14 @@ jobs:
         uses: supercharge/mongodb-github-action@1.7.0
         with:
           mongodb-version: "5.0"
-          mongodb-username: test_user
-          mongodb-password: test_user
-          mongodb-db: dynamic_record
+          mongodb-username: root
+          mongodb-password: root
+          mongodb-db: admin
+
+      - run: mongo mongo_test_db --eval 'db.createUser({user:"travis",pwd:"test",roles:["readWrite"]});'
 
       - name: Install dependencies
         run: npm install
-
-      - run: sleep 15
 
       - name: Run test
         run: npm test
