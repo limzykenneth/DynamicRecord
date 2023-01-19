@@ -12,11 +12,9 @@ jobs:
     services:
       mongodb:
         image: mongo:${{ matrix.mongodb-version }}
-        options: >-
-          --health-cmd "echo 'db.runCommand("ping").ok' | mongosh --quiet"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        environment:
+          MONGO_INITDB_ROOT_USERNAME: test_user
+          MONGO_INITDB_ROOT_PASSWORD: test_user
         ports:
           - 27017:27017
 
@@ -29,8 +27,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Add database user
-        run: docker exec -it mongodb mongosh dynamic_record --eval 'db.createUser({user:"test_user",pwd:"test_user",roles:["readWrite"]});'
+      # - name: Add database user
+      #   run: docker exec -it mongodb mongosh dynamic_record --eval 'db.createUser({user:"test_user",pwd:"test_user",roles:["readWrite"]});'
 
       - name: Install dependencies
         run: npm install
