@@ -9,14 +9,14 @@ jobs:
         node-version: [14.x, 16.x, 18.x]
         mongodb-version: [6.0.3, 5.0.14]
 
-    services:
-      mongodb:
-        image: mongo:${{ matrix.mongodb-version }}
-        env:
-          MONGO_INITDB_ROOT_USERNAME: test_user
-          MONGO_INITDB_ROOT_PASSWORD: test_user
-        ports:
-          - 27017:27017
+    # services:
+    #   mongodb:
+    #     image: mongo:${{ matrix.mongodb-version }}
+    #     env:
+    #       MONGO_INITDB_ROOT_USERNAME: test_user
+    #       MONGO_INITDB_ROOT_PASSWORD: test_user
+    #     ports:
+    #       - 27017:27017
 
     steps:
       - name: Git checkout
@@ -29,6 +29,13 @@ jobs:
 
       # - name: Add database user
       #   run: docker exec -it mongodb mongosh dynamic_record --eval 'db.createUser({user:"test_user",pwd:"test_user",roles:["readWrite"]});'
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.8.0
+        with:
+          mongodb-version: ${{ matrix.mongodb-version }}
+          mongodb-username: test_user
+          mongodb-password: test_user
+          mongodb-db: dynamic_record
 
       - name: Install dependencies
         run: npm install
