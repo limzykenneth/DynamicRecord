@@ -12,7 +12,7 @@ jobs:
     services:
       mongodb:
         image: mongo:${{ matrix.mongodb-version }}
-        environment:
+        env:
           MONGO_INITDB_ROOT_USERNAME: test_user
           MONGO_INITDB_ROOT_PASSWORD: test_user
         ports:
