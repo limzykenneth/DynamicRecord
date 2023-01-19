@@ -30,7 +30,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Add database user
-        run: docker exec -it mongo mongosh dynamic_record --eval 'db.createUser({user:"test_user",pwd:"test_user",roles:["readWrite"]});'
+        run: docker exec -it mongo:${{ matrix.mongodb-version }} mongosh dynamic_record --eval 'db.createUser({user:"test_user",pwd:"test_user",roles:["readWrite"]});'
 
       - name: Install dependencies
         run: npm install
