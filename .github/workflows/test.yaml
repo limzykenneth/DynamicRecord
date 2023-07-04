@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [14.x, 16.x, 18.x]
+        node-version: [16.x, 18.x, 20.x]
         mongodb-version: [6.0.3, 5.0.14]
 
     services:
@@ -42,4 +42,4 @@ jobs:
       - name: Run test
         run: npm test
         env: 
-          database_host: "mongodb://test_user:test_user@localhost:27017/dynamic_record"
+          database_host: "mongodb://test_user:test_user@127.0.0.1:27017/dynamic_record"

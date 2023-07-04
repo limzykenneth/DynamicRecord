@@ -29,7 +29,7 @@ if(!regexResult.options){
 }
 
 const url = `${regexResult.schema}://${regexResult.username}:${regexResult.password}@${regexResult.host}${regexResult.port || ""}/${regexResult.database}?${regexResult.options}`;
-
+console.log(url);
 let utils = function(connect){
 	this.databaseType = constants.databaseEnums[regexResult.schema];
 	this.connect = connect;
