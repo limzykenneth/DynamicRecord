@@ -14,10 +14,7 @@ const {
 
 // Database specific dependencies
 const MongoClient = require("mongodb").MongoClient;
-const connect = MongoClient.connect(url, {
-	useUnifiedTopology: true,
-	useNewUrlParser: true
-});
+const connect = MongoClient.connect(url);
 
 // Setup helpers
 const utils = new utility.utils(connect);
